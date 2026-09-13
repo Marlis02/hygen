@@ -1,4 +1,5 @@
 import { copyFileSync, existsSync } from "node:fs";
+import { homedir } from "node:os";
 import { join } from "node:path";
 import type { VideoSpec } from "./spec.ts";
 import { parseBeatText } from "./spec.ts";
@@ -34,7 +35,7 @@ interface LineMeta {
 export async function makeVoices(spec: VideoSpec, videoDir: string, buildDir: string): Promise<VoiceLine[]> {
   const bin = hyperframesBin();
   const outDir = ensureDir(join(buildDir, "assets", "voice"));
-  return pool(spec.beats, 3, async (beat, i) => {
+  const line1 = async (beat: VideoSpec["beats"][number], i: number): Promise<VoiceLine> => {
     const { tts } = parseBeatText(beat.text);
     const key = sha({ v: 1, ...spec.voice, tts, pad: beat.pad, fps: spec.fps });
     const cacheDir = ensureDir(join(videoDir, ".cache", "voice", `${beat.id}-${key}`));
@@ -70,5 +71,14 @@ export async function makeVoices(spec: VideoSpec, videoDir: string, buildDir: st
       tts,
       cached,
     };
-  });
+  };
+  // Cold machine: the model downloads inside `hyperframes tts`, so three parallel calls would
+  // fetch the same 330 МБ three times. The first line goes alone and warms the cache (TRAPS.md).
+  const cold = !existsSync(join(homedir(), ".cache", "hyperframes", "tts", "models", "kokoro-v1.0.onnx"));
+  const first = spec.beats[0];
+  if (!cold || !first) return pool(spec.beats, 3, line1);
+  log.info("модели Kokoro нет в кэше — первая строка синтезируется отдельно, чтобы скачать её один раз");
+  const head = await line1(first, 0);
+  const tail = await pool(spec.beats.slice(1), 3, (beat, i) => line1(beat, i + 1));
+  return [head, ...tail];
 }
