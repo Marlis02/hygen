@@ -1,0 +1,9 @@
+{
+  "title": "Sunda Strait between Sumatra and Java — land silhouette",
+  "source": "Natural Earth 1:50m Physical Vectors, land (ne_50m_land), via github.com/nvkelso/natural-earth-vector",
+  "author": "Natural Earth (naturalearthdata.com)",
+  "license": "Public domain",
+  "url": "https://www.naturalearthdata.com/downloads/50m-physical-vectors/50m-land/",
+  "retrieved": "2026-09-14",
+  "notes": "Traced with engine/py/trace_map.py: box lon 103.5…107.64, lat −7.9…−4.3 onto the map window x 60–1020, y 150–990; Douglas–Peucker 0.8 px. Krakatoa 6.102 S 105.423 E lands at x 506, y 570. The Krakatoa islands are below the 1:50m detail and are not drawn."
+}

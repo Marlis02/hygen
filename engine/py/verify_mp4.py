@@ -9,7 +9,7 @@ Reads the rendered file itself, never the composition: snapshots and the render 
   loudness  integrated −14 ±0.5 LUFS, true peak ≤ −1.5 dBTP (ffmpeg ebur128)
   blank     every scene shows structure above the caption band, not only its ground
   frozen    every scene moves, and each planned event (reveal, count, collapse) visibly changes the frame
-  settled   at each scene's settle time the MP4 frame matches a fresh snapshot of the composition:
+  settled   at each scene's settle time the MP4 frame matches a fresh snapshot of the composition above the caption band:
             a counter stuck between values or a layer that never drew shows up as a local difference
 
 Writes a JSON report and a contact sheet (two frames per scene). Exit code 1 when a check fails.
@@ -194,7 +194,9 @@ def main():
             for sc, t, png in zip(plan["scenes"], times, pair_snapshots(shots, times)):
                 snap = np.asarray(Image.open(png).convert("L").resize((108, 192), Image.BOX), dtype=np.float32)
                 vid = to_gray(frame_rgb(a.mp4, t, 108, 192))
-                diff = float(uniform_filter(np.abs(snap - vid), size=12).max())
+                # scene state only: the snapshot can still hold a caption group the render has already cleared (TRAPS.md)
+                crow = max(1, int(round(plan["contentMaxY"] / plan["height"] * 192)))
+                diff = float(uniform_filter(np.abs(snap - vid)[:crow], size=12).max())
                 row = next(s for s in scenes if s["id"] == sc["id"])
                 row["settle"] = {"t": t, "max_block_diff": round(diff, 1), "snapshot": os.path.basename(png)}
                 worst = max(worst, diff)
