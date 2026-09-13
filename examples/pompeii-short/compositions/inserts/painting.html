@@ -1,0 +1,85 @@
+<template id="painting-insert-template">
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<style>
+@font-face{font-family:"Inter";font-weight:500;font-style:normal;font-display:block;src:url("assets/fonts/Inter-500.woff2") format("woff2");}
+@font-face{font-family:"Inter";font-weight:600;font-style:normal;font-display:block;src:url("assets/fonts/Inter-600.woff2") format("woff2");}
+</style>
+<style>
+  #root { position: relative; width: 1080px; height: 1920px; overflow: hidden; }
+  #painting-insert-ground { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; background-color: #0A0A09; }
+  /* z-index: stays above the opaque shader-scene layer, below vignette (30) and captions (35) */
+  #painting-insert-stage { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; overflow: hidden; z-index: 25; }
+  /* slow push toward the crater (crater sits ~23% from the left, ~49% down in this crop) */
+  #painting-insert-camera { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; transform-origin: 30% 45%; }
+  #painting-insert-img { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; object-fit: cover; display: block; }
+  #painting-insert-ash { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; }
+  #painting-insert-credit { position: absolute; right: 90px; top: 120px; text-align: right; font-family: "Inter", sans-serif; font-weight: 600; font-size: 26px; line-height: 1.3; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(236, 231, 222, 0.85); white-space: nowrap; }
+  #painting-insert-credit-sub { display: block; font-weight: 500; font-size: 22px; letter-spacing: 0.06em; text-transform: none; color: rgba(236, 231, 222, 0.7); }
+</style>
+<div data-hf-id="hf-k9w4" id="root" data-composition-id="painting-insert" data-start="0" data-duration="3.15" data-width="1080" data-height="1920">
+  <div data-hf-id="hf-psp7" id="painting-insert-ground" class="clip" data-start="0" data-duration="3.15" data-track-index="0"></div>
+  <div data-hf-id="hf-f4wr" id="painting-insert-stage" class="clip" data-start="0" data-duration="3.15" data-track-index="1">
+    <div data-hf-id="hf-utbv" id="painting-insert-camera">
+      <img data-hf-id="hf-o5od" id="painting-insert-img" src="assets/images/volaire-vesuvius.jpg" alt="Пьер-Жак Волер. Извержение Везувия">
+    </div>
+    <canvas data-hf-id="hf-xfy8" id="painting-insert-ash" width="540" height="960"></canvas>
+    <div data-hf-id="hf-r38q" id="painting-insert-credit">Пьер-Жак Волер<span data-hf-id="hf-qiaw" id="painting-insert-credit-sub">«Извержение Везувия», XVIII век</span></div>
+  </div>
+</div>
+<script>
+(function () {
+  var D = 3.15;
+  var tl = gsap.timeline({ paused: true });
+  var camera = document.getElementById("painting-insert-camera");
+  var ctx = document.getElementById("painting-insert-ash").getContext("2d");
+  var W = 540, H = 960;
+
+  // falling ash and a few embers over the painting — seeded, every position is a pure function of time
+  function rand(n) { var x = Math.sin(n * 91.7 + 47.3) * 43758.5453; return x - Math.floor(x); }
+  var FLAKES = [];
+  for (var i = 0; i < 260; i++) {
+    var ember = rand(i + 0.5) < 0.12;
+    FLAKES.push({
+      x: rand(i + 1.1) * W, y: rand(i + 2.3) * H,
+      r: ember ? 0.7 + rand(i + 3.7) * 0.9 : 0.6 + rand(i + 4.1) * 1.6,
+      vy: (ember ? 38 : 55) + rand(i + 5.9) * 70,
+      vx: -14 - rand(i + 6.2) * 18,
+      sw: 3 + rand(i + 7.4) * 7, sp: 0.8 + rand(i + 8.8) * 1.6, ph: rand(i + 9.6) * 6.283,
+      a: ember ? 0.9 : 0.35 + rand(i + 10.3) * 0.45, ember: ember
+    });
+  }
+  function draw(t) {
+    ctx.clearRect(0, 0, W, H);
+    for (var i = 0; i < FLAKES.length; i++) {
+      var f = FLAKES[i];
+      var y = ((f.y + f.vy * t) % (H + 20)) - 10;
+      var x = ((((f.x + f.vx * t + Math.sin(f.ph + f.sp * t) * f.sw) % (W + 20)) + W + 20) % (W + 20)) - 10;
+      if (f.ember) {
+        var flick = 0.65 + 0.35 * Math.sin(f.ph * 3 + t * 9);
+        ctx.globalAlpha = f.a * flick * 0.35;
+        ctx.fillStyle = "#FF5A1F";
+        ctx.beginPath(); ctx.arc(x, y, f.r * 3.2, 0, 6.283); ctx.fill();
+        ctx.globalAlpha = f.a * flick;
+        ctx.fillStyle = "#FFB27A";
+        ctx.beginPath(); ctx.arc(x, y, f.r, 0, 6.283); ctx.fill();
+      } else {
+        ctx.globalAlpha = f.a;
+        ctx.fillStyle = i % 3 ? "#8C877F" : "#A39E95";
+        ctx.beginPath(); ctx.arc(x, y, f.r, 0, 6.283); ctx.fill();
+      }
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  // one full-span driver: the canvas never freezes on a seek
+  var clock = { t: 0 };
+  draw(0);
+  tl.fromTo(clock, { t: 0 }, { t: D, duration: D, ease: "none", onUpdate: function () { draw(clock.t); } }, 0);
+  tl.fromTo(camera, { scale: 1.04, x: 10, y: 0 }, { scale: 1.17, x: -16, y: 14, duration: D, ease: "none" }, 0);
+  tl.fromTo("#painting-insert-credit", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }, 0.35);
+
+  window.__timelines = window.__timelines || {};
+  window.__timelines["painting-insert"] = tl;
+})();
+</script>
+</template>

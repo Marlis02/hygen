@@ -1,0 +1,10 @@
+{
+  "frame_starts_s": [0, 3.721, 12.012, 21.557, 30.815, 38.102],
+  "total_s": 43.469,
+  "peak_s": 14.43,
+  "cut_s": 38.102,
+  "ash_duration_s": 18.803,
+  "ash_swell_s": 5.08,
+  "ash_debris_s": 8.24,
+  "notes": "peak = frame 3 start + «Везувий» (2.12 s) + 0.3 s (the eruption; brief's 12th second). cut = frame 6 start (the two seconds of silence; brief's 32nd second). ash-fall runs from frame 3 start through the end of frame 4; swell on «С неба падает пемза», debris on «Крыши не выдерживают»."
+}

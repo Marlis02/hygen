@@ -1,0 +1,958 @@
+{
+  "total_duration_s": 43.469,
+  "width": 1080,
+  "height": 1920,
+  "groups": [
+    {
+      "id": "caption-group-0",
+      "frame": 1,
+      "start": 0.305,
+      "end": 1.326,
+      "text": "За восемнадцать часов",
+      "words": [
+        {
+          "id": "caption-word-0-0",
+          "text": "За",
+          "start": 0.305,
+          "end": 0.412
+        },
+        {
+          "id": "caption-word-0-1",
+          "text": "восемнадцать",
+          "start": 0.427,
+          "end": 1.025
+        },
+        {
+          "id": "caption-word-0-2",
+          "text": "часов",
+          "start": 1.04,
+          "end": 1.311
+        }
+      ]
+    },
+    {
+      "id": "caption-group-1",
+      "frame": 1,
+      "start": 1.326,
+      "end": 2.714,
+      "text": "процветающий город перестал",
+      "words": [
+        {
+          "id": "caption-word-1-0",
+          "text": "процветающий",
+          "start": 1.326,
+          "end": 1.964
+        },
+        {
+          "id": "caption-word-1-1",
+          "text": "город",
+          "start": 1.979,
+          "end": 2.25
+        },
+        {
+          "id": "caption-word-1-2",
+          "text": "перестал",
+          "start": 2.265,
+          "end": 2.699
+        }
+      ]
+    },
+    {
+      "id": "caption-group-2",
+      "frame": 1,
+      "start": 2.714,
+      "end": 3.431,
+      "text": "существовать.",
+      "words": [
+        {
+          "id": "caption-word-2-0",
+          "text": "существовать.",
+          "start": 2.714,
+          "end": 3.311
+        }
+      ]
+    },
+    {
+      "id": "caption-group-3",
+      "frame": 2,
+      "start": 3.926,
+      "end": 5.141,
+      "text": "Помпеи римский портовый",
+      "words": [
+        {
+          "id": "caption-word-3-0",
+          "text": "Помпеи",
+          "start": 3.926,
+          "end": 4.316
+        },
+        {
+          "id": "caption-word-3-1",
+          "text": "римский",
+          "start": 4.331,
+          "end": 4.676
+        },
+        {
+          "id": "caption-word-3-2",
+          "text": "портовый",
+          "start": 4.691,
+          "end": 5.126
+        }
+      ]
+    },
+    {
+      "id": "caption-group-4",
+      "frame": 2,
+      "start": 5.141,
+      "end": 5.561,
+      "text": "город.",
+      "words": [
+        {
+          "id": "caption-word-4-0",
+          "text": "город.",
+          "start": 5.141,
+          "end": 5.441
+        }
+      ]
+    },
+    {
+      "id": "caption-group-5",
+      "frame": 2,
+      "start": 5.846,
+      "end": 7.016,
+      "text": "Около одиннадцати тысяч",
+      "words": [
+        {
+          "id": "caption-word-5-0",
+          "text": "Около",
+          "start": 5.846,
+          "end": 6.133
+        },
+        {
+          "id": "caption-word-5-1",
+          "text": "одиннадцати",
+          "start": 6.148,
+          "end": 6.737
+        },
+        {
+          "id": "caption-word-5-2",
+          "text": "тысяч",
+          "start": 6.752,
+          "end": 7.001
+        }
+      ]
+    },
+    {
+      "id": "caption-group-6",
+      "frame": 2,
+      "start": 7.016,
+      "end": 7.461,
+      "text": "жителей.",
+      "words": [
+        {
+          "id": "caption-word-6-0",
+          "text": "жителей.",
+          "start": 7.016,
+          "end": 7.341
+        }
+      ]
+    },
+    {
+      "id": "caption-group-7",
+      "frame": 2,
+      "start": 7.746,
+      "end": 8.171,
+      "text": "Термы,",
+      "words": [
+        {
+          "id": "caption-word-7-0",
+          "text": "Термы,",
+          "start": 7.746,
+          "end": 8.051
+        }
+      ]
+    },
+    {
+      "id": "caption-group-8",
+      "frame": 2,
+      "start": 8.216,
+      "end": 8.861,
+      "text": "амфитеатр,",
+      "words": [
+        {
+          "id": "caption-word-8-0",
+          "text": "амфитеатр,",
+          "start": 8.216,
+          "end": 8.741
+        }
+      ]
+    },
+    {
+      "id": "caption-group-9",
+      "frame": 2,
+      "start": 8.936,
+      "end": 9.571,
+      "text": "водопровод.",
+      "words": [
+        {
+          "id": "caption-word-9-0",
+          "text": "водопровод.",
+          "start": 8.936,
+          "end": 9.451
+        }
+      ]
+    },
+    {
+      "id": "caption-group-10",
+      "frame": 2,
+      "start": 9.856,
+      "end": 10.957,
+      "text": "Вулкан рядом считали",
+      "words": [
+        {
+          "id": "caption-word-10-0",
+          "text": "Вулкан",
+          "start": 9.856,
+          "end": 10.193
+        },
+        {
+          "id": "caption-word-10-1",
+          "text": "рядом",
+          "start": 10.208,
+          "end": 10.501
+        },
+        {
+          "id": "caption-word-10-2",
+          "text": "считали",
+          "start": 10.516,
+          "end": 10.942
+        }
+      ]
+    },
+    {
+      "id": "caption-group-11",
+      "frame": 2,
+      "start": 10.957,
+      "end": 11.722,
+      "text": "обычной горой.",
+      "words": [
+        {
+          "id": "caption-word-11-0",
+          "text": "обычной",
+          "start": 10.957,
+          "end": 11.338
+        },
+        {
+          "id": "caption-word-11-1",
+          "text": "горой.",
+          "start": 11.353,
+          "end": 11.602
+        }
+      ]
+    },
+    {
+      "id": "caption-group-12",
+      "frame": 3,
+      "start": 12.217,
+      "end": 13.287,
+      "text": "Семьдесят девятый год",
+      "words": [
+        {
+          "id": "caption-word-12-0",
+          "text": "Семьдесят",
+          "start": 12.217,
+          "end": 12.692
+        },
+        {
+          "id": "caption-word-12-1",
+          "text": "девятый",
+          "start": 12.707,
+          "end": 13.093
+        },
+        {
+          "id": "caption-word-12-2",
+          "text": "год",
+          "start": 13.108,
+          "end": 13.272
+        }
+      ]
+    },
+    {
+      "id": "caption-group-13",
+      "frame": 3,
+      "start": 13.287,
+      "end": 13.882,
+      "text": "нашей эры.",
+      "words": [
+        {
+          "id": "caption-word-13-0",
+          "text": "нашей",
+          "start": 13.287,
+          "end": 13.539
+        },
+        {
+          "id": "caption-word-13-1",
+          "text": "эры.",
+          "start": 13.554,
+          "end": 13.762
+        }
+      ]
+    },
+    {
+      "id": "caption-group-14",
+      "frame": 3,
+      "start": 14.137,
+      "end": 15.46,
+      "text": "Везувий выбрасывает колонну",
+      "words": [
+        {
+          "id": "caption-word-14-0",
+          "text": "Везувий",
+          "start": 14.137,
+          "end": 14.462
+        },
+        {
+          "id": "caption-word-14-1",
+          "text": "выбрасывает",
+          "start": 14.477,
+          "end": 15.067
+        },
+        {
+          "id": "caption-word-14-2",
+          "text": "колонну",
+          "start": 15.082,
+          "end": 15.445
+        }
+      ]
+    },
+    {
+      "id": "caption-group-15",
+      "frame": 3,
+      "start": 15.46,
+      "end": 15.838,
+      "text": "пепла на",
+      "words": [
+        {
+          "id": "caption-word-15-0",
+          "text": "пепла",
+          "start": 15.46,
+          "end": 15.709
+        },
+        {
+          "id": "caption-word-15-1",
+          "text": "на",
+          "start": 15.724,
+          "end": 15.823
+        }
+      ]
+    },
+    {
+      "id": "caption-group-16",
+      "frame": 3,
+      "start": 15.838,
+      "end": 16.812,
+      "text": "тридцать километров.",
+      "words": [
+        {
+          "id": "caption-word-16-0",
+          "text": "тридцать",
+          "start": 15.838,
+          "end": 16.163
+        },
+        {
+          "id": "caption-word-16-1",
+          "text": "километров.",
+          "start": 16.178,
+          "end": 16.692
+        }
+      ]
+    },
+    {
+      "id": "caption-group-17",
+      "frame": 3,
+      "start": 17.097,
+      "end": 17.477,
+      "text": "С неба",
+      "words": [
+        {
+          "id": "caption-word-17-0",
+          "text": "С",
+          "start": 17.097,
+          "end": 17.177
+        },
+        {
+          "id": "caption-word-17-1",
+          "text": "неба",
+          "start": 17.192,
+          "end": 17.462
+        }
+      ]
+    },
+    {
+      "id": "caption-group-18",
+      "frame": 3,
+      "start": 17.477,
+      "end": 18.342,
+      "text": "падает пемза",
+      "words": [
+        {
+          "id": "caption-word-18-0",
+          "text": "падает",
+          "start": 17.477,
+          "end": 17.89
+        },
+        {
+          "id": "caption-word-18-1",
+          "text": "пемза",
+          "start": 17.904,
+          "end": 18.222
+        }
+      ]
+    },
+    {
+      "id": "caption-group-19",
+      "frame": 3,
+      "start": 18.457,
+      "end": 19.592,
+      "text": "по нескольку сантиметров",
+      "words": [
+        {
+          "id": "caption-word-19-0",
+          "text": "по",
+          "start": 18.457,
+          "end": 18.559
+        },
+        {
+          "id": "caption-word-19-1",
+          "text": "нескольку",
+          "start": 18.574,
+          "end": 18.99
+        },
+        {
+          "id": "caption-word-19-2",
+          "text": "сантиметров",
+          "start": 19.005,
+          "end": 19.577
+        }
+      ]
+    },
+    {
+      "id": "caption-group-20",
+      "frame": 3,
+      "start": 19.592,
+      "end": 19.932,
+      "text": "в час.",
+      "words": [
+        {
+          "id": "caption-word-20-0",
+          "text": "в",
+          "start": 19.592,
+          "end": 19.655
+        },
+        {
+          "id": "caption-word-20-1",
+          "text": "час.",
+          "start": 19.67,
+          "end": 19.812
+        }
+      ]
+    },
+    {
+      "id": "caption-group-21",
+      "frame": 3,
+      "start": 20.257,
+      "end": 21.267,
+      "text": "Крыши не выдерживают.",
+      "words": [
+        {
+          "id": "caption-word-21-0",
+          "text": "Крыши",
+          "start": 20.257,
+          "end": 20.486
+        },
+        {
+          "id": "caption-word-21-1",
+          "text": "не",
+          "start": 20.501,
+          "end": 20.59
+        },
+        {
+          "id": "caption-word-21-2",
+          "text": "выдерживают.",
+          "start": 20.605,
+          "end": 21.147
+        }
+      ]
+    },
+    {
+      "id": "caption-group-22",
+      "frame": 4,
+      "start": 22.162,
+      "end": 22.544,
+      "text": "Под утро",
+      "words": [
+        {
+          "id": "caption-word-22-0",
+          "text": "Под",
+          "start": 22.162,
+          "end": 22.3
+        },
+        {
+          "id": "caption-word-22-1",
+          "text": "утро",
+          "start": 22.315,
+          "end": 22.529
+        }
+      ]
+    },
+    {
+      "id": "caption-group-23",
+      "frame": 4,
+      "start": 22.544,
+      "end": 23.717,
+      "text": "колонна обрушивается.",
+      "words": [
+        {
+          "id": "caption-word-23-0",
+          "text": "колонна",
+          "start": 22.544,
+          "end": 22.91
+        },
+        {
+          "id": "caption-word-23-1",
+          "text": "обрушивается.",
+          "start": 22.925,
+          "end": 23.597
+        }
+      ]
+    },
+    {
+      "id": "caption-group-24",
+      "frame": 4,
+      "start": 23.942,
+      "end": 25.171,
+      "text": "Раскалённая лавина идёт",
+      "words": [
+        {
+          "id": "caption-word-24-0",
+          "text": "Раскалённая",
+          "start": 23.942,
+          "end": 24.562
+        },
+        {
+          "id": "caption-word-24-1",
+          "text": "лавина",
+          "start": 24.577,
+          "end": 24.918
+        },
+        {
+          "id": "caption-word-24-2",
+          "text": "идёт",
+          "start": 24.933,
+          "end": 25.156
+        }
+      ]
+    },
+    {
+      "id": "caption-group-25",
+      "frame": 4,
+      "start": 25.171,
+      "end": 25.608,
+      "text": "со склона",
+      "words": [
+        {
+          "id": "caption-word-25-0",
+          "text": "со",
+          "start": 25.171,
+          "end": 25.275
+        },
+        {
+          "id": "caption-word-25-1",
+          "text": "склона",
+          "start": 25.29,
+          "end": 25.593
+        }
+      ]
+    },
+    {
+      "id": "caption-group-26",
+      "frame": 4,
+      "start": 25.608,
+      "end": 26.163,
+      "text": "со скоростью",
+      "words": [
+        {
+          "id": "caption-word-26-0",
+          "text": "со",
+          "start": 25.608,
+          "end": 25.712
+        },
+        {
+          "id": "caption-word-26-1",
+          "text": "скоростью",
+          "start": 25.727,
+          "end": 26.148
+        }
+      ]
+    },
+    {
+      "id": "caption-group-27",
+      "frame": 4,
+      "start": 26.163,
+      "end": 27.194,
+      "text": "около ста километров",
+      "words": [
+        {
+          "id": "caption-word-27-0",
+          "text": "около",
+          "start": 26.163,
+          "end": 26.465
+        },
+        {
+          "id": "caption-word-27-1",
+          "text": "ста",
+          "start": 26.48,
+          "end": 26.624
+        },
+        {
+          "id": "caption-word-27-2",
+          "text": "километров",
+          "start": 26.639,
+          "end": 27.179
+        }
+      ]
+    },
+    {
+      "id": "caption-group-28",
+      "frame": 4,
+      "start": 27.194,
+      "end": 27.537,
+      "text": "в час.",
+      "words": [
+        {
+          "id": "caption-word-28-0",
+          "text": "в",
+          "start": 27.194,
+          "end": 27.258
+        },
+        {
+          "id": "caption-word-28-1",
+          "text": "час.",
+          "start": 27.273,
+          "end": 27.417
+        }
+      ]
+    },
+    {
+      "id": "caption-group-29",
+      "frame": 4,
+      "start": 27.802,
+      "end": 29.373,
+      "text": "Город запечатывает слой пепла",
+      "words": [
+        {
+          "id": "caption-word-29-0",
+          "text": "Город",
+          "start": 27.802,
+          "end": 28.092
+        },
+        {
+          "id": "caption-word-29-1",
+          "text": "запечатывает",
+          "start": 28.107,
+          "end": 28.878
+        },
+        {
+          "id": "caption-word-29-2",
+          "text": "слой",
+          "start": 28.893,
+          "end": 29.052
+        },
+        {
+          "id": "caption-word-29-3",
+          "text": "пепла",
+          "start": 29.067,
+          "end": 29.358
+        }
+      ]
+    },
+    {
+      "id": "caption-group-30",
+      "frame": 4,
+      "start": 29.373,
+      "end": 30.525,
+      "text": "в четыре–шесть метров.",
+      "words": [
+        {
+          "id": "caption-word-30-0",
+          "text": "в",
+          "start": 29.373,
+          "end": 29.445
+        },
+        {
+          "id": "caption-word-30-1",
+          "text": "четыре–шесть",
+          "start": 29.46,
+          "end": 30.056
+        },
+        {
+          "id": "caption-word-30-2",
+          "text": "метров.",
+          "start": 30.071,
+          "end": 30.405
+        }
+      ]
+    },
+    {
+      "id": "caption-group-31",
+      "frame": 5,
+      "start": 31.02,
+      "end": 32.393,
+      "text": "Помпеи находят только в",
+      "words": [
+        {
+          "id": "caption-word-31-0",
+          "text": "Помпеи",
+          "start": 31.02,
+          "end": 31.505
+        },
+        {
+          "id": "caption-word-31-1",
+          "text": "находят",
+          "start": 31.61,
+          "end": 32.007
+        },
+        {
+          "id": "caption-word-31-2",
+          "text": "только",
+          "start": 32.022,
+          "end": 32.296
+        },
+        {
+          "id": "caption-word-31-3",
+          "text": "в",
+          "start": 32.311,
+          "end": 32.378
+        }
+      ]
+    },
+    {
+      "id": "caption-group-32",
+      "frame": 5,
+      "start": 32.393,
+      "end": 33.094,
+      "text": "тысяча семьсот",
+      "words": [
+        {
+          "id": "caption-word-32-0",
+          "text": "тысяча",
+          "start": 32.393,
+          "end": 32.749
+        },
+        {
+          "id": "caption-word-32-1",
+          "text": "семьсот",
+          "start": 32.764,
+          "end": 33.079
+        }
+      ]
+    },
+    {
+      "id": "caption-group-33",
+      "frame": 5,
+      "start": 33.094,
+      "end": 34.065,
+      "text": "сорок восьмом году.",
+      "words": [
+        {
+          "id": "caption-word-33-0",
+          "text": "сорок",
+          "start": 33.094,
+          "end": 33.368
+        },
+        {
+          "id": "caption-word-33-1",
+          "text": "восьмом",
+          "start": 33.383,
+          "end": 33.698
+        },
+        {
+          "id": "caption-word-33-2",
+          "text": "году.",
+          "start": 33.713,
+          "end": 33.945
+        }
+      ]
+    },
+    {
+      "id": "caption-group-34",
+      "frame": 5,
+      "start": 34.31,
+      "end": 35.447,
+      "text": "Через век археологи",
+      "words": [
+        {
+          "id": "caption-word-34-0",
+          "text": "Через",
+          "start": 34.31,
+          "end": 34.581
+        },
+        {
+          "id": "caption-word-34-1",
+          "text": "век",
+          "start": 34.596,
+          "end": 34.745
+        },
+        {
+          "id": "caption-word-34-2",
+          "text": "археологи",
+          "start": 34.85,
+          "end": 35.432
+        }
+      ]
+    },
+    {
+      "id": "caption-group-35",
+      "frame": 5,
+      "start": 35.447,
+      "end": 36.598,
+      "text": "начинают заливать гипс",
+      "words": [
+        {
+          "id": "caption-word-35-0",
+          "text": "начинают",
+          "start": 35.447,
+          "end": 35.944
+        },
+        {
+          "id": "caption-word-35-1",
+          "text": "заливать",
+          "start": 35.959,
+          "end": 36.37
+        },
+        {
+          "id": "caption-word-35-2",
+          "text": "гипс",
+          "start": 36.385,
+          "end": 36.583
+        }
+      ]
+    },
+    {
+      "id": "caption-group-36",
+      "frame": 5,
+      "start": 36.598,
+      "end": 37.11,
+      "text": "в пустоты",
+      "words": [
+        {
+          "id": "caption-word-36-0",
+          "text": "в",
+          "start": 36.598,
+          "end": 36.669
+        },
+        {
+          "id": "caption-word-36-1",
+          "text": "пустоты",
+          "start": 36.684,
+          "end": 37.095
+        }
+      ]
+    },
+    {
+      "id": "caption-group-37",
+      "frame": 5,
+      "start": 37.11,
+      "end": 37.812,
+      "text": "на месте тел.",
+      "words": [
+        {
+          "id": "caption-word-37-0",
+          "text": "на",
+          "start": 37.11,
+          "end": 37.223
+        },
+        {
+          "id": "caption-word-37-1",
+          "text": "месте",
+          "start": 37.238,
+          "end": 37.521
+        },
+        {
+          "id": "caption-word-37-2",
+          "text": "тел.",
+          "start": 37.536,
+          "end": 37.692
+        }
+      ]
+    },
+    {
+      "id": "caption-group-38",
+      "frame": 6,
+      "start": 40.107,
+      "end": 40.71,
+      "text": "Треть города",
+      "words": [
+        {
+          "id": "caption-word-38-0",
+          "text": "Треть",
+          "start": 40.107,
+          "end": 40.307
+        },
+        {
+          "id": "caption-word-38-1",
+          "text": "города",
+          "start": 40.322,
+          "end": 40.695
+        }
+      ]
+    },
+    {
+      "id": "caption-group-39",
+      "frame": 6,
+      "start": 40.71,
+      "end": 41.4,
+      "text": "не раскопана",
+      "words": [
+        {
+          "id": "caption-word-39-0",
+          "text": "не",
+          "start": 40.71,
+          "end": 40.825
+        },
+        {
+          "id": "caption-word-39-1",
+          "text": "раскопана",
+          "start": 40.84,
+          "end": 41.385
+        }
+      ]
+    },
+    {
+      "id": "caption-group-40",
+      "frame": 6,
+      "start": 41.4,
+      "end": 41.979,
+      "text": "до сих пор.",
+      "words": [
+        {
+          "id": "caption-word-40-0",
+          "text": "до",
+          "start": 41.4,
+          "end": 41.514
+        },
+        {
+          "id": "caption-word-40-1",
+          "text": "сих",
+          "start": 41.529,
+          "end": 41.687
+        },
+        {
+          "id": "caption-word-40-2",
+          "text": "пор.",
+          "start": 41.702,
+          "end": 41.859
+        }
+      ]
+    }
+  ]
+}

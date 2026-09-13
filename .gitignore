@@ -1,0 +1,17 @@
+# Зависимости и сборка
+node_modules/
+dist/
+
+# Рендеры, снимки, кэши
+renders/
+snapshots/
+.thumbnails/
+.waveform-cache/
+
+# Секреты
+.env
+.env.*
+!.env.example
+
+# Локальные настройки Claude Code
+.claude/settings.local.json

@@ -1,0 +1,423 @@
+<template>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<style>
+@font-face{font-family:"Cormorant Garamond";font-weight:500;font-style:normal;font-display:block;src:url("assets/fonts/CormorantGaramond-500.woff2") format("woff2");}
+@font-face{font-family:"Cormorant Garamond";font-weight:600;font-style:normal;font-display:block;src:url("assets/fonts/CormorantGaramond-600.woff2") format("woff2");}
+@font-face{font-family:"Cormorant Garamond";font-weight:700;font-style:normal;font-display:block;src:url("assets/fonts/CormorantGaramond-700.woff2") format("woff2");}
+@font-face{font-family:"Inter";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/Inter-400.woff2") format("woff2");}
+@font-face{font-family:"Inter";font-weight:500;font-style:normal;font-display:block;src:url("assets/fonts/Inter-500.woff2") format("woff2");}
+@font-face{font-family:"Inter";font-weight:600;font-style:normal;font-display:block;src:url("assets/fonts/Inter-600.woff2") format("woff2");}
+@font-face{font-family:"Inter";font-weight:700;font-style:normal;font-display:block;src:url("assets/fonts/Inter-700.woff2") format("woff2");}
+@font-face{font-family:"Inter";font-weight:800;font-style:normal;font-display:block;src:url("assets/fonts/Inter-800.woff2") format("woff2");}
+</style>
+<style>
+  #root { position: relative; width: 1080px; height: 1920px; overflow: hidden; }
+  /* ground: solid ash plane on its own full-duration clip (shader-safe, no gradients) */
+  #f03-eruption-ground { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; background-color: #2E2C29; }
+  #f03-eruption-sky { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; background-color: #0A0A09; opacity: 0; }
+  #f03-eruption-stage { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; overflow: hidden; }
+  #f03-eruption-camera { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; transform-origin: 50% 50%; will-change: transform; }
+  #f03-eruption-world { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; overflow: visible; }
+  #f03-eruption-canvas { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; }
+  /* altitude scale: 1px bone@35% hairlines, ember marker, serif readout */
+  #f03-eruption-axis { position: absolute; left: 990px; top: 150px; width: 1px; height: 861px; background-color: rgba(236, 231, 222, 0.35); transform-origin: 50% 100%; }
+  .f03-eruption-tick { position: absolute; left: 977px; width: 27px; height: 1px; background-color: rgba(236, 231, 222, 0.35); transform-origin: 50% 50%; }
+  #f03-eruption-marker { position: absolute; left: 962px; top: 999px; width: 24px; height: 22px; overflow: visible; }
+  #f03-eruption-readout { position: absolute; left: 715px; top: 1020px; width: 240px; text-align: right; transform-origin: 100% 0%; }
+  #f03-eruption-alt { display: block; font-family: "Cormorant Garamond", serif; font-weight: 600; font-size: 110px; line-height: 0.86; color: #ECE7DE; font-variant-numeric: lining-nums tabular-nums; white-space: nowrap; }
+  #f03-eruption-km { display: block; margin-top: 8px; margin-right: -0.12em; font-family: "Inter", sans-serif; font-weight: 600; font-size: 36px; line-height: 1; letter-spacing: 0.12em; text-transform: uppercase; color: #A39E95; white-space: nowrap; }
+  /* date lockup: 79 + Н. Э. */
+  #f03-eruption-date { position: absolute; left: 90px; top: 122px; display: flex; align-items: baseline; white-space: nowrap; }
+  #f03-eruption-year { display: inline-block; width: 177px; font-family: "Cormorant Garamond", serif; font-weight: 600; font-size: 180px; line-height: 0.92; color: #ECE7DE; font-variant-numeric: lining-nums tabular-nums; transform-origin: 0% 100%; }
+  #f03-eruption-era { display: inline-block; margin-left: 20px; font-family: "Inter", sans-serif; font-weight: 600; font-size: 40px; line-height: 1; letter-spacing: 0.18em; text-transform: uppercase; color: #B6B2AB; }
+  #f03-eruption-word { position: absolute; left: 90px; top: 744px; font-family: "Cormorant Garamond", serif; font-weight: 600; font-size: 72px; line-height: 1.05; letter-spacing: 0.12em; text-transform: uppercase; color: #ECE7DE; white-space: nowrap; }
+</style>
+<div data-hf-id="hf-y8k2" id="root" data-composition-id="03-eruption" data-start="0" data-duration="10.145" data-width="1080" data-height="1920">
+  <div data-hf-id="hf-49kd" id="f03-eruption-ground" class="clip" data-start="0" data-duration="10.145" data-track-index="0">
+    <div data-hf-id="hf-5yaj" id="f03-eruption-sky"></div>
+  </div>
+  <div data-hf-id="hf-464r" id="f03-eruption-stage" class="clip" data-start="0" data-duration="10.145" data-track-index="1">
+    <div data-hf-id="hf-m4td" id="f03-eruption-camera">
+      <svg data-hf-id="hf-cc57" id="f03-eruption-world" viewBox="0 0 1080 1920" width="1080" height="1920" overflow="visible" aria-hidden="true">
+        <polygon data-hf-id="hf-3kpx" id="f03-eruption-cone" points="-60,1920 470,1010 610,1010 1140,1920" fill="#211F1D" />
+        <rect data-hf-id="hf-lc3v" id="f03-eruption-town-ground" x="-140" y="1418" width="1360" height="700" fill="#121110" />
+        <g data-hf-id="hf-rrkn" id="f03-eruption-city" />
+      </svg>
+      <canvas data-hf-id="hf-53hi" id="f03-eruption-canvas" width="540" height="960"></canvas>
+      <div data-hf-id="hf-6upb" id="f03-eruption-axis"></div>
+      <div data-hf-id="hf-dh2f" class="f03-eruption-tick" style="top: 1010px"></div>
+      <div data-hf-id="hf-4syc" class="f03-eruption-tick" style="top: 867px"></div>
+      <div data-hf-id="hf-8o6f" class="f03-eruption-tick" style="top: 723px"></div>
+      <div data-hf-id="hf-qmmg" class="f03-eruption-tick" style="top: 580px"></div>
+      <div data-hf-id="hf-uds7" class="f03-eruption-tick" style="top: 437px"></div>
+      <div data-hf-id="hf-llo7" class="f03-eruption-tick" style="top: 293px"></div>
+      <div data-hf-id="hf-ercb" class="f03-eruption-tick" style="top: 150px"></div>
+      <svg data-hf-id="hf-i8lq" id="f03-eruption-marker" viewBox="0 0 24 22" width="24" height="22" aria-hidden="true"><polygon data-hf-id="hf-g1sk" points="0,11 24,0 24,22" fill="#FF5A1F" /></svg>
+      <div data-hf-id="hf-or1w" id="f03-eruption-readout"><span data-hf-id="hf-2qss" id="f03-eruption-alt" data-layout-allow-overlap="">0</span><span data-hf-id="hf-v7uj" id="f03-eruption-km">КМ</span></div>
+      <div data-hf-id="hf-4w5c" id="f03-eruption-date"><span data-hf-id="hf-yjnq" id="f03-eruption-year">0</span><span data-hf-id="hf-is2c" id="f03-eruption-era">Н. Э.</span></div>
+      <div data-hf-id="hf-j1xj" id="f03-eruption-word">ПЕМЗА</div>
+    </div>
+  </div>
+</div>
+<script>
+(function () {
+  "use strict";
+  var DUR = 9.545;
+  var TAU = Math.PI * 2;
+  var CX = 540, CY = 1010;                 // crater: flat top x 470-610 on y 1010
+  var T_ERUPT = 2.12, RISE = 2.05;         // eruption on "Vesuvius"; leading edge lands on "kilometres" (4.17)
+  var HTOP = 860, K_RISE = 1.8;            // 30 km = 860 px above the crater (28.67 px/km)
+  var NORM = 1 - Math.exp(-K_RISE * RISE);
+  var UMB_H = 680;                         // above y ~330 the column opens into Pliny's umbrella
+  var INK = "#121110", ASH3 = "#3A3835", ASH_MID = "#5A5650", ASH_LIGHT = "#8C877F", EMBER = "#FF5A1F";
+
+  function prand(n) { var x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); }
+  function clamp01(v) { return v < 0 ? 0 : (v > 1 ? 1 : v); }
+  // exponential deceleration, normalised so a particle reaches its full height exactly RISE s after birth
+  function riseE(a) { if (a <= 0) return 0; if (a >= RISE) return 1; return (1 - Math.exp(-K_RISE * a)) / NORM; }
+
+  function byId(id) { return document.getElementById(id); }
+  var sky = byId("f03-eruption-sky"), camera = byId("f03-eruption-camera"), city = byId("f03-eruption-city");
+  var canvas = byId("f03-eruption-canvas"), ctx = canvas.getContext("2d");
+  var axis = byId("f03-eruption-axis"), marker = byId("f03-eruption-marker"), readout = byId("f03-eruption-readout");
+  var altEl = byId("f03-eruption-alt"), yearEl = byId("f03-eruption-year"), eraEl = byId("f03-eruption-era");
+  var wordEl = byId("f03-eruption-word");
+  var ticks = Array.prototype.slice.call(byId("f03-eruption-stage").querySelectorAll(".f03-eruption-tick"));
+
+  // ---- town: 7 cut-paper silhouettes on the ground line y 1420, temple pediment in the middle ----
+  var SVGNS = "http://www.w3.org/2000/svg";
+  function svgEl(tag, attrs, parent) {
+    var el = document.createElementNS(SVGNS, tag);
+    for (var k in attrs) el.setAttribute(k, String(attrs[k]));
+    parent.appendChild(el);
+    return el;
+  }
+  var HOUSES = [
+    { L: -8, R: 140, e: 1336, r: 1278, o: 6 },
+    { L: 154, R: 272, e: 1356, r: 1302, o: 6 },
+    { L: 286, R: 446, e: 1326, r: 1262, o: 6 },
+    { L: 450, R: 630, e: 1318, r: 1272, o: 4, temple: true },
+    { L: 652, R: 812, e: 1340, r: 1282, o: 6 },
+    { L: 826, R: 936, e: 1352, r: 1300, o: 6 },
+    { L: 950, R: 1098, e: 1330, r: 1268, o: 6 }
+  ];
+  var TH = 9;                              // final pumice layer thickness on each slope
+  var roofs = [], strips = [];
+  HOUSES.forEach(function (hs, j) {
+    var M = (hs.L + hs.R) / 2, lx = hs.L - hs.o, rx = hs.R + hs.o, e = hs.e, r = hs.r;
+    var g = svgEl("g", { id: "f03-eruption-house-" + j }, city);
+    if (hs.temple) {
+      svgEl("rect", { x: hs.L, y: e - 1, width: hs.R - hs.L, height: 19, fill: INK }, g);
+      for (var c = 0; c < 4; c++) svgEl("rect", { x: (462 + c * 45.33).toFixed(2), y: 1335, width: 20, height: 67, fill: INK }, g);
+      svgEl("rect", { x: hs.L - 4, y: 1400, width: hs.R - hs.L + 8, height: 11, fill: INK }, g);
+      svgEl("rect", { x: hs.L - 12, y: 1410, width: hs.R - hs.L + 24, height: 12, fill: INK }, g);
+    } else {
+      svgEl("rect", { x: hs.L, y: e - 1, width: hs.R - hs.L, height: 1423 - e, fill: INK }, g);
+    }
+    var left = svgEl("g", { id: "f03-eruption-roof-l" + j }, g);
+    svgEl("polygon", { points: lx + "," + e + " " + M + "," + r + " " + (M + 1) + "," + (r + 1) + " " + (M + 1) + "," + e, fill: INK }, left);
+    var right = svgEl("g", { id: "f03-eruption-roof-r" + j }, g);
+    svgEl("polygon", { points: M + "," + r + " " + rx + "," + e + " " + M + "," + e, fill: INK }, right);
+    // pumice layer lies on each slope; its local y=0 is the slope line, so scale(1 p) grows it off the roof
+    var dxL = M - lx, dyL = r - e, dxR = rx - M, dyR = e - r;
+    var lenL = Math.sqrt(dxL * dxL + dyL * dyL), lenR = Math.sqrt(dxR * dxR + dyR * dyR);
+    var baseL = svgEl("g", { transform: "translate(" + lx + " " + e + ") rotate(" + (Math.atan2(dyL, dxL) * 180 / Math.PI).toFixed(3) + ")" }, left);
+    var layerL = svgEl("g", { transform: "scale(1 0)" }, baseL);
+    svgEl("rect", { x: -2, y: -TH, width: (lenL + 4).toFixed(2), height: TH, fill: ASH_LIGHT }, layerL);
+    var baseR = svgEl("g", { transform: "translate(" + M + " " + r + ") rotate(" + (Math.atan2(dyR, dxR) * 180 / Math.PI).toFixed(3) + ")" }, right);
+    var layerR = svgEl("g", { transform: "scale(1 0)" }, baseR);
+    svgEl("rect", { x: -2, y: -TH, width: (lenR + 4).toFixed(2), height: TH, fill: ASH_LIGHT }, layerR);
+    strips.push(layerL, layerR);
+    roofs.push({ left: left, right: right, lx: lx, rx: rx, e: e, at: 8.24 + 0.07 * j, cx: M, half: (hs.R - hs.L) / 2 });
+  });
+
+  // ---- particle pools: seeded, index-derived constants; every frame is recomputed from t ----
+  var NC = 1600, NFRONT = 70;
+  var cB = new Float32Array(NC), cS = new Float32Array(NC), cQ = new Float32Array(NC), cXi = new Float32Array(NC);
+  var cP1 = new Float32Array(NC), cP2 = new Float32Array(NC), cP3 = new Float32Array(NC);
+  var cR = new Float32Array(NC), cA = new Float32Array(NC), cEnter = new Float32Array(NC), cBody = new Uint8Array(NC);
+  var COL_COLORS = [INK, ASH_LIGHT, ASH3, ASH_MID];      // bottom -> top: light ash glows from inside a mid-grey cloud
+  var colGroups = [[], [], [], []];
+  for (var i = 0; i < NC; i++) {
+    var front = i < NFRONT;                // the leading cap that defines the column top
+    var body = !front && prand(i * 10.3 + 4.7) < 0.36;   // trunk particles: rise, stall, dissipate
+    var xi = prand(i * 3.7 + 1.3) * 2 - 1;
+    cXi[i] = (xi < 0 ? -1 : 1) * Math.pow(Math.abs(xi), 0.85);
+    cBody[i] = body ? 1 : 0;
+    cB[i] = T_ERUPT + (front ? 0.06 * prand(i * 2.9 + 5.3) : 7.425 * Math.pow(prand(i * 1.37 + 0.11), body ? 1.0 : 1.45));
+    cS[i] = front ? 0.985 + 0.015 * prand(i * 3.3 + 1.7) : 0.38 + 0.62 * Math.sqrt(prand(i * 2.11 + 0.7));
+    cQ[i] = front ? 1 - 0.05 * cXi[i] * cXi[i] - 0.01 * prand(i * 4.1 + 2.2)
+      : (body ? 0.3 + 0.45 * prand(i * 5.7 + 3.1) : 0.8 + 0.2 * Math.sqrt(prand(i * 5.7 + 3.1)));
+    cP1[i] = prand(i * 6.1 + 4.4) * TAU; cP2[i] = prand(i * 6.9 + 0.8) * TAU; cP3[i] = prand(i * 7.7 + 2.9) * TAU;
+    cR[i] = front ? 14 + 12 * prand(i * 8.3 + 1.2) : 6 + 14 * Math.pow(prand(i * 7.3 + 0.9), 1.4);
+    cA[i] = 0.18 + 0.32 * prand(i * 8.9 + 2.6);
+    cEnter[i] = body ? 1e6 : -Math.log(1 - (UMB_H / (cQ[i] * HTOP)) * NORM) / K_RISE / cS[i];   // age when it crosses y ~330
+    var cr = prand(i * 9.7 + 6.3);
+    colGroups[cr < 0.15 ? 0 : (cr < 0.3 ? 1 : (cr < 0.65 ? 2 : 3))].push(i);
+  }
+  var NS = 46;                             // rare ember sparks in the lower 12 % of the column
+  var sP = new Float32Array(NS), sSt = new Float32Array(NS), sH = new Float32Array(NS), sX = new Float32Array(NS), sR = new Float32Array(NS), sW = new Float32Array(NS);
+  for (var s = 0; s < NS; s++) {
+    sP[s] = 0.55 + 0.45 * prand(s * 11.3 + 7.1);
+    sSt[s] = T_ERUPT + prand(s * 12.7 + 3.3) * sP[s];
+    sH[s] = 60 + 43 * prand(s * 13.1 + 1.9);
+    sX[s] = prand(s * 14.3 + 8.2) * 2 - 1;
+    sR[s] = 2 + 2 * prand(s * 15.7 + 4.4);
+    sW[s] = prand(s * 16.3 + 0.6) * TAU;
+  }
+  var NW = 24;                             // faint smoulder wisps before the eruption
+  var wP = new Float32Array(NW), wO = new Float32Array(NW), wH = new Float32Array(NW), wX = new Float32Array(NW), wR = new Float32Array(NW);
+  for (var w = 0; w < NW; w++) {
+    wP[w] = 2.4 + 0.9 * prand(w * 16.1 + 2.7);
+    wO[w] = prand(w * 17.3 + 5.1);
+    wH[w] = 90 + 60 * prand(w * 18.7 + 3.9);
+    wX[w] = prand(w * 19.9 + 1.1) * 2 - 1;
+    wR[w] = 3 * prand(w * 20.3 + 2.2);
+  }
+  var NP = 500;                            // pumice: diagonal modular fall, density ramps up from 5.08 s
+  var pSt = new Float32Array(NP), pL = new Float32Array(NP), pX0 = new Float32Array(NP), pR = new Float32Array(NP), pPh = new Float32Array(NP);
+  for (var q = 0; q < NP; q++) {
+    pSt[q] = 5.08 + 3.1 * Math.pow(prand(q * 5.3 + 2.1), 1.28);
+    pL[q] = 1.15 + 0.6 * prand(q * 6.7 + 0.5);
+    pX0[q] = -40 + 1640 * prand(q * 7.9 + 1.7);
+    pR[q] = 1.5 + 2.5 * Math.pow(prand(q * 8.3 + 4.9), 1.5);
+    pPh[q] = prand(q * 9.1 + 3.3) * TAU;
+  }
+
+  // ---- canvas drawing: pure functions of t (1080x1920 coordinates on a 540x960 store) ----
+  function drawGlow(t) {
+    var e = clamp01((t - T_ERUPT) / 0.25); e = e * e * (3 - 2 * e);
+    var flick = 0.5 * Math.sin(t * 6.1) + 0.3 * Math.sin(t * 9.7 + 1.3) + 0.2 * Math.sin(t * 3.3 + 0.4);
+    var burst = t >= T_ERUPT ? Math.exp(-(t - T_ERUPT) / 0.35) : 0;
+    var rad = 44 + 72 * e + 40 * burst + 5 * flick;
+    var al = Math.min(0.45, 0.26 + 0.14 * e + 0.05 * flick + 0.05 * burst);
+    var grd = ctx.createRadialGradient(CX, CY, 0, CX, CY, rad);
+    grd.addColorStop(0, "rgba(255,90,31," + al.toFixed(3) + ")");
+    grd.addColorStop(0.45, "rgba(255,90,31," + (al * 0.4).toFixed(3) + ")");
+    grd.addColorStop(1, "rgba(255,90,31,0)");
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = grd;
+    ctx.beginPath(); ctx.arc(CX, CY, rad, 0, TAU); ctx.fill();
+    ctx.globalAlpha = clamp01(0.72 + 0.18 * flick + 0.2 * e);
+    ctx.fillStyle = EMBER;
+    ctx.beginPath(); ctx.ellipse(CX, CY + 1, 22 + 34 * e, 2.4 + 1.6 * e, 0, 0, TAU); ctx.fill();
+  }
+  function drawWisps(t) {
+    var fade = 1 - clamp01((t - T_ERUPT) / 0.8);
+    if (fade <= 0) return;
+    for (var k = 0; k < NW; k++) {
+      var ph = (t / wP[k] + wO[k]) % 1;
+      ctx.globalAlpha = 0.26 * Math.sin(Math.PI * ph) * fade;
+      ctx.fillStyle = k % 2 ? ASH_LIGHT : ASH_MID;
+      ctx.beginPath();
+      ctx.arc(CX + wX[k] * 12 - ph * 26 + 6 * Math.sin(t * 1.7 + k), CY - 8 - ph * wH[k], 5 + 8 * ph + wR[k], 0, TAU);
+      ctx.fill();
+    }
+  }
+  function drawColumn(t) {
+    for (var gi = 0; gi < 4; gi++) {
+      var list = colGroups[gi];
+      ctx.fillStyle = COL_COLORS[gi];
+      for (var n = 0; n < list.length; n++) {
+        var i = list[n];
+        var a = t - cB[i];
+        if (a <= 0) continue;
+        var xr = a * cS[i], fadeOut = 1;
+        if (cBody[i]) {                     // trunk particles thin out once they stall
+          fadeOut = 1 - clamp01((xr - 1.4) / 1.0);
+          if (fadeOut <= 0) continue;
+        }
+        var h = cQ[i] * HTOP * riseE(xr) + (cBody[i] ? 30 * Math.max(0, xr - 1.4) : 0);
+        var hn = h / HTOP;
+        var tau = a - cEnter[i];
+        var off, sag = 0, bonus = 0;
+        if (tau > 0) {                      // umbrella: spreads left/right, edges droop
+          var uw = 130 + 125 * (1 - Math.exp(-tau / 0.7)) + 50 * (1 - Math.exp(-tau / 3));
+          off = cXi[i] * uw;
+          var over = (Math.abs(off) - 130) / 190;
+          if (over > 0) sag = over * over * 45;
+          bonus = 10 * clamp01(tau / 2);
+        } else {                            // column body: 40 px at the vent, widening with height
+          off = cXi[i] * (20 + 110 * Math.pow(Math.min(1, h / UMB_H), 1.2));
+        }
+        var amp = 6 + 16 * hn;
+        var x = CX - 55 * hn * hn + off + amp * Math.sin(1.3 * t + cP1[i] + h * 0.011) + 0.5 * amp * Math.sin(1.84 * t + cP2[i]);
+        var y = CY - h + sag + 0.35 * amp * Math.sin(1.1 * t + cP3[i]);
+        var rad = cR[i] * (0.6 + 0.4 * Math.min(1, h / UMB_H)) + bonus;
+        if (rad < 6) rad = 6; else if (rad > 32) rad = 32;
+        var al = cA[i] * clamp01(a / 0.12) * fadeOut;     // soft particle: halo + core
+        ctx.globalAlpha = al * 0.5;
+        ctx.beginPath(); ctx.arc(x, y, rad, 0, TAU); ctx.fill();
+        ctx.globalAlpha = al * 0.7;
+        ctx.beginPath(); ctx.arc(x, y, rad * 0.6, 0, TAU); ctx.fill();
+      }
+    }
+  }
+  function drawSparks(t) {
+    ctx.fillStyle = EMBER;
+    for (var k = 0; k < NS; k++) {
+      var ag = t - sSt[k];
+      if (ag < 0) continue;
+      var ph = (ag % sP[k]) / sP[k];
+      ctx.globalAlpha = 0.9 * (1 - ph) * clamp01(ag / 0.08);
+      ctx.beginPath();
+      ctx.arc(CX + sX[k] * (12 + 28 * ph) + 4 * Math.sin(t * 7.3 + sW[k]), CY - 4 - ph * sH[k], sR[k] * (1 - 0.4 * ph), 0, TAU);
+      ctx.fill();
+    }
+  }
+  function drawDust(t) {
+    for (var j = 0; j < roofs.length; j++) {
+      var rf = roofs[j];
+      if (t <= rf.at + 0.14) continue;
+      for (var k = 0; k < 20; k++) {
+        var sd = j * 31 + k;
+        var ad = t - (rf.at + 0.14 + 0.2 * prand(sd * 1.9 + 0.3));
+        if (ad <= 0) continue;
+        var grow = 1 - Math.exp(-ad / 0.55);
+        ctx.fillStyle = k % 3 === 0 ? ASH_LIGHT : ASH_MID;
+        var dal = 0.36 * clamp01(ad / 0.1) * (0.4 + 0.6 * Math.exp(-ad / 0.9));
+        var ddx = rf.cx + (prand(sd * 2.3 + 1.1) * 2 - 1) * rf.half * (0.55 + 0.45 * grow) + 10 * Math.sin(t * 1.9 + sd);
+        var ddy = rf.e + 6 - (40 + 90 * prand(sd * 2.9 + 2.2)) * grow;
+        var ddr = 5 + 6 * prand(sd * 3.7 + 0.4) + 22 * grow;
+        ctx.globalAlpha = dal * 0.5;
+        ctx.beginPath(); ctx.arc(ddx, ddy, ddr, 0, TAU); ctx.fill();
+        ctx.globalAlpha = dal * 0.7;
+        ctx.beginPath(); ctx.arc(ddx, ddy, ddr * 0.6, 0, TAU); ctx.fill();
+      }
+    }
+  }
+  var pxA = new Float32Array(NP), pyA = new Float32Array(NP), pOn = new Uint8Array(NP);
+  function drawPumice(t) {
+    var any = false, q;
+    for (q = 0; q < NP; q++) {
+      pOn[q] = 0;
+      var ap = t - pSt[q];
+      if (ap < 0) continue;
+      var cyc = ap / pL[q], n = Math.floor(cyc), ph = cyc - n;
+      var y = -40 + ph * 2000;
+      var x0 = pX0[q] + ((n * 397) % 1640);
+      if (x0 > 1600) x0 -= 1640;
+      var x = x0 - 0.26 * (y + 40) + 5 * Math.sin(ph * 9.4 + pPh[q]);
+      if (x < -30 || x > 1110) continue;
+      pxA[q] = x; pyA[q] = y; pOn[q] = 1; any = true;
+    }
+    if (!any) return;
+    ctx.strokeStyle = ASH_LIGHT; ctx.fillStyle = ASH_LIGHT; ctx.lineCap = "round";
+    for (var pass = 0; pass < 2; pass++) {
+      var big = pass === 1;
+      ctx.globalAlpha = 0.22;
+      ctx.lineWidth = big ? 3.4 : 2.2;
+      ctx.beginPath();
+      for (q = 0; q < NP; q++) {
+        if (!pOn[q] || (pR[q] > 2.6) !== big) continue;
+        ctx.moveTo(pxA[q], pyA[q]);
+        ctx.lineTo(pxA[q] + 1.17 * pR[q], pyA[q] - 4.5 * pR[q]);
+      }
+      ctx.stroke();
+      ctx.globalAlpha = 0.85;
+      ctx.beginPath();
+      for (q = 0; q < NP; q++) {
+        if (!pOn[q] || (pR[q] > 2.6) !== big) continue;
+        ctx.moveTo(pxA[q] + pR[q], pyA[q]);
+        ctx.arc(pxA[q], pyA[q], pR[q], 0, TAU);
+      }
+      ctx.fill();
+    }
+  }
+  // altitude marker + readout: same function as the drawn column top, so they cannot drift apart
+  var lastAlt = -1;
+  function hud(t) {
+    var e = riseE(t - T_ERUPT);
+    var hpx = HTOP * e;
+    marker.style.transform = "translateY(" + (-hpx).toFixed(2) + "px)";
+    readout.style.transform = "translateY(" + (-hpx).toFixed(2) + "px) scale(" + (0.62 + 0.38 * e).toFixed(4) + ")";
+    var v = Math.round(30 * e);
+    if (v !== lastAlt) { altEl.textContent = String(v); lastAlt = v; }
+  }
+  function render(t) {
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.globalAlpha = 1;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.setTransform(canvas.width / 1080, 0, 0, canvas.height / 1920, 0, 0);
+    drawGlow(t);
+    drawWisps(t);
+    drawColumn(t);
+    drawSparks(t);
+    drawDust(t);
+    drawPumice(t);
+    ctx.globalAlpha = 1;
+    hud(t);
+  }
+
+  // ---- multi-phase camera: phase scale + sine drift + impact rumble, one writer, pure function of t ----
+  var eOut = gsap.parseEase("power2.out"), eInOut = gsap.parseEase("power2.inOut");
+  function camScale(t) {
+    if (t < 1.8) return 1.015 - 0.015 * eOut(t / 1.8);           // settle after the cut
+    if (t < 5.08) return 1;                                       // neutral while the column climbs the scale
+    if (t < 7.68) return 1 + 0.012 * eInOut((t - 5.08) / 2.6);   // slow push as the pumice falls
+    if (t < 8.24) return 1.012;
+    return 1.012 + 0.013 * eOut(clamp01((t - 8.24) / 1.3));      // push on the collapse
+  }
+  function writeCamera(t) {
+    var s = camScale(t);
+    var p = TAU * 1.5 * (t / DUR);
+    var dx = 4 * Math.sin(p), dy = 2 * Math.sin(p * 1.3);
+    for (var j = 0; j < 7; j++) {
+      var d = t - (8.59 + 0.07 * j);
+      if (d <= 0) continue;
+      var env = 1.4 * Math.exp(-d / 0.16);
+      dx += env * Math.sin(d * 57 + j * 1.7);
+      dy += env * 0.8 * Math.sin(d * 44 + j * 2.3 + 1);
+    }
+    var ty = 810 * (1 - 1 / s);                                   // pins y 150: the date and the 30 KM readout never rise
+    camera.style.transform = "scale(" + s.toFixed(5) + ") translate(" + dx.toFixed(2) + "px, " + (ty + dy).toFixed(2) + "px)";
+  }
+
+  gsap.set("#f03-eruption-city", { x: -3, y: -66 });
+
+  gsap.set("#f03-eruption-world", { rotationX: 2, rotationY: -11 });
+
+  // ---- timeline ----
+  var tl = gsap.timeline({ paused: true });
+  var clock = { t: 0 };
+  tl.fromTo(clock, { t: 0 }, { t: DUR, duration: DUR, ease: "none", onUpdate: function () { render(clock.t); } }, 0);
+  var drift = { t: 0 };
+  tl.fromTo(drift, { t: 0 }, { t: DUR, duration: DUR, ease: "none", onUpdate: function () { writeCamera(drift.t); } }, 0);
+
+  // Scene 1: 79 counts up on "Семьдесят девятый", Н. Э. on "эры"
+  // property tween (not onUpdate): a seek that lands past its end still writes 79
+  tl.fromTo(yearEl, { textContent: 0 }, { textContent: 79, snap: { textContent: 1 }, duration: 1, ease: "power2.out" }, 0.2);
+  tl.fromTo(yearEl, { scale: 0.55 }, { scale: 1, duration: 1, ease: "power2.out" }, 0.2);
+  tl.fromTo(eraEl, { opacity: 0, x: -14 }, { opacity: 1, x: 0, duration: 0.5, ease: "power2.out" }, 1.54);
+
+  // Scene 2: axis draws on "Везувий", marker + readout ride the column top, sky darkens
+  tl.fromTo(axis, { scaleY: 0 }, { scaleY: 1, duration: 0.4, ease: "power2.out" }, T_ERUPT);
+  tl.fromTo(ticks, { scaleX: 0 }, { scaleX: 1, duration: 0.22, ease: "power2.out", stagger: 0.055 }, T_ERUPT + 0.02);
+  tl.fromTo([marker, readout], { opacity: 0 }, { opacity: 1, duration: 0.25, ease: "power1.out" }, T_ERUPT);
+  tl.fromTo(sky, { opacity: 0 }, { opacity: 0.5, duration: 2.2, ease: "power1.inOut" }, T_ERUPT);
+
+  // Scene 4: ПЕМЗА wipes in on "пемза"; pumice layers grow on every roof from "по нескольку"
+  tl.fromTo(wordEl, { clipPath: "inset(-30% 100% -30% -4%)" }, { clipPath: "inset(-30% -8% -30% -4%)", duration: 0.5, ease: "power2.inOut" }, 5.89);
+  var layer = { p: 0 };
+  tl.fromTo(layer, { p: 0 }, { p: 1, duration: 1.75, ease: "power1.inOut", onUpdate: function () {
+    var sy = "scale(1 " + layer.p.toFixed(4) + ")";
+    for (var k = 0; k < strips.length; k++) strips[k].setAttribute("transform", sy);
+  } }, 6.45);
+
+  // Scene 5: roofs give way left to right (0.07 s step): halves drop 26 px, rotate ±10°, then hold
+  roofs.forEach(function (rf) {
+    var st = { p: 0 };
+    tl.fromTo(st, { p: 0 }, { p: 1, duration: 0.35, ease: "power2.in", onUpdate: function () {
+      var dy = (26 * st.p).toFixed(2), ang = 10 * st.p;
+      rf.left.setAttribute("transform", "translate(0 " + dy + ") rotate(" + ang.toFixed(3) + " " + rf.lx + " " + rf.e + ")");
+      rf.right.setAttribute("transform", "translate(0 " + dy + ") rotate(" + (-ang).toFixed(3) + " " + rf.rx + " " + rf.e + ")");
+    } }, rf.at);
+  });
+
+  render(0);
+  writeCamera(0);
+  window.__timelines = window.__timelines || {};
+  window.__timelines["03-eruption"] = tl;
+})();
+</script>
+</template>

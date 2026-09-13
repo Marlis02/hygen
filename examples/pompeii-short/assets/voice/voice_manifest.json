@@ -1,0 +1,73 @@
+{
+  "provider": "silero",
+  "model": "v5_ru",
+  "speaker": "eugene",
+  "rate": "medium",
+  "pitch": "low",
+  "sample_rate": 48000,
+  "target_lufs_mono": -16.2,
+  "ceiling_dbtp": -2.5,
+  "lines": [
+    {
+      "frame": 1,
+      "path": "assets/voice/01.wav",
+      "duration_s": 3.721,
+      "speech_start_s": 0.3,
+      "speech_end_s": 3.321,
+      "lufs_mono": -16.5,
+      "true_peak_dbtp": -2.5,
+      "text": "За восемнадцать часов процветающий город перестал существовать."
+    },
+    {
+      "frame": 2,
+      "path": "assets/voice/02.wav",
+      "duration_s": 8.291,
+      "speech_start_s": 0.2,
+      "speech_end_s": 7.891,
+      "lufs_mono": -17.0,
+      "true_peak_dbtp": -2.5,
+      "text": "Помпеи — римский портовый город. Около одиннадцати тысяч жителей. Термы, амфитеатр, водопровод. Вулкан рядом считали обычной горой."
+    },
+    {
+      "frame": 3,
+      "path": "assets/voice/03.wav",
+      "duration_s": 9.545,
+      "speech_start_s": 0.2,
+      "speech_end_s": 9.145,
+      "lufs_mono": -16.7,
+      "true_peak_dbtp": -2.5,
+      "text": "Семьдесят девятый год нашей эры. Везувий выбрасывает колонну пепла на тридцать километров. С неба падает пемза — по нескольку сантиметров в час. Крыши не выдерживают."
+    },
+    {
+      "frame": 4,
+      "path": "assets/voice/04.wav",
+      "duration_s": 9.258,
+      "speech_start_s": 0.6,
+      "speech_end_s": 8.858,
+      "lufs_mono": -16.6,
+      "true_peak_dbtp": -2.5,
+      "text": "Под утро колонна обрушивается. Раскалённая лавина идёт со склона со скоростью около ста километров в час. Город запечатывает слой пепла в четыре–шесть метров."
+    },
+    {
+      "frame": 5,
+      "path": "assets/voice/05.wav",
+      "duration_s": 7.287,
+      "speech_start_s": 0.2,
+      "speech_end_s": 6.887,
+      "lufs_mono": -16.6,
+      "true_peak_dbtp": -2.5,
+      "text": "Помпеи находят только в тысяча семьсот сорок восьмом году. Через век археологи начинают заливать гипс в пустоты на месте тел."
+    },
+    {
+      "frame": 6,
+      "path": "assets/voice/06.wav",
+      "duration_s": 5.367,
+      "speech_start_s": 2.0,
+      "speech_end_s": 3.767,
+      "lufs_mono": -16.4,
+      "true_peak_dbtp": -2.5,
+      "text": "Треть города не раскопана до сих пор."
+    }
+  ],
+  "total_duration_s": 43.469
+}
