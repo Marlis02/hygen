@@ -1,0 +1,17 @@
+{
+  "name": "hygen",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "engine"
+  ],
+  "scripts": {
+    "build": "node engine/src/cli.ts build",
+    "doctor": "node engine/src/cli.ts doctor",
+    "verify": "node engine/src/cli.ts verify",
+    "typecheck": "npm --workspace engine run typecheck"
+  },
+  "engines": {
+    "node": ">=22.18"
+  }
+}

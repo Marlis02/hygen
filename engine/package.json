@@ -1,0 +1,22 @@
+{
+  "name": "@hygen/engine",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "hygen": "src/cli.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@hyperframes/core": "0.8.36",
+    "@hyperframes/shader-transitions": "0.8.36",
+    "gsap": "3.14.2",
+    "hyperframes": "0.8.36"
+  },
+  "devDependencies": {
+    "@types/node": "26.5.1",
+    "typescript": "7.0.2"
+  }
+}

@@ -1,0 +1,84 @@
+{
+  "id": "pompeii-en",
+  "title": "Pompeii: a city erased in 18 hours",
+  "format": "1080x1920",
+  "fps": 30,
+  "language": "en",
+  "style": "documentary-dark",
+  "captions": "word-by-word",
+  "voice": { "engine": "kokoro", "voice": "am_michael", "speed": 1.0 },
+  "beats": [
+    {
+      "id": "01-hook",
+      "scene": "pompeii/01-hook",
+      "text": "In [18|eighteen] hours, a thriving city ceased to exist.",
+      "pad": [0.3, 0.4],
+      "cues": { "0.43": "eighteen", "1.04": "hours", "1.33": "thriving", "1.98": "city", "2.27": "ceased", "2.71": "exist" }
+    },
+    {
+      "id": "02-context",
+      "scene": "pompeii/02-context",
+      "text": "Pompeii was a Roman port city. About [11,000|eleven thousand] residents. Baths, an amphitheater, an aqueduct. The volcano next door was thought to be just a mountain.",
+      "pad": [0.2, 0.4],
+      "cues": {
+        "0.61": "roman", "0.97": "port", "1.42": "city", "2.12": "about", "2.43": "eleven", "3.03": "thousand",
+        "3.29": "residents", "4.03": "baths", "4.50": "amphitheater", "5.21": "aqueduct", "6.13": "volcano",
+        "6.49": "next", "6.79": "thought", "7.24": "just", "7.63": "mountain"
+      }
+    },
+    {
+      "id": "03-eruption",
+      "scene": "pompeii/03-eruption",
+      "text": "[79 AD.|Seventy-nine A.D.] Vesuvius hurls a column of ash [30|thirty] kilometers high. Then the sky rains pumice, several centimeters an hour. Roofs give way.",
+      "pad": [0.2, 0.4],
+      "cues": {
+        "1.54": "ad", "2.12": "vesuvius", "2.46": "hurls", "3.07": "column", "3.45": "ash", "3.83": "thirty",
+        "4.17": "kilometers", "5.08": "then", "5.46": "rains", "5.89": "pumice", "6.45": "several",
+        "6.99": "centimeters", "7.66": "hour", "8.24": "roofs", "8.49": "give", "8.59": "way"
+      }
+    },
+    {
+      "id": "04-collapse",
+      "scene": "pompeii/04-collapse",
+      "text": "By morning, the column collapses. A red-hot avalanche races down the slope at about [100|a hundred] kilometers an hour. The city is sealed under [4–6|four to six] meters of ash.",
+      "pad": [0.6, 0.4],
+      "cues": {
+        "0.76": "morning", "0.99": "column", "1.37": "collapses", "2.38": "red", "3.02": "avalanche", "3.38": "races",
+        "3.73": "slope", "4.17": "at", "4.61": "about", "4.92": "hundred", "5.08": "kilometers", "5.64": "an",
+        "5.72": "hour", "6.25": "city", "6.55": "sealed", "7.34": "under", "7.90": "four", "8.08": "six", "8.51": "meters"
+      }
+    },
+    {
+      "id": "05-return",
+      "scene": "pompeii/05-return",
+      "text": "Pompeii wasn't found again until [1748.|seventeen forty-eight.] A century later, archaeologists began pouring plaster into the voids left by the bodies.",
+      "pad": [0.2, 0.4],
+      "cues": {
+        "0.80": "found", "1.21": "until", "1.58": "seventeen", "2.28": "forty", "2.57": "eight", "2.90": "eight.end",
+        "3.78": "century", "4.04": "archaeologists", "4.63": "began", "5.14": "pouring", "5.57": "plaster",
+        "5.87": "voids", "6.42": "left", "6.72": "bodies"
+      }
+    },
+    {
+      "id": "06-finale",
+      "scene": "pompeii/06-finale",
+      "text": "A third of the city is still buried.",
+      "pad": [2.0, 1.6],
+      "cues": { "2.22": "city", "2.74": "still", "3.30": "buried" }
+    }
+  ],
+  "transitions": [
+    { "from": "03-eruption", "to": "04-collapse", "shader": "flash-through-white", "duration": 0.6, "ease": "power2.inOut" }
+  ],
+  "sound": {
+    "drone": { "peak": "03-eruption:vesuvius+0.3", "cut": "06-finale:start", "volume": 0.42, "carve": 0.65 },
+    "ash": { "at": "03-eruption:start", "until": "04-collapse:end", "swell": "03-eruption:then", "debris": "03-eruption:roofs", "volume": 0.5, "carve": 0.6 },
+    "hits": [
+      { "at": "02-context:start", "volume": 0.55, "carve": 0.75 },
+      { "at": "03-eruption:start", "volume": 0.55, "carve": 0.75 },
+      { "at": "04-collapse:start+0.3", "heavy": true, "volume": 0.62, "carve": 0.75 },
+      { "at": "05-return:start", "volume": 0.55, "carve": 0.75 },
+      { "at": "06-finale:start", "volume": 0.42 }
+    ]
+  }
+}

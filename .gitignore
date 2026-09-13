@@ -21,7 +21,7 @@ snapshots/
 
 # Кэши Python и бэкапы Studio
 __pycache__/
-.hyperframes/backup/
+**/.hyperframes/backup/
 
 # Сборка роликов и кэши движка
 videos/*/build/
