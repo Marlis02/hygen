@@ -15,3 +15,14 @@ snapshots/
 
 # Локальные настройки Claude Code
 .claude/settings.local.json
+
+# CLAUDE.md коммитим: глобальный ~/.config/git/ignore исключает его во всех репозиториях, здесь возвращаем
+!CLAUDE.md
+
+# Кэши Python и бэкапы Studio
+__pycache__/
+.hyperframes/backup/
+
+# Сборка роликов и кэши движка
+videos/*/build/
+.cache/
