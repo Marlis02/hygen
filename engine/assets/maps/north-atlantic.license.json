@@ -1,0 +1,9 @@
+{
+  "title": "North Atlantic off Newfoundland and Nova Scotia — land silhouette",
+  "source": "Natural Earth 1:50m Physical Vectors, land (ne_50m_land), via github.com/nvkelso/natural-earth-vector",
+  "author": "Natural Earth (naturalearthdata.com)",
+  "license": "Public domain",
+  "url": "https://www.naturalearthdata.com/downloads/50m-physical-vectors/50m-land/",
+  "retrieved": "2026-09-14",
+  "notes": "Traced with engine/py/trace_map.py: equirectangular box lon −66…−37, lat 36…54 onto the map window x 60–1020, y 150–990; Douglas–Peucker 1 px. Titanic wreck 41.726 N 49.946 W lands at x 594, y 723."
+}

@@ -1,0 +1,122 @@
+{
+  "id": "titanic-en",
+  "title": "Titanic: gone in 2 hours 40 minutes",
+  "format": "1080x1920",
+  "fps": 30,
+  "language": "en",
+  "style": "documentary-dark",
+  "captions": "word-by-word",
+  "voice": { "engine": "kokoro", "voice": "am_michael", "speed": 1.0 },
+  "beats": [
+    {
+      "id": "01-hook",
+      "scene": "counter-title",
+      "tone": "cold",
+      "text": "It took [2 hours 40 minutes|two hours and forty minutes] for the unsinkable ship to disappear.",
+      "pad": [0.3, 0.4],
+      "params": { "value": 160, "format": "clock", "unit": "HOURS", "heat": "burn-cool" },
+      "anchors": { "ignite": "two", "unit": "hours", "cool": "disappear" },
+      "sources": {
+        "value": "https://en.wikipedia.org/wiki/Sinking_of_the_Titanic",
+        "text": "https://en.wikipedia.org/wiki/Sinking_of_the_Titanic"
+      }
+    },
+    {
+      "id": "02-map",
+      "scene": "map-marker",
+      "tone": "cold",
+      "text": "She went down in the North Atlantic, about [600|six hundred] kilometers off Newfoundland.",
+      "pad": [0.2, 0.5],
+      "params": {
+        "map": "north-atlantic",
+        "marker": { "x": 591, "y": 723 },
+        "label": "TITANIC",
+        "region": ["NORTH", "ATLANTIC"],
+        "regionAt": { "x": 640, "y": 900 },
+        "route": true,
+        "routeTo": { "x": 1010, "y": 610 },
+        "counterValue": 600,
+        "counterFormat": "int",
+        "counterPrefix": "≈",
+        "counterLabel": "KM OFF NEWFOUNDLAND",
+        "items": [],
+        "peak": false
+      },
+      "anchors": { "route": "north", "counter": "about", "counterLabel": "newfoundland" },
+      "sources": { "counterValue": "https://en.wikipedia.org/wiki/Wreck_of_the_Titanic" }
+    },
+    {
+      "id": "03-depth",
+      "scene": "scale-gauge",
+      "tone": "cold",
+      "seed": 3,
+      "text": "Today the wreck lies [3,800|three thousand eight hundred] meters below the surface, where daylight never reaches.",
+      "pad": [0.2, 0.6],
+      "params": { "direction": "down", "value": 3800, "unit": "M", "scenery": "ocean", "dateValue": 0, "dateSuffix": "", "word": "" },
+      "anchors": { "rise": "lies", "value": "meters" },
+      "sources": { "value": "https://en.wikipedia.org/wiki/Wreck_of_the_Titanic" }
+    },
+    {
+      "id": "04-found",
+      "scene": "year-odometer",
+      "tone": "cold",
+      "seed": 5,
+      "text": "Nobody found her until [1985,|nineteen eighty-five,] [73|seventy-three] years after the sinking.",
+      "pad": [0.2, 0.6],
+      "params": { "year": 1985, "delta": 73, "deltaSign": "+", "deltaUnit": "YEARS", "dust": true, "dig": true, "section": false, "voids": false },
+      "anchors": { "year": "nineteen", "yearLand": "five.end", "delta": "seventy" },
+      "sources": {
+        "year": "https://en.wikipedia.org/wiki/Sinking_of_the_Titanic",
+        "delta": "https://en.wikipedia.org/wiki/Sinking_of_the_Titanic"
+      }
+    },
+    {
+      "id": "05-ship",
+      "scene": "picture-zoom",
+      "tone": "cold",
+      "seed": 2,
+      "text": "She had left Southampton as the largest ship afloat.",
+      "pad": [0.2, 0.8],
+      "params": {
+        "image": "media/rms-titanic.jpg",
+        "fit": "band",
+        "focus": { "x": 620, "y": 900 },
+        "zoomFrom": 1.0,
+        "zoomTo": 1.12,
+        "particles": "snow",
+        "tint": 0.3,
+        "title": "RMS TITANIC",
+        "credit": "F. G. O. STUART, 1912",
+        "creditSub": "Public domain · Wikimedia Commons"
+      },
+      "anchors": { "credit": "left", "title": "largest" },
+      "sources": { "credit": "https://commons.wikimedia.org/wiki/File:RMS_Titanic_3.jpg" }
+    },
+    {
+      "id": "06-finale",
+      "scene": "fraction-finale",
+      "tone": "cold",
+      "text": "Fewer than one in three people on board survived.",
+      "pad": [2.0, 1.6],
+      "params": { "numerator": 1, "denominator": 3, "label": "SURVIVED" },
+      "anchors": { "slash": "one", "fill": "people", "outline": "survived" },
+      "sources": {
+        "numerator": "https://en.wikipedia.org/wiki/Titanic",
+        "denominator": "https://en.wikipedia.org/wiki/Titanic"
+      }
+    }
+  ],
+  "transitions": [
+    { "from": "02-map", "to": "03-depth", "type": "flash", "duration": 0.6 }
+  ],
+  "sound": {
+    "drone": { "peak": "03-depth:lies+0.3", "cut": "06-finale:start", "volume": 0.42, "carve": 0.65 },
+    "hits": [
+      { "at": "02-map:start", "volume": 0.55, "carve": 0.75 },
+      { "at": "03-depth:start+0.3", "heavy": true, "volume": 0.62, "carve": 0.75 },
+      { "at": "04-found:start", "volume": 0.55, "carve": 0.75 },
+      { "at": "05-ship:start", "volume": 0.5, "carve": 0.75 },
+      { "at": "06-finale:start", "volume": 0.42 }
+    ]
+  }
+}
