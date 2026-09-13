@@ -1,0 +1,32 @@
+{
+  "$schema": "../schema.json",
+  "id": "fraction-finale",
+  "name": "Финальная дробь",
+  "use": "Final card: a big fraction with a hero slash and a segmented scale; the highlighted segments carry a label. Last beat.",
+  "ref": { "duration": 5.367, "speechStart": 2.0, "speechEnd": 3.767 },
+  "duration": { "min": 3.5, "max": 9 },
+  "settle": 4.6,
+  "params": {
+    "numerator": { "type": "integer", "default": 1, "min": 0, "max": 9, "figure": true, "description": "Числитель, одна цифра." },
+    "denominator": { "type": "integer", "default": 3, "min": 1, "max": 9, "figure": true, "description": "Знаменатель, одна цифра; столько же сегментов в шкале." },
+    "label": { "type": "string", "default": "STILL BURIED", "maxLength": 18, "description": "Подпись под выделенными сегментами, ЗАГЛАВНЫМИ; правый край на x 940." },
+    "segments": { "type": "boolean", "default": true, "description": "Шкала x 140–940 из denominator сегментов: первые denominator − numerator заливаются, последние numerator — контур цветом героя." },
+    "spark": { "type": "boolean", "default": true, "description": "Тлеющая искра в тишине до числителя." },
+    "fade": { "type": "boolean", "default": true, "description": "В конце всё гаснет в ночь." }
+  },
+  "anchors": {
+    "numerator": { "at": 2.0, "description": "Числитель считает; знаменатель — с 2,35." },
+    "slash": { "at": 2.22, "description": "Черта дроби цветом героя рисуется снизу вверх." },
+    "fill": { "at": 2.74, "description": "Заливаются сегменты (шаг 0,1 с)." },
+    "outline": { "at": 3.3, "description": "Выделенные сегменты рисуются контуром." },
+    "label": { "at": 3.6, "description": "Подпись под выделенными сегментами." },
+    "fade": { "at": 4.92, "description": "Всё гаснет в ночь." }
+  },
+  "events": [
+    { "anchor": "numerator", "label": "fraction counts" },
+    { "anchor": "fill", "label": "scale fills", "if": "segments" },
+    { "anchor": "fade", "label": "fade out", "if": "fade" }
+  ],
+  "seed": { "default": 0, "affects": null },
+  "safeZone": { "contentMaxY": 1420, "rightRail": true }
+}

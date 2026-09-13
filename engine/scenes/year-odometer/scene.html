@@ -1,15 +1,8 @@
-<!-- hygen scene pompeii/05-return: ported from examples/pompeii-short (state of the final render). Times in the script are REFERENCE times; the build warps them onto the current voice (engine/scenes/_runtime/warp.js). -->
-<template id="f05-return-template">
+<!-- hygen scene year-odometer (from Pompeii 05-return). Times in the script are REFERENCE times; the build warps them onto the current voice. Contract: engine/scenes/CONTRACT.md -->
+<template id="__p__-template">
 <script src="assets/vendor/gsap.min.js"></script>
 <style>
-@font-face{font-family:"Cormorant Garamond";font-weight:500;font-style:normal;font-display:block;src:url("assets/fonts/CormorantGaramond-500.woff2") format("woff2");}
-@font-face{font-family:"Cormorant Garamond";font-weight:600;font-style:normal;font-display:block;src:url("assets/fonts/CormorantGaramond-600.woff2") format("woff2");}
-@font-face{font-family:"Cormorant Garamond";font-weight:700;font-style:normal;font-display:block;src:url("assets/fonts/CormorantGaramond-700.woff2") format("woff2");}
-@font-face{font-family:"Inter";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/Inter-400.woff2") format("woff2");}
-@font-face{font-family:"Inter";font-weight:500;font-style:normal;font-display:block;src:url("assets/fonts/Inter-500.woff2") format("woff2");}
-@font-face{font-family:"Inter";font-weight:600;font-style:normal;font-display:block;src:url("assets/fonts/Inter-600.woff2") format("woff2");}
-@font-face{font-family:"Inter";font-weight:700;font-style:normal;font-display:block;src:url("assets/fonts/Inter-700.woff2") format("woff2");}
-@font-face{font-family:"Inter";font-weight:800;font-style:normal;font-display:block;src:url("assets/fonts/Inter-800.woff2") format("woff2");}
+{{hygen:fontfaces}}
 </style>
 <style>
   #root {
@@ -21,16 +14,16 @@
     overflow: hidden;
   }
   /* full-bleed ash ground (lowest track) */
-  #f05-return-bg {
+  #__p__-bg {
     position: absolute;
     left: 0;
     top: 0;
     width: 1080px;
     height: 1920px;
-    background-color: #2E2C29;
+    background-color: {{hygen:color.ground}};
   }
   /* scene: overflow hidden, camera wraps everything inside */
-  #f05-return-scene {
+  #__p__-scene {
     position: absolute;
     left: 0;
     top: 0;
@@ -38,7 +31,7 @@
     height: 1920px;
     overflow: hidden;
   }
-  #f05-return-camera {
+  #__p__-camera {
     position: absolute;
     left: 0;
     top: 0;
@@ -47,7 +40,7 @@
     transform-origin: 50% 50%;
   }
   /* static seeded ash surface, oversized so camera drift never exposes an edge */
-  #f05-return-ash {
+  #__p__-ash {
     position: absolute;
     left: -60px;
     top: -60px;
@@ -55,7 +48,7 @@
     height: 2040px;
   }
   /* opaque ash mask over the year — the identical speckle, pixel-aligned; brushed away from timeline time */
-  #f05-return-mask {
+  #__p__-mask {
     position: absolute;
     left: 180px;
     top: 535px;
@@ -63,9 +56,9 @@
     height: 370px;
   }
 
-  /* ---------- year 1748: four odometer columns ---------- */
-  #f05-return-yeargroup,
-  #f05-return-ghost {
+  /* ---------- year: one odometer column per digit ---------- */
+  #__p__-yeargroup,
+  #__p__-ghost {
     position: absolute;
     left: 0;
     top: 585px;
@@ -75,11 +68,11 @@
   }
   /* relief: the same odometer above the ash mask at 4.5 % — under the ash only the relief is guessed;
      once the ash is gone it sits exactly on the real digits and vanishes into them */
-  #f05-return-ghost {
+  #__p__-ghost {
     opacity: 0.045;
   }
-  #f05-return-year,
-  #f05-return-ghost-year {
+  #__p__-year,
+  #__p__-ghost-year {
     position: absolute;
     left: 0;
     top: 0;
@@ -88,50 +81,50 @@
     display: flex;
     justify-content: center;
   }
-  .f05-return-col {
+  .__p__-col {
     position: relative;
     width: 146px;
     height: 270px;
     overflow: hidden;
   }
-  .f05-return-stack {
+  .__p__-stack {
     display: flex;
     flex-direction: column;
   }
-  .f05-return-digit {
+  .__p__-digit {
     height: 270px;
-    font-family: "Cormorant Garamond", serif;
+    font-family: {{hygen:font.display}};
     font-weight: 700;
     font-size: 300px;
     line-height: 270px;
     text-align: center;
-    color: #ECE7DE;
+    color: {{hygen:color.text}};
     font-variant-numeric: lining-nums tabular-nums;
     white-space: nowrap;
   }
-  /* ember excavation line under the year */
-  #f05-return-dig-glow {
+  /* hero excavation line under the year */
+  #__p__-dig-glow {
     position: absolute;
     left: 220px;
     top: 271px;
     width: 640px;
     height: 12px;
-    background-color: rgba(255, 90, 31, 0.45);
+    background-color: rgba({{hygen:rgb.hero}}, 0.45);
     filter: blur(6px);
     transform-origin: 0% 50%;
   }
-  #f05-return-dig {
+  #__p__-dig {
     position: absolute;
     left: 220px;
     top: 276px;
     width: 640px;
     height: 2px;
-    background-color: #FF5A1F;
+    background-color: {{hygen:color.hero}};
     transform-origin: 0% 50%;
   }
 
-  /* ---------- +100 ЛЕТ counter lockup ---------- */
-  #f05-return-stat {
+  /* ---------- ±N UNIT counter lockup ---------- */
+  #__p__-stat {
     position: absolute;
     left: 0;
     top: 460px;
@@ -142,45 +135,45 @@
     align-items: baseline;
     gap: 22px;
   }
-  #f05-return-count {
+  #__p__-count {
     display: inline-flex;
     align-items: baseline;
     transform-origin: 50% 60%;
   }
-  #f05-return-plus {
+  #__p__-sign {
     position: relative;
     top: -15px;
-    font-family: "Cormorant Garamond", serif;
+    font-family: {{hygen:font.display}};
     font-weight: 600;
     font-size: 120px;
     line-height: 120px;
-    color: #ECE7DE;
+    color: {{hygen:color.text}};
   }
-  #f05-return-num {
+  #__p__-num {
     display: inline-block;
     width: 178px;
     text-align: left;
-    font-family: "Cormorant Garamond", serif;
+    font-family: {{hygen:font.display}};
     font-weight: 600;
     font-size: 120px;
     line-height: 120px;
-    color: #ECE7DE;
+    color: {{hygen:color.text}};
     font-variant-numeric: lining-nums tabular-nums;
     white-space: nowrap;
   }
-  #f05-return-unit {
-    font-family: "Inter", sans-serif;
+  #__p__-unit {
+    font-family: {{hygen:font.body}};
     font-weight: 600;
     font-size: 40px;
     line-height: 40px;
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: #A39E95;
+    color: {{hygen:color.muted}};
     white-space: nowrap;
   }
 
   /* ---------- strata cross-section y 640–1400, x 90–990 ---------- */
-  #f05-return-strata {
+  #__p__-strata {
     position: absolute;
     left: 90px;
     top: 640px;
@@ -188,14 +181,14 @@
     height: 760px;
     overflow: hidden;
   }
-  #f05-return-strata-inner {
+  #__p__-strata-inner {
     position: absolute;
     left: 0;
     top: 0;
     width: 900px;
     height: 760px;
   }
-  #f05-return-strata-svg {
+  #__p__-strata-svg {
     position: absolute;
     left: 0;
     top: 0;
@@ -203,109 +196,99 @@
     height: 760px;
     display: block;
   }
-  .f05-return-void {
+  .__p__-void {
     position: absolute;
-    background-color: #0A0A09;
+    background-color: {{hygen:color.night}};
   }
-  .f05-return-plaster {
+  .__p__-plaster {
     position: absolute;
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
-    background-color: #ECE7DE;
+    background-color: {{hygen:color.text}};
     transform-origin: 50% 100%;
   }
-  #f05-return-leader-v {
+  #__p__-leader-v {
     position: absolute;
     width: 2px;
-    background-color: rgba(236, 231, 222, 0.8);
+    background-color: rgba({{hygen:rgb.text}}, 0.8);
     transform-origin: 50% 0%;
   }
-  #f05-return-leader-h {
+  #__p__-leader-h {
     position: absolute;
     height: 2px;
-    background-color: rgba(236, 231, 222, 0.8);
+    background-color: rgba({{hygen:rgb.text}}, 0.8);
     transform-origin: 0% 50%;
   }
-  #f05-return-leader-dot {
+  #__p__-leader-dot {
     position: absolute;
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background-color: #ECE7DE;
+    background-color: {{hygen:color.text}};
   }
-  #f05-return-label {
+  #__p__-label {
     position: absolute;
-    font-family: "Inter", sans-serif;
+    font-family: {{hygen:font.body}};
     font-weight: 600;
     font-size: 32px;
     line-height: 32px;
     letter-spacing: 0.22em;
     text-transform: uppercase;
-    color: #ECE7DE;
+    color: {{hygen:color.text}};
     white-space: nowrap;
   }
 </style>
 
-<div id="root" data-composition-id="05-return" data-start="0" data-duration="{{hygen:duration}}" data-width="1080" data-height="1920">
+<div id="root" data-composition-id="__cid__" data-start="0" data-duration="{{hygen:duration}}" data-width="1080" data-height="1920">
 
-  <div id="f05-return-bg" class="clip" data-start="0" data-duration="{{hygen:duration}}" data-track-index="0"></div>
+  <div id="__p__-bg" class="clip" data-start="0" data-duration="{{hygen:duration}}" data-track-index="0"></div>
 
-  <div id="f05-return-scene" class="clip" data-start="0" data-duration="{{hygen:duration}}" data-track-index="1">
-    <div id="f05-return-camera">
+  <div id="__p__-scene" class="clip" data-start="0" data-duration="{{hygen:duration}}" data-track-index="1">
+    <div id="__p__-camera">
 
-      <canvas id="f05-return-ash" width="1200" height="2040"></canvas>
+      <canvas id="__p__-ash" width="1200" height="2040"></canvas>
 
-      <div id="f05-return-strata">
-        <div id="f05-return-strata-inner">
-          <svg id="f05-return-strata-svg" width="900" height="760" viewBox="0 0 900 760" xmlns="http://www.w3.org/2000/svg">
-            <path id="f05-return-band-1" fill="#5A5650" d="M0 0 H900 V760 H0 Z" />
-            <path id="f05-return-band-2" fill="#3A3835" />
-            <path id="f05-return-band-3" fill="#8C877F" fill-opacity="0.7" />
-            <path id="f05-return-band-4" fill="#121110" />
-            <path id="f05-return-seam-1" fill="none" stroke="#ECE7DE" stroke-opacity="0.16" stroke-width="1" />
-            <path id="f05-return-seam-2" fill="none" stroke="#ECE7DE" stroke-opacity="0.16" stroke-width="1" />
-            <path id="f05-return-seam-3" fill="none" stroke="#ECE7DE" stroke-opacity="0.16" stroke-width="1" />
-            <rect x="0.5" y="0.5" width="899" height="759" fill="none" stroke="#ECE7DE" stroke-opacity="0.16" stroke-width="1" />
+      <div id="__p__-strata">
+        <div id="__p__-strata-inner">
+          <svg id="__p__-strata-svg" width="900" height="760" viewBox="0 0 900 760" xmlns="http://www.w3.org/2000/svg">
+            <path id="__p__-band-1" fill="{{hygen:color.ashMid}}" d="M0 0 H900 V760 H0 Z" />
+            <path id="__p__-band-2" fill="{{hygen:color.ash3}}" />
+            <path id="__p__-band-3" fill="{{hygen:color.ashLight}}" fill-opacity="0.7" />
+            <path id="__p__-band-4" fill="{{hygen:color.plane}}" />
+            <path id="__p__-seam-1" fill="none" stroke="{{hygen:color.text}}" stroke-opacity="0.16" stroke-width="1" />
+            <path id="__p__-seam-2" fill="none" stroke="{{hygen:color.text}}" stroke-opacity="0.16" stroke-width="1" />
+            <path id="__p__-seam-3" fill="none" stroke="{{hygen:color.text}}" stroke-opacity="0.16" stroke-width="1" />
+            <rect x="0.5" y="0.5" width="899" height="759" fill="none" stroke="{{hygen:color.text}}" stroke-opacity="0.16" stroke-width="1" />
           </svg>
-          <div id="f05-return-void-1" class="f05-return-void"><div class="f05-return-plaster"></div></div>
-          <div id="f05-return-void-2" class="f05-return-void"><div class="f05-return-plaster"></div></div>
-          <div id="f05-return-void-3" class="f05-return-void"><div class="f05-return-plaster"></div></div>
-          <div id="f05-return-void-4" class="f05-return-void"><div class="f05-return-plaster"></div></div>
-          <div id="f05-return-void-5" class="f05-return-void"><div class="f05-return-plaster"></div></div>
-          <div id="f05-return-leader-v"></div>
-          <div id="f05-return-leader-h"></div>
-          <div id="f05-return-leader-dot"></div>
-          <div id="f05-return-label">PLASTER</div>
+          <div id="__p__-void-1" class="__p__-void"><div class="__p__-plaster"></div></div>
+          <div id="__p__-void-2" class="__p__-void"><div class="__p__-plaster"></div></div>
+          <div id="__p__-void-3" class="__p__-void"><div class="__p__-plaster"></div></div>
+          <div id="__p__-void-4" class="__p__-void"><div class="__p__-plaster"></div></div>
+          <div id="__p__-void-5" class="__p__-void"><div class="__p__-plaster"></div></div>
+          <div id="__p__-leader-v"></div>
+          <div id="__p__-leader-h"></div>
+          <div id="__p__-leader-dot"></div>
+          <div id="__p__-label"></div>
         </div>
       </div>
 
-      <div id="f05-return-yeargroup">
-        <div id="f05-return-year">
-          <div class="f05-return-col"><div id="f05-return-stack-1" class="f05-return-stack"><div class="f05-return-digit" data-layout-allow-occlusion="">0</div><div class="f05-return-digit" data-layout-allow-occlusion="">1</div></div></div>
-          <div class="f05-return-col"><div id="f05-return-stack-2" class="f05-return-stack"><div class="f05-return-digit" data-layout-allow-occlusion="">0</div><div class="f05-return-digit" data-layout-allow-occlusion="">1</div><div class="f05-return-digit" data-layout-allow-occlusion="">2</div><div class="f05-return-digit" data-layout-allow-occlusion="">3</div><div class="f05-return-digit" data-layout-allow-occlusion="">4</div><div class="f05-return-digit" data-layout-allow-occlusion="">5</div><div class="f05-return-digit" data-layout-allow-occlusion="">6</div><div class="f05-return-digit" data-layout-allow-occlusion="">7</div></div></div>
-          <div class="f05-return-col"><div id="f05-return-stack-3" class="f05-return-stack"><div class="f05-return-digit" data-layout-allow-occlusion="">0</div><div class="f05-return-digit" data-layout-allow-occlusion="">1</div><div class="f05-return-digit" data-layout-allow-occlusion="">2</div><div class="f05-return-digit" data-layout-allow-occlusion="">3</div><div class="f05-return-digit" data-layout-allow-occlusion="">4</div></div></div>
-          <div class="f05-return-col"><div id="f05-return-stack-4" class="f05-return-stack"><div class="f05-return-digit" data-layout-allow-occlusion="">0</div><div class="f05-return-digit" data-layout-allow-occlusion="">1</div><div class="f05-return-digit" data-layout-allow-occlusion="">2</div><div class="f05-return-digit" data-layout-allow-occlusion="">3</div><div class="f05-return-digit" data-layout-allow-occlusion="">4</div><div class="f05-return-digit" data-layout-allow-occlusion="">5</div><div class="f05-return-digit" data-layout-allow-occlusion="">6</div><div class="f05-return-digit" data-layout-allow-occlusion="">7</div><div class="f05-return-digit" data-layout-allow-occlusion="">8</div></div></div>
-        </div>
-        <div id="f05-return-dig-glow"></div>
-        <div id="f05-return-dig"></div>
+      <div id="__p__-yeargroup">
+        <div id="__p__-year"></div>
+        <div id="__p__-dig-glow"></div>
+        <div id="__p__-dig"></div>
       </div>
 
-      <canvas id="f05-return-mask" width="720" height="370"></canvas>
+      <canvas id="__p__-mask" width="720" height="370"></canvas>
 
-      <div id="f05-return-ghost">
-        <div id="f05-return-ghost-year">
-          <div class="f05-return-col"><div id="f05-return-gstack-1" class="f05-return-stack"><div class="f05-return-digit" data-layout-allow-occlusion="">0</div><div class="f05-return-digit" data-layout-allow-occlusion="">1</div></div></div>
-          <div class="f05-return-col"><div id="f05-return-gstack-2" class="f05-return-stack"><div class="f05-return-digit" data-layout-allow-occlusion="">0</div><div class="f05-return-digit" data-layout-allow-occlusion="">1</div><div class="f05-return-digit" data-layout-allow-occlusion="">2</div><div class="f05-return-digit" data-layout-allow-occlusion="">3</div><div class="f05-return-digit" data-layout-allow-occlusion="">4</div><div class="f05-return-digit" data-layout-allow-occlusion="">5</div><div class="f05-return-digit" data-layout-allow-occlusion="">6</div><div class="f05-return-digit" data-layout-allow-occlusion="">7</div></div></div>
-          <div class="f05-return-col"><div id="f05-return-gstack-3" class="f05-return-stack"><div class="f05-return-digit" data-layout-allow-occlusion="">0</div><div class="f05-return-digit" data-layout-allow-occlusion="">1</div><div class="f05-return-digit" data-layout-allow-occlusion="">2</div><div class="f05-return-digit" data-layout-allow-occlusion="">3</div><div class="f05-return-digit" data-layout-allow-occlusion="">4</div></div></div>
-          <div class="f05-return-col"><div id="f05-return-gstack-4" class="f05-return-stack"><div class="f05-return-digit" data-layout-allow-occlusion="">0</div><div class="f05-return-digit" data-layout-allow-occlusion="">1</div><div class="f05-return-digit" data-layout-allow-occlusion="">2</div><div class="f05-return-digit" data-layout-allow-occlusion="">3</div><div class="f05-return-digit" data-layout-allow-occlusion="">4</div><div class="f05-return-digit" data-layout-allow-occlusion="">5</div><div class="f05-return-digit" data-layout-allow-occlusion="">6</div><div class="f05-return-digit" data-layout-allow-occlusion="">7</div><div class="f05-return-digit" data-layout-allow-occlusion="">8</div></div></div>
-        </div>
+      <div id="__p__-ghost">
+        <div id="__p__-ghost-year"></div>
       </div>
 
-      <div id="f05-return-stat">
-        <div id="f05-return-count"><span id="f05-return-plus">+</span><span id="f05-return-num">0</span></div>
-        <div id="f05-return-unit">YEARS</div>
+      <div id="__p__-stat">
+        <div id="__p__-count"><span id="__p__-sign">+</span><span id="__p__-num">0</span></div>
+        <div id="__p__-unit"></div>
       </div>
 
     </div>
@@ -314,16 +297,24 @@
 
 <script>
 (function () {
+  /*{{hygen:params}}*/
   "use strict";
 
   var DUR = 7.287;
   var el = function (id) { return document.getElementById(id); };
+  var hide = function (node) { node.style.display = "none"; };
   var tl = gsap.timeline({ paused: true });
   /*{{hygen:warp}}*/
 
+  var DUST = !!P.dust;
+  var DIG = !!P.dig;
+  var SECTION = !!P.section;
+  var VOIDS_ON = SECTION && !!P.voids;
+  var HAS_DELTA = P.delta > 0;
+
   /* ================= seeded, deterministic helpers ================= */
   function mulberry32(seed) {
-    var a = seed >>> 0;
+    var a = (seed + SEED) >>> 0;
     return function () {
       a = (a + 0x6D2B79F5) >>> 0;
       var t = a;
@@ -350,10 +341,34 @@
   // eased 0→1 progress of a segment — every derived value below is a pure function of timeline time
   function seg(t, start, dur, ease) { return ease(clamp01((t - start) / dur)); }
 
+  /* ================= year columns: one drum per digit, stack 0..digit ================= */
+  var DIGITS = String(P.year).split("").map(Number);
+  function buildYear(container, prefix) {
+    return DIGITS.map(function (d, c) {
+      var col = document.createElement("div");
+      col.className = "__p__-col";
+      var stack = document.createElement("div");
+      stack.id = "__p__-" + prefix + (c + 1);
+      stack.className = "__p__-stack";
+      for (var i = 0; i <= d; i++) {
+        var dg = document.createElement("div");
+        dg.className = "__p__-digit";
+        dg.setAttribute("data-layout-allow-occlusion", "");
+        dg.textContent = String(i);
+        stack.appendChild(dg);
+      }
+      col.appendChild(stack);
+      container.appendChild(col);
+      return stack;
+    });
+  }
+  var yearStacks = buildYear(el("__p__-year"), "stack-");
+  var ghostStacks = DUST ? buildYear(el("__p__-ghost-year"), "gstack-") : [];
+
   /* ================= ash surface (static seeded speckle) ================= */
   var ASH_OFF = 60, ASH_W = 1200, ASH_H = 2040;
   var MX = 180, MY = 535, MW = 720, MH = 370;
-  var SPECK_COLORS = ["#3A3835", "#5A5650", "#8C877F"];
+  var SPECK_COLORS = [S.colors.ash3, S.colors.ashMid, S.colors.ashLight];
 
   var specks = (function () {
     var r = mulberry32(1748);
@@ -388,8 +403,8 @@
     ctx.globalAlpha = 1;
   }
 
-  var actx = el("f05-return-ash").getContext("2d");
-  actx.fillStyle = "#2E2C29";
+  var actx = el("__p__-ash").getContext("2d");
+  actx.fillStyle = S.colors.ground;
   actx.fillRect(0, 0, ASH_W, ASH_H);
   paintSpecks(actx, ASH_OFF, ASH_OFF, -ASH_OFF - 4, -ASH_OFF - 4, ASH_W, ASH_H);
 
@@ -397,17 +412,19 @@
   var maskBase = document.createElement("canvas");
   maskBase.width = MW;
   maskBase.height = MH;
-  var bctx = maskBase.getContext("2d");
-  bctx.fillStyle = "#2E2C29";
-  bctx.fillRect(0, 0, MW, MH);
-  paintSpecks(bctx, -MX, -MY, MX - 4, MY - 4, MX + MW + 4, MY + MH + 4);
+  if (DUST) {
+    var bctx = maskBase.getContext("2d");
+    bctx.fillStyle = S.colors.ground;
+    bctx.fillRect(0, 0, MW, MH);
+    paintSpecks(bctx, -MX, -MY, MX - 4, MY - 4, MX + MW + 4, MY + MH + 4);
+  }
 
   /* ================= excavation brush: canvas redrawn from timeline time ================= */
-  var mctx = el("f05-return-mask").getContext("2d");
-  var MASK_END = 2.88;        // last pass lands 2.87 — mask fully gone before «году» (2.90)
+  var mctx = el("__p__-mask").getContext("2d");
+  var MASK_END = 2.88;        // last pass lands 2.87 — mask fully gone before the year lands (2.90)
   var BRISTLES = 9, XA = -70, XB = MW + 70, EDGE_STEP = 8;
 
-  // 4 passes, one per word (тысяча · семьсот · сорок · восьмом); each clears its own horizontal band
+  // 4 passes, one per spoken chunk of the year; each clears its own horizontal band
   // (band y in mask-local px; glyphs sit at local 84–284, overlaps ≥ 26 px so no sliver survives)
   var PASSES = [
     { start: 1.58, dur: 0.36, dir: 1,  top: -30, bot: 142 },
@@ -471,13 +488,14 @@
   }
 
   function drawMask(t) {
+    if (!DUST) return;
     mctx.globalCompositeOperation = "source-over";
     mctx.globalAlpha = 1;
     mctx.clearRect(0, 0, MW, MH);
     if (t >= MASK_END) return;
     mctx.drawImage(maskBase, 0, 0);
     mctx.globalCompositeOperation = "destination-out";
-    mctx.fillStyle = "#000";
+    mctx.fillStyle = S.colors.black;
     for (var k = 0; k < PASSES.length; k++) {
       var ps = PASSES[k];
       var raw = (t - ps.start) / ps.dur;
@@ -496,9 +514,9 @@
   // Each column = masked window + stack of equal-height items; every step contributes one eased
   // 0→1 unit, the contributions are SUMMED into translateY (steps 0.08 s apart, smooth sine.inOut).
   var ITEM_H = 270, STEP_SPACING = 0.08, STEP_DUR = 0.34, COL_START = 1.58, COL_STAGGER = 0.08;
-  var COLS = [1, 7, 4, 8].map(function (target, c) {
+  var COLS = DIGITS.map(function (target, c) {
     return {
-      stacks: [el("f05-return-stack-" + (c + 1)), el("f05-return-gstack-" + (c + 1))],
+      stacks: ghostStacks.length ? [yearStacks[c], ghostStacks[c]] : [yearStacks[c]],
       steps: target,
       start: COL_START + c * COL_STAGGER
     };
@@ -508,21 +526,25 @@
       var col = COLS[c], sum = 0;
       for (var i = 0; i < col.steps; i++) sum += seg(t, col.start + i * STEP_SPACING, STEP_DUR, E_SINE_INOUT);
       var tr = "translateY(" + (-sum * ITEM_H).toFixed(3) + "px)";
-      col.stacks[0].style.transform = tr;
-      col.stacks[1].style.transform = tr;
+      for (var k = 0; k < col.stacks.length; k++) col.stacks[k].style.transform = tr;
     }
   }
 
-  /* ================= +100 counter value (same start / duration / ease as its scale tween) ================= */
+  /* ================= ±N counter value (same start / duration / ease as its scale tween) ================= */
   var COUNT_AT = 3.78, COUNT_DUR = 0.7;
-  var numEl = el("f05-return-num");
+  var numEl = el("__p__-num");
+  var DELTA_DIGITS = String(P.delta).length;
+  numEl.style.width = Math.round((178 * DELTA_DIGITS) / 3) + "px"; // «100» = 178 px
+  el("__p__-sign").textContent = P.deltaSign === "-" ? "−" : "+";
+  el("__p__-unit").textContent = P.deltaUnit;
   function renderCounter(t) {
-    var txt = String(Math.round(100 * seg(t, COUNT_AT, COUNT_DUR, E_P2_OUT)));
+    if (!HAS_DELTA) return;
+    var txt = String(Math.round(P.delta * seg(t, COUNT_AT, COUNT_DUR, E_P2_OUT)));
     if (numEl.textContent !== txt) numEl.textContent = txt;
   }
 
   /* ================= multi-phase camera: phase scale + sine drift, one writer ================= */
-  var cam = el("f05-return-camera");
+  var cam = el("__p__-camera");
   function writeCamera(t) {
     var scale = 1
       + 0.035 * seg(t, 0.2, 2.7, E_P1_INOUT)            // phase 1→2: slow creep in on the buried year
@@ -548,20 +570,47 @@
     onUpdate: function () { renderAt(W.ref(clock.t)); }
   }, 0);
 
-  /* ember excavation line draws on «году» */
-  tl.fromTo([el("f05-return-dig"), el("f05-return-dig-glow")],
-    { scaleX: 0 }, { scaleX: 1, duration: 0.5, ease: "power2.inOut" }, 2.90);
+  var yeargroup = el("__p__-yeargroup");
+  if (!DUST) {
+    hide(el("__p__-mask"));
+    hide(el("__p__-ghost"));
+    // no ash: the drums fade in as they start rolling
+    tl.fromTo(el("__p__-year"), { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 1.58);
+  }
 
-  /* ================= Scene 3: FLIP up + «+100 ЛЕТ» ================= */
-  // first: centre y 720, scale 1 → last: centre y 330, scale 0.62 (relief layer rides along, invisible on the digits)
-  tl.fromTo([el("f05-return-yeargroup"), el("f05-return-ghost")],
-    { y: 0, scale: 1 }, { y: -390, scale: 0.62, duration: 0.7, ease: "power3.inOut" }, 3.50);
+  /* hero excavation line draws as the year lands */
+  if (DIG) {
+    tl.fromTo([el("__p__-dig"), el("__p__-dig-glow")],
+      { scaleX: 0 }, { scaleX: 1, duration: 0.5, ease: "power2.inOut" }, 2.90);
+  } else {
+    hide(el("__p__-dig"));
+    hide(el("__p__-dig-glow"));
+  }
 
-  var countEl = el("f05-return-count");
-  tl.fromTo(countEl, { opacity: 0 }, { opacity: 1, duration: 0.24, ease: "power1.out" }, COUNT_AT);
-  tl.fromTo(countEl, { scale: 0.6 }, { scale: 1, duration: COUNT_DUR, ease: "power2.out" }, COUNT_AT);
-  tl.fromTo(el("f05-return-unit"),
-    { opacity: 0, x: -14 }, { opacity: 1, x: 0, duration: 0.42, ease: "power2.out" }, 4.42);
+  /* ================= Scene 3: FLIP up + «±N UNIT» ================= */
+  var stat = el("__p__-stat");
+  if (SECTION) {
+    // first: centre y 720, scale 1 → last: centre y 330, scale 0.62 (relief layer rides along, invisible on the digits)
+    tl.fromTo(DUST ? [yeargroup, el("__p__-ghost")] : [yeargroup],
+      { y: 0, scale: 1 }, { y: -390, scale: 0.62, duration: 0.7, ease: "power3.inOut" }, 3.50);
+  } else {
+    // the year stays in the centre; the counter sits under it
+    stat.style.top = "900px";
+  }
+
+  if (HAS_DELTA) {
+    var countEl = el("__p__-count");
+    tl.fromTo(countEl, { opacity: 0 }, { opacity: 1, duration: 0.24, ease: "power1.out" }, COUNT_AT);
+    tl.fromTo(countEl, { scale: 0.6 }, { scale: 1, duration: COUNT_DUR, ease: "power2.out" }, COUNT_AT);
+    if (P.deltaUnit) {
+      tl.fromTo(el("__p__-unit"),
+        { opacity: 0, x: -14 }, { opacity: 1, x: 0, duration: 0.42, ease: "power2.out" }, 4.42);
+    } else {
+      hide(el("__p__-unit"));
+    }
+  } else {
+    hide(stat);
+  }
 
   /* ================= Scene 4: strata cross-section ================= */
   function waveFn(base, parts) {
@@ -580,12 +629,12 @@
     return s;
   }
   function bandD(fn) { return "M0 760 L" + linePts(fn).slice(1) + " L900 760 Z"; }
-  el("f05-return-band-2").setAttribute("d", bandD(B1));
-  el("f05-return-band-3").setAttribute("d", bandD(B2));
-  el("f05-return-band-4").setAttribute("d", bandD(B3));
-  el("f05-return-seam-1").setAttribute("d", linePts(B1));
-  el("f05-return-seam-2").setAttribute("d", linePts(B2));
-  el("f05-return-seam-3").setAttribute("d", linePts(B3));
+  el("__p__-band-2").setAttribute("d", bandD(B1));
+  el("__p__-band-3").setAttribute("d", bandD(B2));
+  el("__p__-band-4").setAttribute("d", bandD(B3));
+  el("__p__-seam-1").setAttribute("d", linePts(B1));
+  el("__p__-seam-2").setAttribute("d", linePts(B2));
+  el("__p__-seam-3").setAttribute("d", linePts(B3));
 
   // abstract voids: convex rounded lenses / pebbles, seeded edge perturbation (geology, never figures)
   var VOIDS = [
@@ -622,7 +671,7 @@
       d += (k2 === 0 ? "M" : " L") + (p[0] - ox).toFixed(1) + " " + (p[1] - oy).toFixed(1);
     });
     d += " Z";
-    var node = el("f05-return-void-" + (i + 1));
+    var node = el("__p__-void-" + (i + 1));
     node.style.left = v.cx + ox + "px";
     node.style.top = v.cy + oy + "px";
     node.style.width = Math.ceil(maxX) - ox + 1 + "px";
@@ -633,10 +682,11 @@
     v.bottom = v.cy + bottomNearCentre;
   });
 
-  // leader from the largest void down into the charcoal band, then out to «ГИПС»
+  // leader from the largest void down into the charcoal band, then out to the label
   var big = VOIDS[LARGEST];
   var LX = big.cx, LY0 = Math.round(big.bottom + 12), LY1 = 680, LX1 = LX + 60;
-  var dot = el("f05-return-leader-dot"), lv = el("f05-return-leader-v"), lh = el("f05-return-leader-h"), label = el("f05-return-label");
+  var dot = el("__p__-leader-dot"), lv = el("__p__-leader-v"), lh = el("__p__-leader-h"), label = el("__p__-label");
+  label.textContent = P.voidLabel;
   dot.style.left = LX - 4 + "px";
   dot.style.top = LY0 - 4 + "px";
   lv.style.left = LX - 1 + "px";
@@ -648,29 +698,39 @@
   label.style.left = LX1 + 14 + "px";
   label.style.top = LY1 - 16 + "px";
 
-  // bands slide out under a top→bottom mask on «археологи»
-  tl.fromTo(el("f05-return-strata"),
-    { clipPath: "inset(0% 0% 100% 0%)" }, { clipPath: "inset(0% 0% 0% 0%)", duration: 0.5, ease: "power2.inOut" }, 4.04);
-  tl.fromTo(el("f05-return-strata-inner"),
-    { y: -28 }, { y: 0, duration: 0.5, ease: "power2.inOut" }, 4.04);
+  if (SECTION) {
+    // bands slide out under a top→bottom mask
+    tl.fromTo(el("__p__-strata"),
+      { clipPath: "inset(0% 0% 100% 0%)" }, { clipPath: "inset(0% 0% 0% 0%)", duration: 0.5, ease: "power2.inOut" }, 4.04);
+    tl.fromTo(el("__p__-strata-inner"),
+      { y: -28 }, { y: 0, duration: 0.5, ease: "power2.inOut" }, 4.04);
+  } else {
+    hide(el("__p__-strata"));
+  }
 
-  // dark voids surface on «начинают», step 0.12 s
-  VOIDS.forEach(function (v, i) {
-    tl.fromTo(v.node, { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "power1.out" }, 4.63 + i * 0.12);
-  });
+  if (VOIDS_ON) {
+    // dark voids surface, step 0.12 s
+    VOIDS.forEach(function (v, i) {
+      tl.fromTo(v.node, { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "power1.out" }, 4.63 + i * 0.12);
+    });
 
-  /* ================= Scene 5: plaster rises inside each void ================= */
-  VOIDS.forEach(function (v, i) {
-    tl.fromTo(v.plaster, { scaleY: 0 }, { scaleY: 1, duration: 0.6, ease: "power1.inOut" }, 5.14 + i * 0.15);
-  });
-  tl.fromTo(dot, { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.2, ease: "power2.out" }, 5.57);
-  tl.fromTo(lv, { scaleY: 0 }, { scaleY: 1, duration: 0.3, ease: "power2.inOut" }, 5.57);
-  tl.fromTo(lh, { scaleX: 0 }, { scaleX: 1, duration: 0.2, ease: "power2.out" }, 5.85);
-  tl.fromTo(label, { opacity: 0, x: -12 }, { opacity: 1, x: 0, duration: 0.45, ease: "power2.out" }, 5.93);
+    /* ================= Scene 5: fill rises inside each void ================= */
+    VOIDS.forEach(function (v, i) {
+      tl.fromTo(v.plaster, { scaleY: 0 }, { scaleY: 1, duration: 0.6, ease: "power1.inOut" }, 5.14 + i * 0.15);
+    });
+    tl.fromTo(dot, { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.2, ease: "power2.out" }, 5.57);
+    tl.fromTo(lv, { scaleY: 0 }, { scaleY: 1, duration: 0.3, ease: "power2.inOut" }, 5.57);
+    tl.fromTo(lh, { scaleX: 0 }, { scaleX: 1, duration: 0.2, ease: "power2.out" }, 5.85);
+    if (P.voidLabel) tl.fromTo(label, { opacity: 0, x: -12 }, { opacity: 1, x: 0, duration: 0.45, ease: "power2.out" }, 5.93);
+    else hide(label);
+  } else if (SECTION) {
+    VOIDS.forEach(function (v) { hide(v.node); });
+    [dot, lv, lh, label].forEach(hide);
+  }
 
   window.__timelines = window.__timelines || {};
   W.apply(tl);
-  window.__timelines["05-return"] = tl;
+  window.__timelines["__cid__"] = tl;
 })();
 </script>
 </template>

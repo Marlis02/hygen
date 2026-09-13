@@ -49,8 +49,8 @@
   .caption-pill {
     max-width: 860px;
     padding: 14px 34px 20px;
-    background: rgba(18, 17, 16, 0.93);
-    border-top: 2px solid rgba(255, 90, 31, 0.85);
+    background: {{hygen:caption.plate}};
+    border-top: 2px solid {{hygen:caption.border}};
     border-radius: 0;
   }
   .caption-line {
@@ -58,9 +58,9 @@
     flex-wrap: wrap;
     justify-content: center;
     gap: 0.02em 0.28em;
-    font-family: "Inter", system-ui, sans-serif;
-    font-weight: 700;
-    font-size: 60px;
+    font-family: {{hygen:caption.font}};
+    font-weight: {{hygen:caption.weight}};
+    font-size: {{hygen:caption.size}}px;
     line-height: 1.12;
     letter-spacing: -0.005em;
     text-align: center;
@@ -68,13 +68,13 @@
   /* upcoming words: dimmed but still ≥ 3:1 on the plate (WCAG large text), even over the ember flood */
   .caption-word {
     display: inline-block;
-    color: #7c7870;
+    color: {{hygen:caption.upcoming}};
   }
   .caption-word.is-active {
-    color: #ece7de;
+    color: {{hygen:caption.active}};
   }
   .caption-word.is-spoken {
-    color: rgba(236, 231, 222, 0.92);
+    color: {{hygen:caption.spoken}};
   }
 </style>
 

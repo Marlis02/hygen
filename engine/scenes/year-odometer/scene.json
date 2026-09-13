@@ -1,0 +1,145 @@
+{
+  "$schema": "../schema.json",
+  "id": "year-odometer",
+  "name": "Год-одометр",
+  "use": "A year rolls in on odometer drums (optionally brushed out of ash), then a ± number with a unit; optional cross-section with voids below.",
+  "ref": {
+    "duration": 7.287,
+    "speechStart": 0.2,
+    "speechEnd": 6.887
+  },
+  "duration": {
+    "min": 4.5,
+    "max": 11
+  },
+  "settle": 7.15,
+  "params": {
+    "year": {
+      "type": "integer",
+      "default": 1748,
+      "min": 1,
+      "max": 9999,
+      "figure": true,
+      "description": "Год: по барабану на цифру (1–4 колонки), каждый докручивается от 0 до своей цифры."
+    },
+    "delta": {
+      "type": "integer",
+      "default": 100,
+      "min": 0,
+      "max": 9999,
+      "figure": true,
+      "if": "delta>0",
+      "description": "Счётчик ±N после года; 0 — без счётчика и единицы."
+    },
+    "deltaSign": {
+      "type": "enum",
+      "values": [
+        "+",
+        "-"
+      ],
+      "default": "+",
+      "description": "Знак счётчика.",
+      "if": "delta>0"
+    },
+    "deltaUnit": {
+      "type": "string",
+      "default": "YEARS",
+      "maxLength": 10,
+      "description": "Единица справа от счётчика, ЗАГЛАВНЫМИ; пустая — без единицы.",
+      "if": "delta>0"
+    },
+    "dust": {
+      "type": "boolean",
+      "default": true,
+      "description": "Пепельная маска над годом сметается кистью; false — год просто выкатывается."
+    },
+    "dig": {
+      "type": "boolean",
+      "default": true,
+      "description": "Линия раскопа цветом героя под годом."
+    },
+    "section": {
+      "type": "boolean",
+      "default": true,
+      "description": "Разрез со слоями, год уезжает вверх; false — год остаётся в центре, счётчик под ним, низ пустой."
+    },
+    "voids": {
+      "type": "boolean",
+      "default": true,
+      "if": "section",
+      "description": "Пустоты в слоях, заливка, выноска с подписью."
+    },
+    "voidLabel": {
+      "type": "string",
+      "default": "PLASTER",
+      "maxLength": 14,
+      "if": "voids",
+      "description": "Подпись выноски, ЗАГЛАВНЫМИ."
+    }
+  },
+  "anchors": {
+    "year": {
+      "at": 1.58,
+      "required": true,
+      "description": "Год начинает выкатываться, пыль сметается (4 прохода кисти до 2,88)."
+    },
+    "yearLand": {
+      "at": 2.9,
+      "description": "Год встал, рисуется линия раскопа."
+    },
+    "delta": {
+      "at": 3.78,
+      "description": "Счётчик ±N считает (0,7 с), единица — с 4,42."
+    },
+    "section": {
+      "at": 4.04,
+      "description": "Слои разреза выезжают сверху вниз."
+    },
+    "voids": {
+      "at": 4.63,
+      "description": "Тёмные пустоты проступают по очереди."
+    },
+    "fill": {
+      "at": 5.14,
+      "description": "Заливка поднимается в пустотах."
+    },
+    "leader": {
+      "at": 5.57,
+      "description": "Выноска и подпись."
+    }
+  },
+  "events": [
+    {
+      "anchor": "year",
+      "label": "year uncovered"
+    },
+    {
+      "at": 3.5,
+      "label": "year moves up",
+      "if": "section"
+    },
+    {
+      "anchor": "delta",
+      "label": "delta counts",
+      "if": "delta>0"
+    },
+    {
+      "anchor": "section",
+      "label": "strata",
+      "if": "section"
+    },
+    {
+      "anchor": "fill",
+      "label": "fill rises",
+      "if": "section&&voids"
+    }
+  ],
+  "seed": {
+    "default": 0,
+    "affects": "ash speckle, brush edges and void outlines"
+  },
+  "safeZone": {
+    "contentMaxY": 1420,
+    "rightRail": true
+  }
+}

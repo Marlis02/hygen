@@ -1,4 +1,6 @@
 import { readFileSync, writeFileSync } from "node:fs";
+import type { StyleDef } from "./contract.ts";
+import { substituteStyle, toneColors } from "./contract.ts";
 import { join } from "node:path";
 import type { SceneBuild } from "./scenes.ts";
 import type { SoundPlan } from "./sound.ts";
@@ -7,22 +9,17 @@ import type { BeatTiming } from "./timeline.ts";
 import { warpAt } from "./timeline.ts";
 import type { VoiceLine } from "./voice.ts";
 import type { BeatWords } from "./words.ts";
-import { ENGINE_DIR, VENDOR_SKILLS, copyInto, fail, log, r3, readJson, run, stripAnsi, writeJson } from "./lib/util.ts";
+import { ENGINE_DIR, VENDOR_SKILLS, copyInto, ensureDir, fail, log, r3, run, stripAnsi, writeJson } from "./lib/util.ts";
 
 export interface AssembleInput {
   spec: VideoSpec;
+  style: StyleDef;
   buildDir: string;
   voices: VoiceLine[];
   words: BeatWords[];
   timings: BeatTiming[];
   sound: SoundPlan;
   scenes: SceneBuild[];
-}
-
-interface StyleTokens {
-  ground: string;
-  accent: string;
-  contentMaxY: number;
 }
 
 // Voice chain rides on every narration clip, never on a bus: a bus with data-fx-chain fails on the
@@ -50,9 +47,8 @@ function nodeScript(script: string, args: string[], cwd: string, keep = 8): void
  * finishing pass (buses, drone, SFX, shader transition, grain, vignette, local scripts) → carve.
  */
 export function assembleProject(input: AssembleInput): number {
-  const { spec, buildDir } = input;
-  const style = readJson<StyleTokens>(join(ENGINE_DIR, "styles", spec.style, "style.json"));
-  stage(spec, buildDir);
+  const { spec, style, buildDir } = input;
+  stage(spec, style, buildDir);
   writeStoryboard(input);
   writeAudioMeta(input);
   const scripts = join(VENDOR_SKILLS, "faceless-explainer", "scripts");
@@ -64,11 +60,13 @@ export function assembleProject(input: AssembleInput): number {
   return total;
 }
 
-function stage(spec: VideoSpec, buildDir: string): void {
+function stage(spec: VideoSpec, style: StyleDef, buildDir: string): void {
   copyInto(join(ENGINE_DIR, "assets", "fonts"), join(buildDir, "assets", "fonts"));
   copyInto(join(ENGINE_DIR, "assets", "vendor"), join(buildDir, "assets", "vendor"));
   copyInto(join(ENGINE_DIR, "styles", spec.style, "frame.md"), join(buildDir, "frame.md"));
-  copyInto(join(ENGINE_DIR, "captions", `${spec.captions}.html`), join(buildDir, ".hyperframes", "caption-skin.html"));
+  const skin = readFileSync(join(ENGINE_DIR, "captions", `${spec.captions}.html`), "utf8");
+  ensureDir(join(buildDir, ".hyperframes"));
+  writeFileSync(join(buildDir, ".hyperframes", "caption-skin.html"), substituteStyle(skin, style, "accent", `engine/captions/${spec.captions}.html`));
   writeJson(join(buildDir, "hyperframes.json"), {
     $schema: "https://hyperframes.heygen.com/schema/hyperframes.json",
     paths: { blocks: "compositions", components: "compositions/components", assets: "assets" },
@@ -100,7 +98,7 @@ function writeStoryboard({ spec, buildDir, timings, voices }: AssembleInput): vo
       `- duration: ${t.duration}s`,
       "- status: animated",
       `- src: compositions/frames/${beat.id}.html`,
-      `- transition_in: ${spec.transitions.find((tr) => tr.to === beat.id)?.shader ?? "cut"}`,
+      `- transition_in: ${spec.transitions.find((tr) => tr.to === beat.id && tr.type === "shader")?.shader ?? "cut"}`,
       `- voiceover: ${JSON.stringify((voices[i] as VoiceLine).tts)}`,
       "",
     );
@@ -118,7 +116,9 @@ function writeAudioMeta({ buildDir, voices, words, sound }: AssembleInput): void
 }
 
 /** Finishing pass over assemble-index's output — ported from examples/pompeii-short/scripts/assemble/finalize_index.mjs. */
-function finalizeIndex({ spec, buildDir, timings, sound }: AssembleInput, style: StyleTokens): number {
+function finalizeIndex({ spec, buildDir, timings, sound }: AssembleInput, style: StyleDef): number {
+  const colors = toneColors(style, "accent");
+  const rgb = (name: string): string => [1, 3, 5].map((i) => parseInt((colors[name] as string).slice(i, i + 2), 16)).join(", ");
   const indexPath = join(buildDir, "index.html");
   let html = readFileSync(indexPath, "utf8");
 
@@ -131,17 +131,19 @@ function finalizeIndex({ spec, buildDir, timings, sound }: AssembleInput, style:
   if (!Number.isFinite(total)) fail("index.html: нет data-duration у корня");
 
   // 1. hosts: the outgoing scene of a shader transition is held under the blend; solid grounds for the shader pair
+  const shaderTr = spec.transitions.filter((tr) => tr.type === "shader");
+  const flashTr = spec.transitions.filter((tr) => tr.type === "flash");
   const held = new Map<string, number>();
-  for (const tr of spec.transitions) {
+  for (const tr of shaderTr) {
     const from = timings.find((t) => t.id === tr.from) as BeatTiming;
     held.set(tr.from, r3(from.duration + tr.duration));
   }
-  const shaderIds = new Set(spec.transitions.flatMap((tr) => [tr.from, tr.to]));
+  const shaderIds = new Set(shaderTr.flatMap((tr) => [tr.from, tr.to]));
   hosts.forEach((h, i) => {
     let block = h.block.replace(/\sstyle="[^"]*"/, "").replace(/data-track-index="\d+"/, `data-track-index="${i % 2}"`);
     const heldDur = held.get(h.id);
     if (heldDur) block = block.replace(/data-duration="[\d.]+"/, `data-duration="${heldDur}"`);
-    if (shaderIds.has(h.id)) block = block.replace(/class="scene"/, `class="scene" style="background-color: ${style.ground}"`);
+    if (shaderIds.has(h.id)) block = block.replace(/class="scene"/, `class="scene" style="background-color: ${colors.ground}"`);
     html = html.replace(h.block, block);
   });
   for (const [id, heldDur] of held) {
@@ -168,19 +170,24 @@ function finalizeIndex({ spec, buildDir, timings, sound }: AssembleInput, style:
   // 2. head: GSAP and the shader runtime from the project, never a CDN; overlay styles
   html = html.replace(/<script src="https:\/\/cdn\.jsdelivr\.net\/npm\/gsap@[^"]+"[^>]*><\/script>/, () =>
     '<script src="assets/vendor/gsap.min.js"></script>' +
-    (spec.transitions.length ? '\n    <script src="assets/vendor/shader-transitions.global.js"></script>' : ""),
+    (shaderTr.length ? '\n    <script src="assets/vendor/shader-transitions.global.js"></script>' : ""),
   );
   if (/https?:\/\/cdn\./.test(html)) fail("index.html: остались скрипты с CDN");
   const overlayCss = `
       /* global finish (engine/src/assemble.ts) */
       #el-captions { z-index: 35; }
       #hf-vignette { position: absolute; inset: 0; pointer-events: none; z-index: 30;
-        background: radial-gradient(ellipse 78% 64% at 50% 42%, rgba(10, 10, 9, 0) 55%, rgba(10, 10, 9, 0.6) 100%); }
+        background: radial-gradient(ellipse 78% 64% at 50% 42%, rgba(${rgb(style.vignette.color)}, 0) ${style.vignette.clear}%, rgba(${rgb(style.vignette.color)}, ${style.vignette.alpha}) 100%); }
       #grain-overlay { position: absolute; inset: 0; pointer-events: none; z-index: 40; overflow: hidden; }
       #grain-texture { position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; }
       #grain-dark, #grain-light { position: absolute; inset: 0; background-size: 512px 512px; }
-      #grain-dark { background-image: url("assets/grain/grain-dark.png"); opacity: 0.16; }
-      #grain-light { background-image: url("assets/grain/grain-light.png"); opacity: 0.12; }`;
+      #grain-dark { background-image: url("assets/grain/grain-dark.png"); opacity: ${style.grain.dark}; }
+      #grain-light { background-image: url("assets/grain/grain-light.png"); opacity: ${style.grain.light}; }` +
+    (flashTr.length
+      ? `
+      .hf-flash { position: absolute; inset: 0; pointer-events: none; z-index: 28; background-color: ${colors.text}; opacity: 0; }
+      #hf-burst { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; pointer-events: none; z-index: 29; }`
+      : "");
   html = html.replace(/(\s*)<\/style>\s*<\/head>/, () => `${overlayCss}\n    </style>\n  </head>`);
 
   // 3. body: voices on the voiceover bus (lanes 10/12 — lint duplicate_audio_track), SFX ids + bus, rounding
@@ -216,7 +223,10 @@ function finalizeIndex({ spec, buildDir, timings, sound }: AssembleInput, style:
         data-volume="${sound.drone.volume}"
         data-audio-group="music"
       ></audio>`;
-  const overlays = `
+  const overlays =
+    flashTr.map((_, i) => `\n      <div id="hf-flash-${i}" class="hf-flash" aria-hidden="true" data-layout-ignore></div>`).join("") +
+    (flashTr.length ? `\n      <canvas id="hf-burst" width="540" height="960" aria-hidden="true" data-layout-ignore></canvas>` : "") +
+    `
       <div id="hf-vignette" aria-hidden="true" data-layout-ignore></div>
       <div id="grain-overlay" aria-hidden="true" data-layout-ignore><div id="grain-texture"><div id="grain-dark"></div><div id="grain-light"></div></div></div>`;
   const beforeRootClose = /(\n\s*<\/div>\s*\n\s*<script>)/;
@@ -224,15 +234,60 @@ function finalizeIndex({ spec, buildDir, timings, sound }: AssembleInput, style:
   html = html.replace(beforeRootClose, (m) => `${buses}\n${overlays}${m}`);
 
   // 4. main timeline: HyperShader seam(s) + grain stepped by timeline time + full-span anchor
-  const shaderScenes = [...new Set(spec.transitions.flatMap((tr) => [`el-${tr.from}`, `el-${tr.to}`]))];
-  const shaderTransitions = spec.transitions.map((tr) => ({
+  const shaderScenes = [...new Set(shaderTr.flatMap((tr) => [`el-${tr.from}`, `el-${tr.to}`]))];
+  const shaderTransitions = shaderTr.map((tr) => ({
     time: (timings.find((t) => t.id === tr.to) as BeatTiming).start,
     shader: tr.shader,
     duration: tr.duration,
     ease: tr.ease,
   }));
-  const init = spec.transitions.length
-    ? `HyperShader.init({ bgColor: "${style.ground}", accentColor: "${style.accent}", compositionId: "main", scenes: ${JSON.stringify(shaderScenes)}, transitions: ${JSON.stringify(shaderTransitions)} })`
+  const flashes = flashTr.map((tr) => ({ at: (timings.find((t) => t.id === tr.to) as BeatTiming).start, dur: tr.duration }));
+  const ashColors = JSON.stringify([colors.ashMid, colors.ash3, colors.plane, colors.ashLight]);
+  // CSS flash over a cut: bone overlay ramps in over the last 0.08 s of the outgoing scene (its settle frame stays clean), holds, fades out by `dur`;
+  // an ash burst sprays from the hero line. One writer (the main driver), pure function of time.
+  const flashJs = flashes.length
+    ? `
+        var FLASHES = ${JSON.stringify(flashes)};
+        var flashEls = FLASHES.map(function (f, i) { return document.getElementById("hf-flash-" + i); });
+        var bctx = document.getElementById("hf-burst").getContext("2d");
+        var ASH_COLORS = ${ashColors};
+        function prand(n) { var x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); }
+        var ASH = [];
+        for (var i = 0; i < 180; i++) {
+          ASH.push({ a: prand(i * 1.7 + 0.3) * 6.2832, v: 700 + 1500 * prand(i * 2.9 + 1.1), r: 2 + 8 * Math.pow(prand(i * 3.3 + 2.2), 1.6),
+            c: ASH_COLORS[i % ASH_COLORS.length], life: 0.8 + 0.7 * prand(i * 4.1 + 0.7), lag: 0.06 * prand(i * 5.3 + 1.9) });
+        }
+        function flashAlpha(d, dur) {
+          if (d <= -0.08 || d >= dur) return 0;
+          if (d < 0) { var u = 1 + d / 0.08; return u * u; }
+          if (d < 0.08) return 1;
+          var p = (d - 0.08) / (dur - 0.08);
+          return (1 - p) * (1 - p);
+        }
+        function drawFlashes(t) {
+          bctx.setTransform(1, 0, 0, 1, 0, 0);
+          bctx.clearRect(0, 0, 540, 960);
+          bctx.setTransform(0.5, 0, 0, 0.5, 0, 0);
+          for (var k = 0; k < FLASHES.length; k++) {
+            var f = FLASHES[k], d = t - f.at;
+            flashEls[k].style.opacity = flashAlpha(d, f.dur).toFixed(3);
+            if (d < 0 || d > 1.6) continue;
+            for (var j = 0; j < ASH.length; j++) {
+              var q = ASH[j], age = d - q.lag;
+              if (age <= 0 || age >= q.life) continue;
+              var s = 0.3 * (1 - Math.exp(-age / 0.3));
+              var x = 540 + Math.cos(q.a) * q.v * s;
+              var y = 760 + Math.sin(q.a) * q.v * s * 0.8 + 140 * age * age;
+              bctx.globalAlpha = 0.85 * (1 - age / q.life);
+              bctx.fillStyle = q.c;
+              bctx.beginPath(); bctx.arc(x, y, q.r * (1 + 0.8 * age), 0, 6.2832); bctx.fill();
+            }
+          }
+          bctx.globalAlpha = 1;
+        }`
+    : "";
+  const init = shaderTr.length
+    ? `HyperShader.init({ bgColor: "${colors.ground}", accentColor: "${colors.accent}", compositionId: "main", scenes: ${JSON.stringify(shaderScenes)}, transitions: ${JSON.stringify(shaderTransitions)} })`
     : "gsap.timeline({ paused: true })";
   const mainScript = `<script>
       (function () {
@@ -240,6 +295,7 @@ function finalizeIndex({ spec, buildDir, timings, sound }: AssembleInput, style:
         var tl = ${init};
         var grain = document.getElementById("grain-texture");
         var OFFS = [[0, 0], [-5, -5], [-10, 5], [5, -10], [-5, 15], [-10, 5], [15, 0], [0, 10], [-15, 0], [10, 5], [3, -7], [-12, -3], [8, 12]];
+${flashJs}
         var drive = { t: 0 };
         tl.fromTo(drive, { t: 0 }, {
           t: TOTAL,
@@ -247,7 +303,7 @@ function finalizeIndex({ spec, buildDir, timings, sound }: AssembleInput, style:
           ease: "none",
           onUpdate: function () {
             var o = OFFS[Math.floor(drive.t * 24) % OFFS.length];
-            grain.style.transform = "translate(" + o[0] + "%, " + o[1] + "%)";
+            grain.style.transform = "translate(" + o[0] + "%, " + o[1] + "%)";${flashes.length ? "\n            drawFlashes(drive.t);" : ""}
           },
         }, 0);
         tl.to({}, { duration: TOTAL }, 0);
@@ -259,7 +315,7 @@ function finalizeIndex({ spec, buildDir, timings, sound }: AssembleInput, style:
   if (!scriptRe.test(html)) fail("index.html: не найден скрипт главного таймлайна");
   html = html.replace(scriptRe, () => mainScript);
   writeFileSync(indexPath, html);
-  log.info(`index.html: ${hosts.length} сцен, переходов ${spec.transitions.length}, звуков ${sound.sfx.length}, гул 0–${sound.drone.cut} с, всего ${total} с`);
+  log.info(`index.html: ${hosts.length} сцен, переходов: шейдер ${shaderTr.length}, вспышка ${flashTr.length}; звуков ${sound.sfx.length}, гул 0–${sound.drone.cut} с, всего ${total} с`);
   return total;
 }
 
@@ -279,7 +335,7 @@ function carveBeds({ buildDir, timings, sound }: AssembleInput): void {
   }
 }
 
-function writeVerifyPlan({ spec, buildDir, timings, scenes }: AssembleInput, style: StyleTokens, total: number): void {
+function writeVerifyPlan({ spec, buildDir, timings, scenes }: AssembleInput, style: StyleDef, total: number): void {
   const [width, height] = spec.format.split("x").map(Number);
   writeJson(join(buildDir, "verify_plan.json"), {
     id: spec.id,
@@ -287,7 +343,7 @@ function writeVerifyPlan({ spec, buildDir, timings, scenes }: AssembleInput, sty
     width,
     height,
     duration: total,
-    contentMaxY: style.contentMaxY,
+    contentMaxY: style.safeZone.contentMaxY,
     loudness: { target: -14, tolerance: 0.5, maxTruePeak: -1.5 },
     scenes: timings.map((t, i) => {
       const sc = scenes[i] as SceneBuild;
@@ -295,8 +351,8 @@ function writeVerifyPlan({ spec, buildDir, timings, scenes }: AssembleInput, sty
         id: t.id,
         start: t.start,
         end: t.end,
-        settle: r3(t.start + warpAt(sc.warp, sc.meta.settle)),
-        events: sc.meta.events.map(([ref, label]) => ({ t: r3(t.start + warpAt(sc.warp, ref)), label })),
+        settle: r3(t.start + warpAt(sc.warp, sc.settle)),
+        events: sc.events.map((ev) => ({ t: r3(t.start + warpAt(sc.warp, ev.ref)), label: ev.label })),
       };
     }),
   });

@@ -9,6 +9,8 @@
     "build": "node engine/src/cli.ts build",
     "doctor": "node engine/src/cli.ts doctor",
     "verify": "node engine/src/cli.ts verify",
+    "scene": "node engine/src/cli.ts scene",
+    "scenes": "node engine/src/cli.ts scenes",
     "typecheck": "npm --workspace engine run typecheck"
   },
   "engines": {

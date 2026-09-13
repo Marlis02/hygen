@@ -1,0 +1,27 @@
+{
+  "$schema": "../schema.json",
+  "id": "counter-title",
+  "name": "Заголовок-счётчик",
+  "use": "Hook or punchline: one huge number counts up to its value with a unit word under it. Durations, counts, sizes. Best as the first beat.",
+  "ref": { "duration": 3.721, "speechStart": 0.3, "speechEnd": 3.321 },
+  "duration": { "min": 2.5, "max": 7 },
+  "settle": 3.62,
+  "params": {
+    "value": { "type": "number", "default": 18, "min": 0, "max": 99999, "figure": true, "description": "Число, до которого идёт счёт." },
+    "format": { "type": "enum", "values": ["int", "thousands", "clock"], "default": "int", "description": "int — 18; thousands — 11,000; clock — value в минутах как H:MM (160 → 2:40)." },
+    "unit": { "type": "string", "default": "HOURS", "maxLength": 9, "description": "Слово под числом, ЗАГЛАВНЫМИ. Пустая строка — без слова." },
+    "heat": { "type": "enum", "values": ["burn-cool", "burn", "none"], "default": "burn-cool", "description": "burn-cool — число загорается цветом героя и остывает в серый; burn — горит до конца; none — спокойный светлый текст." }
+  },
+  "anchors": {
+    "ignite": { "at": 0.43, "required": true, "description": "Число появляется и считает до value (0,85 с)." },
+    "unit": { "at": 1.04, "description": "Буквы единицы сходятся к слову." },
+    "cool": { "at": 2.71, "description": "Жар уходит: число и слово остывают (при heat = burn-cool)." }
+  },
+  "events": [
+    { "anchor": "ignite", "label": "number counts" },
+    { "anchor": "unit", "label": "unit", "if": "unit" },
+    { "anchor": "cool", "label": "heat dies", "if": "heat==burn-cool" }
+  ],
+  "seed": { "default": 0, "affects": null },
+  "safeZone": { "contentMaxY": 1420, "rightRail": true }
+}

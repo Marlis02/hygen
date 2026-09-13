@@ -2,22 +2,33 @@ import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { ENGINE_DIR, fail, readJson } from "./lib/util.ts";
 
-/** One beat = one voice line + one scene. Cue keys are the scene's reference times, values are words. */
+/** One beat = one voice line + one library scene (engine/scenes/CONTRACT.md). */
 export interface BeatSpec {
   id: string;
+  /** Library scene id: engine/scenes/<scene>/. */
   scene: string;
   /** Narration. `[display|spoken]` shows `display` in captions while the voice says `spoken`. */
   text: string;
   /** Silence before and after the line, seconds — part of the scene's timing. */
   pad: [number, number];
-  /** Reference time in the scene → word of this line: "word", "word#2" (2nd occurrence), "word.end". */
-  cues: Record<string, string>;
+  tone?: "accent" | "cold";
+  seed?: number;
+  /** Scene params (scene.json → params); missing ones take the scene default. */
+  params?: Record<string, unknown>;
+  /** Scene anchor → word of this line: "word", "word#2" (2nd occurrence), "word.end". */
+  anchors?: Record<string, string>;
+  /** Low-level: reference time in the scene → word of this line. */
+  cues?: Record<string, string>;
+  /** Figure param (or "text") → source link. */
+  sources?: Record<string, string>;
 }
 
 export interface TransitionSpec {
   from: string;
   to: string;
-  shader: string;
+  /** shader — WebGL HyperShader (the render drops to one worker); flash — CSS flash + ash burst over the cut. */
+  type?: "shader" | "flash";
+  shader?: string;
   duration: number;
   ease: string;
 }
@@ -110,20 +121,27 @@ export function loadSpec(videoDir: string): VideoSpec {
   spec.language = spec.language ?? "en";
   spec.style = spec.style ?? "documentary-dark";
   spec.captions = spec.captions ?? "word-by-word";
-  need(existsSync(join(ENGINE_DIR, "styles", spec.style, "frame.md")), `нет стиля engine/styles/${spec.style}`);
+  need(existsSync(join(ENGINE_DIR, "styles", spec.style, "style.json")) && existsSync(join(ENGINE_DIR, "styles", spec.style, "frame.md")), `нет стиля engine/styles/${spec.style} (style.json и frame.md)`);
   need(existsSync(join(ENGINE_DIR, "captions", `${spec.captions}.html`)), `нет пресета субтитров engine/captions/${spec.captions}.html`);
   const ids = new Set<string>();
   for (const beat of spec.beats) {
     need(beat.id && !ids.has(beat.id), `пустой или повторный id бита «${beat.id}»`);
     ids.add(beat.id);
-    need(existsSync(join(ENGINE_DIR, "scenes", `${beat.scene}.html`)), `${beat.id}: нет сцены engine/scenes/${beat.scene}.html`);
+    need(/^[0-9a-z][a-z0-9-]*$/.test(beat.id ?? ""), `id бита «${beat.id}» — строчная латиница, цифры и дефис`);
+    need(existsSync(join(ENGINE_DIR, "scenes", beat.scene ?? "", "scene.json")), `${beat.id}: нет сцены engine/scenes/${beat.scene}/scene.json`);
     need(typeof beat.text === "string" && beat.text.trim().length > 0, `${beat.id}: пустой text`);
+    need(beat.tone === undefined || beat.tone === "accent" || beat.tone === "cold", `${beat.id}: tone — accent или cold`);
+    need(beat.seed === undefined || Number.isInteger(beat.seed), `${beat.id}: seed — целое`);
+    const known = new Set(["id", "scene", "text", "pad", "tone", "seed", "params", "anchors", "cues", "sources"]);
+    for (const key of Object.keys(beat)) need(known.has(key), `${beat.id}: неизвестное поле «${key}»`);
     beat.pad = beat.pad ?? [0.2, 0.4];
-    beat.cues = beat.cues ?? {};
   }
   spec.transitions = spec.transitions ?? [];
   for (const tr of spec.transitions) {
     need(ids.has(tr.from) && ids.has(tr.to), `переход ${tr.from} → ${tr.to}: нет таких битов`);
+    tr.type = tr.type ?? (tr.shader ? "shader" : "flash");
+    need(tr.type === "flash" || (tr.type === "shader" && typeof tr.shader === "string"), `переход ${tr.from} → ${tr.to}: type flash или shader с именем шейдера`);
+    need(typeof tr.duration === "number" && tr.duration > 0, `переход ${tr.from} → ${tr.to}: duration > 0`);
     tr.ease = tr.ease ?? "power2.inOut";
   }
   need(spec.sound?.drone, "sound.drone обязателен");

@@ -76,12 +76,27 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("mp4")
     ap.add_argument("--out", default=None)
+    ap.add_argument("--crf", type=int, default=None, help="re-encode video with libx264 at this CRF (default: copy the render's stream)")
+    ap.add_argument("--preset", default="slow")
+    ap.add_argument("--maxrate", default="16M")
+    ap.add_argument("--bufsize", default="32M")
     args = ap.parse_args()
+    video = ["-c:v", "copy"] if args.crf is None else [
+        "-c:v", "libx264", "-crf", str(args.crf), "-preset", args.preset, "-maxrate", args.maxrate,
+        "-bufsize", args.bufsize, "-pix_fmt", "yuv420p", "-profile:v", "high"]
     src = os.path.abspath(args.mp4)
     out = os.path.abspath(args.out or args.mp4)
     i0, tp0 = ebur128(src)
     print(f"· render mix: I {i0:.1f} LUFS · TP {tp0:.1f} dBTP")
     with tempfile.TemporaryDirectory() as td:
+        if args.crf is not None:              # encode the picture once; loudness passes then only remux audio
+            enc = os.path.join(td, "video.mp4")
+            subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", src, "-map", "0:v:0", *video, "-an", enc], check=True)
+            print(f"· video: libx264 crf {args.crf} preset {args.preset} maxrate {args.maxrate} bufsize {args.bufsize} → "
+                  f"{os.path.getsize(enc) / 1e6:.1f} MB")
+            video = ["-c:v", "copy"]
+        else:
+            enc = src
         raw = os.path.join(td, "mix.wav")
         subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", src, "-vn", "-ac", "2", "-ar", str(SR),
                         "-c:a", "pcm_f32le", raw], check=True)
@@ -96,8 +111,8 @@ def main():
             mastered = os.path.join(td, "master.wav")
             sf.write(mastered, y.astype(np.float32), SR, subtype="FLOAT")
             tmp_mp4 = os.path.join(td, "out.mp4")
-            subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", src, "-i", mastered, "-map", "0:v:0", "-map", "1:a:0",
-                            "-c:v", "copy", "-c:a", "aac", "-b:a", "256k", "-ar", str(SR), "-movflags", "+faststart",
+            subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", enc, "-i", mastered, "-map", "0:v:0", "-map", "1:a:0",
+                            *video, "-c:a", "aac", "-b:a", "256k", "-ar", str(SR), "-movflags", "+faststart",
                             "-shortest", tmp_mp4], check=True)
             i1, tp1 = ebur128(tmp_mp4)
             print(f"  pass {attempt + 1}: ceiling {ceiling:.1f} dBTP · max limiter gain reduction "

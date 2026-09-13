@@ -30,8 +30,12 @@ export interface MasterResult {
   passes: number;
 }
 
+/** Upload-sized H.264 (DECISIONS.md): libx264 crf 18, preset slow, maxrate 16M, bufsize 32M, faststart. */
+export const X264 = { crf: 18, preset: "slow", maxrate: "16M", bufsize: "32M" };
+
 export function masterAudio(raw: string, out: string): MasterResult {
-  const r = run(python(), [pyScript("master_audio.py"), raw, "--out", out]);
+  const enc = ["--crf", String(X264.crf), "--preset", X264.preset, "--maxrate", X264.maxrate, "--bufsize", X264.bufsize];
+  const r = run(python(), [pyScript("master_audio.py"), raw, "--out", out, ...enc]);
   for (const line of r.stdout.trim().split("\n").slice(0, -1)) log.info(line);
   return lastJsonLine<MasterResult>(r.stdout);
 }

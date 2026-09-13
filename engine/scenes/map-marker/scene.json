@@ -1,0 +1,228 @@
+{
+  "$schema": "../schema.json",
+  "id": "map-marker",
+  "name": "Место на карте",
+  "use": "Place on a map: a coastline silhouette, a marker with a name, optional route, a counter with a label, a row of up to three words and a peak with a label.",
+  "ref": {
+    "duration": 8.291,
+    "speechStart": 0.2,
+    "speechEnd": 7.891
+  },
+  "duration": {
+    "min": 5,
+    "max": 12
+  },
+  "settle": 8.15,
+  "params": {
+    "map": {
+      "type": "map",
+      "default": "bay-of-naples",
+      "description": "Силуэт берега из engine/assets/maps/: вода заливается плоскостью, берег рисуется штрихом."
+    },
+    "marker": {
+      "type": "point",
+      "default": {
+        "x": 682,
+        "y": 554
+      },
+      "description": "Метка (кольцо и точка цветом героя). Подпись и маршрут считаются от неё."
+    },
+    "label": {
+      "type": "string",
+      "default": "POMPEII",
+      "maxLength": 14,
+      "description": "Подпись у метки, ЗАГЛАВНЫМИ (смещение +22, −28 от метки)."
+    },
+    "labelSide": {
+      "type": "enum",
+      "values": [
+        "right",
+        "left"
+      ],
+      "default": "right",
+      "description": "С какой стороны от метки подпись: left — правый край текста на marker.x − 22."
+    },
+    "region": {
+      "type": "list",
+      "default": [
+        "BAY OF",
+        "NAPLES"
+      ],
+      "maxItems": 3,
+      "maxLength": 16,
+      "description": "Мелкая подпись области, по строке на элемент. Пустой список — без подписи."
+    },
+    "regionAt": {
+      "type": "point",
+      "default": {
+        "x": 110,
+        "y": 720
+      },
+      "description": "Левый верх подписи области."
+    },
+    "route": {
+      "type": "boolean",
+      "default": true,
+      "description": "Пунктирный маршрут от метки к routeTo и точка-якорь в конце."
+    },
+    "routeTo": {
+      "type": "point",
+      "default": {
+        "x": 548,
+        "y": 600
+      },
+      "description": "Конец маршрута (квадратичная кривая, изгиб как в Помпеях).",
+      "if": "route"
+    },
+    "counterValue": {
+      "type": "number",
+      "default": 11000,
+      "min": 0,
+      "max": 9999999,
+      "figure": true,
+      "if": "counterValue>0",
+      "description": "Счётчик под картой; 0 — без счётчика, линии и подписи."
+    },
+    "counterFormat": {
+      "type": "enum",
+      "values": [
+        "int",
+        "thousands"
+      ],
+      "default": "thousands",
+      "description": "int — 11000; thousands — 11,000.",
+      "if": "counterValue>0"
+    },
+    "counterPrefix": {
+      "type": "string",
+      "default": "≈",
+      "maxLength": 2,
+      "description": "Знак перед числом; пустая строка — без знака.",
+      "if": "counterValue>0"
+    },
+    "counterLabel": {
+      "type": "string",
+      "default": "RESIDENTS",
+      "maxLength": 20,
+      "description": "Подпись под счётчиком, ЗАГЛАВНЫМИ; пустая — без подписи.",
+      "if": "counterValue>0"
+    },
+    "items": {
+      "type": "list",
+      "default": [
+        "BATHS",
+        "AMPHITHEATER",
+        "AQUEDUCT"
+      ],
+      "maxItems": 3,
+      "maxLength": 14,
+      "description": "Ряд слов с разделителями «·», каждое на своём якоре; пустой список — без ряда."
+    },
+    "peak": {
+      "type": "boolean",
+      "default": true,
+      "description": "Вершина-конус растёт из суши, выноска, подпись, заметка."
+    },
+    "peakLabel": {
+      "type": "string",
+      "default": "VESUVIUS",
+      "maxLength": 14,
+      "description": "Подпись вершины, ЗАГЛАВНЫМИ.",
+      "if": "peak"
+    },
+    "peakNote": {
+      "type": "string",
+      "default": "“JUST A MOUNTAIN”",
+      "maxLength": 24,
+      "description": "Тихая заметка под подписью вершины; пустая — без заметки.",
+      "if": "peak"
+    },
+    "peakGlow": {
+      "type": "boolean",
+      "default": true,
+      "description": "Слабое свечение цветом героя в кратере в конце.",
+      "if": "peak"
+    }
+  },
+  "anchors": {
+    "marker": {
+      "at": 0.2,
+      "required": false,
+      "description": "Метка и подпись появляются (берег рисуется с начала клипа)."
+    },
+    "route": {
+      "at": 0.97,
+      "description": "Пунктирный маршрут рисуется от метки."
+    },
+    "routeEnd": {
+      "at": 1.42,
+      "description": "Точка-якорь в конце маршрута."
+    },
+    "counter": {
+      "at": 2.12,
+      "description": "Линия, знак и счёт 0 → counterValue (1,1 с)."
+    },
+    "counterLabel": {
+      "at": 3.29,
+      "description": "Подпись счётчика поднимается."
+    },
+    "item1": {
+      "at": 4.03,
+      "description": "Первое слово ряда."
+    },
+    "item2": {
+      "at": 4.5,
+      "description": "Разделитель и второе слово."
+    },
+    "item3": {
+      "at": 5.21,
+      "description": "Разделитель и третье слово."
+    },
+    "peak": {
+      "at": 6.13,
+      "description": "Конус вырастает, камера медленно наезжает."
+    },
+    "peakLabel": {
+      "at": 6.79,
+      "description": "Подпись вершины (выноска рисуется с 6,49)."
+    },
+    "peakNote": {
+      "at": 7.24,
+      "description": "Заметка под подписью вершины."
+    }
+  },
+  "events": [
+    {
+      "anchor": "marker",
+      "label": "marker"
+    },
+    {
+      "anchor": "counter",
+      "label": "counter counts",
+      "if": "counterValue>0"
+    },
+    {
+      "anchor": "item1",
+      "label": "item 1",
+      "if": "items>=1"
+    },
+    {
+      "anchor": "item3",
+      "label": "item 3",
+      "if": "items>=3"
+    },
+    {
+      "anchor": "peak",
+      "label": "peak rises",
+      "if": "peak"
+    }
+  ],
+  "seed": {
+    "default": 0,
+    "affects": null
+  },
+  "safeZone": {
+    "contentMaxY": 1420,
+    "rightRail": true
+  }
+}

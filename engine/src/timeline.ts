@@ -1,4 +1,4 @@
-import type { BeatSpec } from "./spec.ts";
+import type { RefCue, SceneDef } from "./contract.ts";
 import type { VoiceLine } from "./voice.ts";
 import type { BeatWords } from "./words.ts";
 import { fail, r3 } from "./lib/util.ts";
@@ -11,13 +11,6 @@ export interface BeatTiming {
   end: number;
   speechStart: number;
   speechEnd: number;
-}
-
-/** Scene metadata from engine/scenes/<pack>/scenes.json — the timing the scene was authored on. */
-export interface SceneMeta {
-  ref: { duration: number; speechStart: number; speechEnd: number };
-  settle: number;
-  events: [number, string][];
 }
 
 export interface Warp {
@@ -73,16 +66,16 @@ export function resolveTime(ref: string, timings: BeatTiming[], words: BeatWords
 }
 
 /**
- * Knots of the scene's time warp: its reference cue times → the same cues on this voice.
+ * Knots of the scene's time warp: reference times of its anchors and cues → their words on this voice.
  * Always pinned: clip start, speech start, speech end, clip end. Cues out of order are dropped.
  */
-export function warpKnots(beat: BeatSpec, meta: SceneMeta, timing: BeatTiming, words: BeatWords): Warp {
+export function warpKnots(cues: RefCue[], sceneRef: SceneDef["ref"], timing: BeatTiming, words: BeatWords): Warp {
   const pairs: [number, number, string][] = [
     [0, 0, "начало"],
-    [meta.ref.speechStart, timing.speechStart, "начало речи"],
+    [sceneRef.speechStart, timing.speechStart, "начало речи"],
   ];
-  for (const [refTime, wordRef] of Object.entries(beat.cues)) pairs.push([Number(refTime), wordTime(words, wordRef), wordRef]);
-  pairs.push([meta.ref.speechEnd, timing.speechEnd, "конец речи"], [meta.ref.duration, timing.duration, "конец"]);
+  for (const cue of cues) pairs.push([cue.at, wordTime(words, cue.word), cue.label]);
+  pairs.push([sceneRef.speechEnd, timing.speechEnd, "конец речи"], [sceneRef.duration, timing.duration, "конец"]);
   pairs.sort((a, b) => a[0] - b[0]);
   const ref: number[] = [];
   const act: number[] = [];

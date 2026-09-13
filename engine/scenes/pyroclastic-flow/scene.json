@@ -1,0 +1,41 @@
+{
+  "$schema": "../schema.json",
+  "id": "pyroclastic-flow",
+  "name": "Огненная лавина (геройская, Помпеи)",
+  "use": "Hero scene for volcanic disasters only: an ash column collapses, a burning avalanche floods the frame with a speed counter, then ash strata rise with a depth range.",
+  "hero": true,
+  "ref": { "duration": 9.258, "speechStart": 0.6, "speechEnd": 8.858 },
+  "duration": { "min": 6, "max": 13 },
+  "settle": 9.15,
+  "params": {
+    "speedValue": { "type": "number", "default": 100, "min": 0, "max": 999, "figure": true, "description": "Скорость лавины, считает до значения (до 3 цифр)." },
+    "speedPrefix": { "type": "string", "default": "≈", "maxLength": 2, "description": "Знак перед скоростью; пустая строка — без знака." },
+    "speedUnit": { "type": "string", "default": "KM/H", "maxLength": 6, "description": "Единица скорости." },
+    "depthFrom": { "type": "integer", "default": 4, "min": 0, "max": 9, "figure": true, "description": "Нижняя граница толщины слоя (одна цифра)." },
+    "depthTo": { "type": "integer", "default": 6, "min": 0, "max": 9, "figure": true, "description": "Верхняя граница толщины слоя (одна цифра)." },
+    "depthUnit": { "type": "string", "default": "M", "maxLength": 3, "description": "Единица толщины." },
+    "depthLabel": { "type": "string", "default": "ASH LAYER", "maxLength": 16, "description": "Подпись над толщиной." }
+  },
+  "anchors": {
+    "collapse": { "at": 0.99, "description": "Колонна пепла начинает обрушаться." },
+    "flood": { "at": 2.38, "required": true, "description": "Огненная лавина срывается и заливает кадр." },
+    "speed": { "at": 4.28, "description": "Скорость начинает считать." },
+    "approx": { "at": 4.61, "description": "Появляется знак перед скоростью." },
+    "speedLand": { "at": 5.08, "description": "Счёт скорости доходит до значения." },
+    "speedUnit": { "at": 5.64, "description": "Появляется единица скорости." },
+    "cool": { "at": 6.25, "description": "Огонь остывает, скорость гаснет." },
+    "strata": { "at": 6.55, "description": "Слои пепла растут от земли, шкала рисуется." },
+    "depthLabel": { "at": 7.34, "description": "Подпись слоя." },
+    "depthFrom": { "at": 7.9, "description": "Нижняя цифра толщины." },
+    "depthTo": { "at": 8.08, "description": "Верхняя цифра толщины." },
+    "depthUnit": { "at": 8.51, "description": "Единица толщины." }
+  },
+  "events": [
+    { "anchor": "flood", "label": "avalanche" },
+    { "at": 4.28, "label": "speed counts" },
+    { "anchor": "cool", "label": "fire cools" },
+    { "anchor": "depthLabel", "label": "depth label" }
+  ],
+  "seed": { "default": 0, "affects": "ash particles, flood edge noise and patches" },
+  "safeZone": { "contentMaxY": 1420, "rightRail": true }
+}

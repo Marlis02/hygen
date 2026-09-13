@@ -1,6 +1,7 @@
 import { rmSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { assembleProject } from "./assemble.ts";
+import { loadStyle, missingSources, validateBeats } from "./contract.ts";
 import { checkProject, lintProject, masterAudio, renderProject } from "./render.ts";
 import type { MasterResult } from "./render.ts";
 import { writeScenes } from "./scenes.ts";
@@ -11,7 +12,7 @@ import { verifyVideo } from "./verify.ts";
 import type { VerifyResult } from "./verify.ts";
 import { makeVoices } from "./voice.ts";
 import { alignWords } from "./words.ts";
-import { ROOT_DIR, Timer, ensureDir, writeJson } from "./lib/util.ts";
+import { ROOT_DIR, Timer, ensureDir, log, writeJson } from "./lib/util.ts";
 
 export interface BuildOptions {
   render: boolean;
@@ -23,10 +24,13 @@ export interface BuildOptions {
 /** video.json → voice → word timings → sound → scenes → index.html → lint/check → render → master → autocheck. */
 export async function build(videoDir: string, opts: BuildOptions): Promise<boolean> {
   const spec = loadSpec(videoDir);
+  const style = loadStyle(spec.style);
+  validateBeats(spec, style, videoDir);
   const timer = new Timer();
   const buildDir = join(videoDir, "build");
   const rendersDir = ensureDir(join(videoDir, "renders"));
   console.log(`hygen build ${spec.id} — «${spec.title}»`);
+  for (const miss of missingSources(spec)) log.warn(`источник: ${miss} — автопроверка упадёт`);
   rmSync(buildDir, { recursive: true, force: true });
   ensureDir(buildDir);
 
@@ -39,9 +43,9 @@ export async function build(videoDir: string, opts: BuildOptions): Promise<boole
     makeGrain(videoDir, buildDir);
     return plan;
   });
-  const scenes = await timer.step("сцены по таймингам голоса", () => writeScenes(spec, buildDir, timings, words));
+  const scenes = await timer.step("сцены по таймингам голоса", () => writeScenes(spec, style, videoDir, buildDir, timings, words));
   const total = await timer.step("index.html: субтитры, шины, переход, приглушение", () =>
-    assembleProject({ spec, buildDir, voices, words, timings, sound, scenes }),
+    assembleProject({ spec, style, buildDir, voices, words, timings, sound, scenes }),
   );
   await timer.step("hyperframes lint", () => lintProject(buildDir));
   const checkOk = opts.check ? await timer.step("hyperframes check", () => checkProject(buildDir)) : null;
@@ -52,7 +56,7 @@ export async function build(videoDir: string, opts: BuildOptions): Promise<boole
   if (opts.render) {
     const raw = join(rendersDir, `${spec.id}.raw.mp4`);
     await timer.step(`рендер (${opts.quality})`, () => renderProject(buildDir, raw, opts.quality, spec.fps));
-    master = await timer.step("мастеринг: −14 LUFS, пики ≤ −1,5 dBTP", () => masterAudio(raw, finalMp4));
+    master = await timer.step("мастеринг: −14 LUFS, пики ≤ −1,5 dBTP; H.264 crf 18", () => masterAudio(raw, finalMp4));
     rmSync(raw, { force: true });
     verify = await timer.step("автопроверка MP4", () => verifyVideo(videoDir, spec, { snapshots: opts.snapshots }));
   }

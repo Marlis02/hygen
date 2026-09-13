@@ -1,7 +1,8 @@
 import { existsSync, rmSync } from "node:fs";
 import { join } from "node:path";
+import { missingSources } from "./contract.ts";
 import type { VideoSpec } from "./spec.ts";
-import { fail, hyperframesBin, log, pyScript, python, readJson, run } from "./lib/util.ts";
+import { fail, hyperframesBin, log, pyScript, python, readJson, run, writeJson } from "./lib/util.ts";
 
 export interface VerifyOptions {
   mp4?: string;
@@ -15,8 +16,9 @@ export interface VerifyResult {
 }
 
 /**
- * Autocheck of the final MP4 (py/verify_mp4.py): format and duration, loudness and peaks, blank
- * scenes, frozen scenes and events, and settle frames compared with fresh composition snapshots.
+ * Autocheck of the final MP4 (py/verify_mp4.py): format, duration and size, loudness and peaks, blank
+ * scenes, frozen scenes and events, settle frames compared with fresh composition snapshots — plus a
+ * source link for every figure on screen (engine/scenes/CONTRACT.md, «Источники»).
  */
 export function verifyVideo(videoDir: string, spec: VideoSpec, opts: VerifyOptions): VerifyResult {
   const buildDir = join(videoDir, "build");
@@ -41,5 +43,13 @@ export function verifyVideo(videoDir: string, spec: VideoSpec, opts: VerifyOptio
   const r = run(python(), args, { allowFail: true });
   for (const line of r.stdout.trim().split("\n")) log.info(line);
   if (r.status !== 0 && !existsSync(report)) fail(`автопроверка упала:\n${r.stderr.slice(-1500)}`);
-  return { ok: r.status === 0, report, sheet };
+  const missing = missingSources(spec);
+  const sourcesOk = missing.length === 0;
+  const detail = sourcesOk ? "у всех цифр на экране есть источник" : `нет источника: ${missing.join("; ")}`;
+  log.info(`${sourcesOk ? "✓" : "✗"} sources   ${detail}`);
+  const rep = readJson<{ ok: boolean; checks: { check: string; ok: boolean; detail: string }[] }>(report);
+  rep.checks.push({ check: "sources", ok: sourcesOk, detail });
+  rep.ok = rep.ok && sourcesOk;
+  writeJson(report, rep);
+  return { ok: r.status === 0 && sourcesOk, report, sheet };
 }

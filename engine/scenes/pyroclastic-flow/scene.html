@@ -1,75 +1,68 @@
-<!-- hygen scene pompeii/04-collapse: ported from examples/pompeii-short (state of the final render). Times in the script are REFERENCE times; the build warps them onto the current voice (engine/scenes/_runtime/warp.js). -->
-<template id="f04-collapse-template">
+<!-- hygen scene pyroclastic-flow (hero scene, from Pompeii 04-collapse): ported from examples/pompeii-short (state of the final render). Times in the script are REFERENCE times; the build warps them onto the current voice (engine/scenes/_runtime/warp.js). -->
+<template id="__p__-template">
 <script src="assets/vendor/gsap.min.js"></script>
 <style>
-@font-face{font-family:"Cormorant Garamond";font-weight:500;font-style:normal;font-display:block;src:url("assets/fonts/CormorantGaramond-500.woff2") format("woff2");}
-@font-face{font-family:"Cormorant Garamond";font-weight:600;font-style:normal;font-display:block;src:url("assets/fonts/CormorantGaramond-600.woff2") format("woff2");}
-@font-face{font-family:"Cormorant Garamond";font-weight:700;font-style:normal;font-display:block;src:url("assets/fonts/CormorantGaramond-700.woff2") format("woff2");}
-@font-face{font-family:"Inter";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/Inter-400.woff2") format("woff2");}
-@font-face{font-family:"Inter";font-weight:500;font-style:normal;font-display:block;src:url("assets/fonts/Inter-500.woff2") format("woff2");}
-@font-face{font-family:"Inter";font-weight:600;font-style:normal;font-display:block;src:url("assets/fonts/Inter-600.woff2") format("woff2");}
-@font-face{font-family:"Inter";font-weight:700;font-style:normal;font-display:block;src:url("assets/fonts/Inter-700.woff2") format("woff2");}
-@font-face{font-family:"Inter";font-weight:800;font-style:normal;font-display:block;src:url("assets/fonts/Inter-800.woff2") format("woff2");}
+{{hygen:fontfaces}}
 </style>
 <style>
   /* Shader-transition frame (flash-through-white in): solid literal colours only, no CSS gradients or custom properties. */
   #root { position: relative; width: 1080px; height: 1920px; overflow: hidden; }
-  #f04-collapse-ground { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; background-color: #2E2C29; }
-  #f04-collapse-stage { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; overflow: hidden; }
+  #__p__-ground { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; background-color: {{hygen:color.ground}}; }
+  #__p__-stage { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; overflow: hidden; }
   /* Camera origin sits on the ground line (y 1420) so zoom phases never push the gauge / strata base into the caption band. */
-  #f04-collapse-camera { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; transform-origin: 540px 1420px; }
-  .f04-collapse-bleed { position: absolute; left: -60px; top: -60px; width: 1200px; height: 2040px; }
-  .f04-collapse-layer { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; }
-  .f04-collapse-svg { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; overflow: visible; }
-  #f04-collapse-sky { background-color: #0A0A09; }
-  #f04-collapse-flood { background-color: #FF5A1F; opacity: 0; }
-  #f04-collapse-fx { position: absolute; left: 0; top: 0; width: 1200px; height: 2040px; }
-  .f04-collapse-band { position: absolute; left: -80px; width: 1240px; transform-origin: 50% 100%; }
-  .f04-collapse-hair { position: absolute; background-color: rgba(236,231,222,0.35); }
-  #f04-collapse-axis { left: 989px; top: 880px; width: 1px; height: 540px; transform-origin: 50% 100%; }
-  .f04-collapse-tick { height: 1px; }
-  #f04-collapse-range { position: absolute; left: 961px; top: 880px; width: 28px; height: 180px; background-color: rgba(236,231,222,0.18); transform-origin: 50% 100%; }
-  #f04-collapse-marker { position: absolute; left: 994px; top: 1408px; width: 26px; height: 24px; overflow: visible; }
-  .f04-collapse-serif { font-family: "Cormorant Garamond", serif; font-variant-numeric: lining-nums tabular-nums; font-feature-settings: "lnum" 1, "tnum" 1; line-height: 1; white-space: nowrap; box-sizing: border-box; }
-  .f04-collapse-sans { font-family: "Inter", sans-serif; line-height: 1; text-transform: uppercase; white-space: nowrap; box-sizing: border-box; }
+  #__p__-camera { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; transform-origin: 540px 1420px; }
+  .__p__-bleed { position: absolute; left: -60px; top: -60px; width: 1200px; height: 2040px; }
+  .__p__-layer { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; }
+  .__p__-svg { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; overflow: visible; }
+  #__p__-sky { background-color: {{hygen:color.night}}; }
+  #__p__-flood { background-color: {{hygen:color.hero}}; opacity: 0; }
+  #__p__-fx { position: absolute; left: 0; top: 0; width: 1200px; height: 2040px; }
+  .__p__-band { position: absolute; left: -80px; width: 1240px; transform-origin: 50% 100%; }
+  .__p__-hair { position: absolute; background-color: rgba({{hygen:rgb.text}},0.35); }
+  #__p__-axis { left: 989px; top: 880px; width: 1px; height: 540px; transform-origin: 50% 100%; }
+  .__p__-tick { height: 1px; }
+  #__p__-range { position: absolute; left: 961px; top: 880px; width: 28px; height: 180px; background-color: rgba({{hygen:rgb.text}},0.18); transform-origin: 50% 100%; }
+  #__p__-marker { position: absolute; left: 994px; top: 1408px; width: 26px; height: 24px; overflow: visible; }
+  .__p__-serif { font-family: {{hygen:font.display}}; font-variant-numeric: lining-nums tabular-nums; font-feature-settings: "lnum" 1, "tnum" 1; line-height: 1; white-space: nowrap; box-sizing: border-box; }
+  .__p__-sans { font-family: {{hygen:font.body}}; line-height: 1; text-transform: uppercase; white-space: nowrap; box-sizing: border-box; }
   /* ≈ 100 КМ/Ч — ink-charcoal on the ember flood, lockup centre ≈ y 760 */
-  #f04-collapse-speed-num { position: absolute; left: 327px; top: 561px; width: 426px; height: 300px; font-size: 300px; font-weight: 700; color: #121110; transform-origin: 50% 50%; }
-  .f04-collapse-cell { position: absolute; top: 0; width: 142px; height: 300px; text-align: center; }
-  #f04-collapse-approx { position: absolute; left: 245px; top: 628px; width: 80px; height: 150px; font-size: 150px; font-weight: 500; color: #121110; text-align: center; }
-  #f04-collapse-speed-unit { position: absolute; left: 0; top: 853px; width: 1080px; height: 56px; font-size: 56px; font-weight: 700; letter-spacing: 0.12em; padding-left: 0.12em; color: #121110; text-align: center; }
+  #__p__-speed-num { position: absolute; left: 327px; top: 561px; width: 426px; height: 300px; font-size: 300px; font-weight: 700; color: {{hygen:color.plane}}; transform-origin: 50% 50%; }
+  .__p__-cell { position: absolute; top: 0; width: 142px; height: 300px; text-align: center; }
+  #__p__-approx { position: absolute; left: 245px; top: 628px; width: 80px; height: 150px; font-size: 150px; font-weight: 500; color: {{hygen:color.plane}}; text-align: center; }
+  #__p__-speed-unit { position: absolute; left: 0; top: 853px; width: 1080px; height: 56px; font-size: 56px; font-weight: 700; letter-spacing: 0.12em; padding-left: 0.12em; color: {{hygen:color.plane}}; text-align: center; }
   /* СЛОЙ ПЕПЛА / 4–6 М */
-  #f04-collapse-depth-label { position: absolute; left: 0; top: 364px; width: 1080px; height: 32px; font-size: 32px; font-weight: 600; letter-spacing: 0.22em; padding-left: 0.22em; color: #A39E95; text-align: center; }
-  .f04-collapse-dcell { position: absolute; top: 428px; height: 260px; font-size: 260px; font-weight: 700; color: #ECE7DE; text-align: center; transform-origin: 50% 50%; }
-  #f04-collapse-dash { transform-origin: 0% 50%; }
-  #f04-collapse-dunit { position: absolute; left: 712px; top: 586px; height: 64px; font-size: 64px; font-weight: 700; color: #A39E95; }
+  #__p__-depth-label { position: absolute; left: 0; top: 364px; width: 1080px; height: 32px; font-size: 32px; font-weight: 600; letter-spacing: 0.22em; padding-left: 0.22em; color: {{hygen:color.muted}}; text-align: center; }
+  .__p__-dcell { position: absolute; top: 428px; height: 260px; font-size: 260px; font-weight: 700; color: {{hygen:color.text}}; text-align: center; transform-origin: 50% 50%; }
+  #__p__-dash { transform-origin: 0% 50%; }
+  #__p__-dunit { position: absolute; left: 712px; top: 586px; height: 64px; font-size: 64px; font-weight: 700; color: {{hygen:color.muted}}; }
 </style>
 
-<div id="root" data-composition-id="04-collapse" data-duration="{{hygen:duration}}" data-width="1080" data-height="1920">
+<div id="root" data-composition-id="__cid__" data-duration="{{hygen:duration}}" data-width="1080" data-height="1920">
   <!-- ground: solid ash, full-duration clip on the lowest track -->
-  <div id="f04-collapse-ground" class="clip" data-start="0" data-duration="{{hygen:duration}}" data-track-index="0"></div>
+  <div id="__p__-ground" class="clip" data-start="0" data-duration="{{hygen:duration}}" data-track-index="0"></div>
 
-  <div id="f04-collapse-stage" class="clip" data-start="0" data-duration="{{hygen:duration}}" data-track-index="1">
-    <div id="f04-collapse-camera">
+  <div id="__p__-stage" class="clip" data-start="0" data-duration="{{hygen:duration}}" data-track-index="1">
+    <div id="__p__-camera">
       <!-- sky plane (night, opacity deepens with the collapse) -->
-      <div id="f04-collapse-sky" class="f04-collapse-bleed"></div>
+      <div id="__p__-sky" class="__p__-bleed"></div>
 
       <!-- cone (ash-deep plane), flat summit x 180–300 at y 600 -->
-      <svg class="f04-collapse-svg" viewBox="0 0 1080 1920" aria-hidden="true">
-        <polygon points="-120,1250 180,600 300,600 760,1250 760,1420 -120,1420" fill="#211F1D" />
+      <svg class="__p__-svg" viewBox="0 0 1080 1920" aria-hidden="true">
+        <polygon points="-120,1250 180,600 300,600 760,1250 760,1420 -120,1420" fill="{{hygen:color.ashDeep}}" />
       </svg>
 
       <!-- collapsing ash column (canvas, pure function of timeline time) -->
-      <canvas id="f04-collapse-column" class="f04-collapse-bleed" width="600" height="1020"></canvas>
+      <canvas id="__p__-column" class="__p__-bleed" width="600" height="1020"></canvas>
 
       <!-- ember flood: full-bleed layer revealed by a jagged clip-path polygon; patches + rim on the inner canvas -->
-      <div id="f04-collapse-flood" class="f04-collapse-bleed">
-        <canvas id="f04-collapse-fx" width="600" height="1020"></canvas>
+      <div id="__p__-flood" class="__p__-bleed">
+        <canvas id="__p__-fx" width="600" height="1020"></canvas>
       </div>
 
       <!-- city silhouettes on the ground line + charcoal ground plane (above the flood) -->
-      <svg class="f04-collapse-svg" viewBox="0 0 1080 1920" aria-hidden="true">
-        <rect x="-80" y="1420" width="1240" height="580" fill="#121110" />
-        <g fill="#121110">
+      <svg class="__p__-svg" viewBox="0 0 1080 1920" aria-hidden="true">
+        <rect x="-80" y="1420" width="1240" height="580" fill="{{hygen:color.plane}}" />
+        <g fill="{{hygen:color.plane}}">
           <polygon points="520,1420 520,1374 512,1374 566,1336 620,1374 612,1374 612,1420" />
           <rect x="612" y="1398" width="16" height="22" />
           <rect x="624" y="1406" width="192" height="14" />
@@ -87,7 +80,7 @@
           <polygon points="1020,1420 1020,1378 1012,1378 1070,1340 1128,1378 1120,1378 1120,1420" />
         </g>
         <!-- pumice already lying on the intact roofs -->
-        <g fill="none" stroke="#8C877F" stroke-width="5" stroke-linejoin="miter" opacity="0.8">
+        <g fill="none" stroke="{{hygen:color.ashLight}}" stroke-width="5" stroke-linejoin="miter" opacity="0.8">
           <polyline points="512,1372 566,1334 620,1372" />
           <polyline points="622,1336 720,1298 818,1336" />
           <polyline points="818,1366 872,1324 926,1366" />
@@ -97,46 +90,46 @@
       </svg>
 
       <!-- ash strata: 5 bands from the ground line up to y 880 (bottom → top), over the city -->
-      <div id="f04-collapse-strata" class="f04-collapse-layer">
-        <div id="f04-collapse-b0" class="f04-collapse-band" style="top:1294px;height:128px;background-color:#8C877F"></div>
-        <div id="f04-collapse-b1" class="f04-collapse-band" style="top:1204px;height:92px;background-color:#5A5650"></div>
-        <div id="f04-collapse-b2" class="f04-collapse-band" style="top:1087px;height:119px;background-color:#3A3835"></div>
-        <div id="f04-collapse-b3" class="f04-collapse-band" style="top:979px;height:110px;background-color:#8C877F"></div>
-        <div id="f04-collapse-b4" class="f04-collapse-band" style="top:880px;height:101px;background-color:#5A5650"></div>
+      <div id="__p__-strata" class="__p__-layer">
+        <div id="__p__-b0" class="__p__-band" style="top:1294px;height:128px;background-color:{{hygen:color.ashLight}}"></div>
+        <div id="__p__-b1" class="__p__-band" style="top:1204px;height:92px;background-color:{{hygen:color.ashMid}}"></div>
+        <div id="__p__-b2" class="__p__-band" style="top:1087px;height:119px;background-color:{{hygen:color.ash3}}"></div>
+        <div id="__p__-b3" class="__p__-band" style="top:979px;height:110px;background-color:{{hygen:color.ashLight}}"></div>
+        <div id="__p__-b4" class="__p__-band" style="top:880px;height:101px;background-color:{{hygen:color.ashMid}}"></div>
       </div>
 
       <!-- depth gauge: axis x 990, 0 m at y 1420 → 6 m at y 880, 90 px per metre -->
-      <div id="f04-collapse-gauge" class="f04-collapse-layer">
-        <div id="f04-collapse-range"></div>
-        <div id="f04-collapse-t0" class="f04-collapse-hair f04-collapse-tick" style="left:965px;top:1419px;width:24px"></div>
-        <div id="f04-collapse-t1" class="f04-collapse-hair f04-collapse-tick" style="left:973px;top:1329px;width:16px"></div>
-        <div id="f04-collapse-t2" class="f04-collapse-hair f04-collapse-tick" style="left:973px;top:1239px;width:16px"></div>
-        <div id="f04-collapse-t3" class="f04-collapse-hair f04-collapse-tick" style="left:973px;top:1149px;width:16px"></div>
-        <div id="f04-collapse-t4" class="f04-collapse-hair f04-collapse-tick" style="left:973px;top:1059px;width:16px"></div>
-        <div id="f04-collapse-t5" class="f04-collapse-hair f04-collapse-tick" style="left:973px;top:969px;width:16px"></div>
-        <div id="f04-collapse-t6" class="f04-collapse-hair f04-collapse-tick" style="left:965px;top:879px;width:24px"></div>
-        <div id="f04-collapse-axis" class="f04-collapse-hair"></div>
-        <svg id="f04-collapse-marker" viewBox="0 0 26 24" aria-hidden="true"><polygon points="0,12 26,0 26,24" fill="#FF5A1F" /></svg>
+      <div id="__p__-gauge" class="__p__-layer">
+        <div id="__p__-range"></div>
+        <div id="__p__-t0" class="__p__-hair __p__-tick" style="left:965px;top:1419px;width:24px"></div>
+        <div id="__p__-t1" class="__p__-hair __p__-tick" style="left:973px;top:1329px;width:16px"></div>
+        <div id="__p__-t2" class="__p__-hair __p__-tick" style="left:973px;top:1239px;width:16px"></div>
+        <div id="__p__-t3" class="__p__-hair __p__-tick" style="left:973px;top:1149px;width:16px"></div>
+        <div id="__p__-t4" class="__p__-hair __p__-tick" style="left:973px;top:1059px;width:16px"></div>
+        <div id="__p__-t5" class="__p__-hair __p__-tick" style="left:973px;top:969px;width:16px"></div>
+        <div id="__p__-t6" class="__p__-hair __p__-tick" style="left:965px;top:879px;width:24px"></div>
+        <div id="__p__-axis" class="__p__-hair"></div>
+        <svg id="__p__-marker" viewBox="0 0 26 24" aria-hidden="true"><polygon points="0,12 26,0 26,24" fill="{{hygen:color.hero}}" /></svg>
       </div>
 
       <!-- speed lockup: ≈ 100 КМ/Ч -->
-      <div id="f04-collapse-speed" class="f04-collapse-layer">
-        <div id="f04-collapse-approx" class="f04-collapse-serif">≈</div>
-        <div id="f04-collapse-speed-num" class="f04-collapse-serif">
-          <span id="f04-collapse-s2" class="f04-collapse-cell" style="left:0px"></span>
-          <span id="f04-collapse-s1" data-layout-allow-overlap="" class="f04-collapse-cell" style="left:142px"></span>
-          <span id="f04-collapse-s0" class="f04-collapse-cell" style="left:284px">0</span>
+      <div id="__p__-speed" class="__p__-layer">
+        <div id="__p__-approx" class="__p__-serif">{{hygen:param.speedPrefix}}</div>
+        <div id="__p__-speed-num" class="__p__-serif">
+          <span id="__p__-s2" class="__p__-cell" style="left:0px"></span>
+          <span id="__p__-s1" data-layout-allow-overlap="" class="__p__-cell" style="left:142px"></span>
+          <span id="__p__-s0" class="__p__-cell" style="left:284px">0</span>
         </div>
-        <div id="f04-collapse-speed-unit" class="f04-collapse-sans">KM/H</div>
+        <div id="__p__-speed-unit" class="__p__-sans">{{hygen:param.speedUnit}}</div>
       </div>
 
       <!-- depth lockup: СЛОЙ ПЕПЛА / 4–6 М -->
-      <div id="f04-collapse-depth" class="f04-collapse-layer">
-        <div id="f04-collapse-depth-label" class="f04-collapse-sans">ASH LAYER</div>
-        <div id="f04-collapse-dl" class="f04-collapse-serif f04-collapse-dcell" style="left:310px;width:124px">0</div>
-        <div id="f04-collapse-dash" class="f04-collapse-serif f04-collapse-dcell" style="left:434px;width:134px">–</div>
-        <div id="f04-collapse-dr" class="f04-collapse-serif f04-collapse-dcell" style="left:568px;width:124px">0</div>
-        <div id="f04-collapse-dunit" class="f04-collapse-sans">M</div>
+      <div id="__p__-depth" class="__p__-layer">
+        <div id="__p__-depth-label" class="__p__-sans">{{hygen:param.depthLabel}}</div>
+        <div id="__p__-dl" class="__p__-serif __p__-dcell" style="left:310px;width:124px">0</div>
+        <div id="__p__-dash" class="__p__-serif __p__-dcell" style="left:434px;width:134px">–</div>
+        <div id="__p__-dr" class="__p__-serif __p__-dcell" style="left:568px;width:124px">0</div>
+        <div id="__p__-dunit" class="__p__-sans">{{hygen:param.depthUnit}}</div>
       </div>
     </div>
   </div>
@@ -144,21 +137,22 @@
 
 <script>
 (function () {
+  /*{{hygen:params}}*/
   var DUR = 9.258;
   var byId = function (id) { return document.getElementById(id); };
-  var camera = byId("f04-collapse-camera");
-  var colCanvas = byId("f04-collapse-column");
-  var flood = byId("f04-collapse-flood");
-  var fxCanvas = byId("f04-collapse-fx");
-  var marker = byId("f04-collapse-marker");
-  var sCells = [byId("f04-collapse-s0"), byId("f04-collapse-s1"), byId("f04-collapse-s2")];
-  var digitL = byId("f04-collapse-dl");
-  var digitR = byId("f04-collapse-dr");
+  var camera = byId("__p__-camera");
+  var colCanvas = byId("__p__-column");
+  var flood = byId("__p__-flood");
+  var fxCanvas = byId("__p__-fx");
+  var marker = byId("__p__-marker");
+  var sCells = [byId("__p__-s0"), byId("__p__-s1"), byId("__p__-s2")];
+  var digitL = byId("__p__-dl");
+  var digitR = byId("__p__-dr");
   var colCtx = colCanvas.getContext("2d");
   var fxCtx = fxCanvas.getContext("2d");
 
   // ---------- deterministic helpers (index-seeded hash only) ----------
-  function prand(n) { var x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); }
+  function prand(n) { var x = Math.sin((n + SEED * 101.3) * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); }
   function clamp01(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
   function seg(t, a, b) { return clamp01((t - a) / (b - a)); }
   function smooth(v) { v = clamp01(v); return v * v * (3 - 2 * v); }
@@ -172,7 +166,7 @@
   // Frame coordinates are 1080×1920; canvases are half-res backing stores over a 60 px bleed.
   var CRX = 240, CRY = 600;          // vent: centre of the flat summit
   var VT = 1150, KD = 0.32;          // collapse: terminal fall speed (px/s) and drag constant (s)
-  var LAYER_COLORS = ["#121110", "#3A3835", "#5A5650", "#8C877F"];
+  var LAYER_COLORS = ["{{hygen:color.plane}}", "{{hygen:color.ash3}}", "{{hygen:color.ashMid}}", "{{hygen:color.ashLight}}"];
   var layers = [[], [], [], []];
   var N_ASH = 1100;
   for (var i = 0; i < N_ASH; i++) {
@@ -290,7 +284,7 @@
     }
     var sparkFade = 1 - smooth((t - 1.05) / 0.75);
     if (sparkFade > 0) {
-      colCtx.fillStyle = "#FF5A1F";
+      colCtx.fillStyle = "{{hygen:color.hero}}";
       for (var m = 0; m < SPARKS.length; m++) {
         var sp = SPARKS[m];
         place(sp, t);
@@ -306,8 +300,8 @@
     if (g > 0.003) {
       var gr = 80 + 110 * smooth((t - 1.75) / 0.63);
       var grad = colCtx.createRadialGradient(CRX, CRY - 6, 0, CRX, CRY - 6, gr);
-      grad.addColorStop(0, "rgba(255,90,31," + g.toFixed(3) + ")");
-      grad.addColorStop(1, "rgba(255,90,31,0)");
+      grad.addColorStop(0, "rgba({{hygen:rgb.hero}}," + g.toFixed(3) + ")");
+      grad.addColorStop(1, "rgba({{hygen:rgb.hero}},0)");
       colCtx.globalAlpha = 1;
       colCtx.fillStyle = grad;
       colCtx.beginPath();
@@ -386,9 +380,9 @@
         fxCtx.rotate(pa.rot0 + pa.spin * t);
         fxCtx.scale(1, pa.asp);
         var g = fxCtx.createRadialGradient(0, 0, 0, 0, 0, R);
-        g.addColorStop(0, "rgba(122,34,8," + (0.35 * A).toFixed(3) + ")");
-        g.addColorStop(0.55, "rgba(122,34,8," + (0.24 * A).toFixed(3) + ")");
-        g.addColorStop(1, "rgba(122,34,8,0)");
+        g.addColorStop(0, "rgba({{hygen:rgb.heroDeep}}," + (0.35 * A).toFixed(3) + ")");
+        g.addColorStop(0.55, "rgba({{hygen:rgb.heroDeep}}," + (0.24 * A).toFixed(3) + ")");
+        g.addColorStop(1, "rgba({{hygen:rgb.heroDeep}},0)");
         fxCtx.fillStyle = g;
         fxCtx.beginPath();
         fxCtx.arc(0, 0, R, 0, 6.2832);
@@ -402,18 +396,20 @@
       for (var e = 1; e < NV; e++) fxCtx.lineTo(FPX[e], FPY[e]);
       fxCtx.closePath();
       fxCtx.lineJoin = "round";
-      fxCtx.strokeStyle = "rgba(255,140,80,0.16)";
+      fxCtx.strokeStyle = "rgba({{hygen:rgb.heroHot}},0.16)";
       fxCtx.lineWidth = 150;
       fxCtx.stroke();
-      fxCtx.strokeStyle = "rgba(255,140,80,0.6)";
+      fxCtx.strokeStyle = "rgba({{hygen:rgb.heroHot}},0.6)";
       fxCtx.lineWidth = 48;
       fxCtx.stroke();
     }
   }
-  // Scene 4 cooling: ember → ash-mid → ash along one power2.inOut progress.
+  // Scene 4 cooling: hero → ash-mid → ash along one power2.inOut progress.
+  var toRgb = function (s) { return s.split(",").map(Number); };
+  var RGB_HERO = toRgb(S.rgb.hero), RGB_MID = toRgb(S.rgb.ashMid), RGB_GROUND = toRgb(S.rgb.ground);
   function floodColor(k) {
-    var a = k < 0.5 ? [255, 90, 31] : [90, 86, 80];
-    var b = k < 0.5 ? [90, 86, 80] : [46, 44, 41];
+    var a = k < 0.5 ? RGB_HERO : RGB_MID;
+    var b = k < 0.5 ? RGB_MID : RGB_GROUND;
     var f = k < 0.5 ? k / 0.5 : (k - 0.5) / 0.5;
     return "rgb(" + Math.round(a[0] + (b[0] - a[0]) * f) + "," + Math.round(a[1] + (b[1] - a[1]) * f) + "," + Math.round(a[2] + (b[2] - a[2]) * f) + ")";
   }
@@ -456,12 +452,12 @@
   // across a short count window can never leave a stale digit on screen.
   function countAt(t, t0, dur, ease, target) { return Math.round(target * ease(seg(t, t0, t0 + dur))); }
   function writeCounters(t) {
-    var v = countAt(t, 4.28, 0.8, P3O, 100);                // lands on «километров» (5.08)
+    var v = countAt(t, 4.28, 0.8, P3O, P.speedValue);                // lands on «километров» (5.08)
     sCells[0].textContent = String(v % 10);
     sCells[1].textContent = v >= 10 ? String(Math.floor(v / 10) % 10) : "";
     sCells[2].textContent = v >= 100 ? String(Math.floor(v / 100)) : "";
-    digitL.textContent = String(countAt(t, 7.90, 0.30, P2O, 4));  // «четыре»
-    digitR.textContent = String(countAt(t, 8.08, 0.32, P2O, 6));  // 8.08 → 8.40
+    digitL.textContent = String(countAt(t, 7.90, 0.30, P2O, P.depthFrom));  // «четыре»
+    digitR.textContent = String(countAt(t, 8.08, 0.32, P2O, P.depthTo));  // 8.08 → 8.40
   }
 
   function renderAt(t) {
@@ -492,43 +488,43 @@
 
   // Scene 1 (0–0.60): continuation under the white flash — the standing column is drawn at t = 0, nothing reveals.
   // Scene 2 (0.60–2.30): «колонна обрушивается» — the sky blackens while the column falls onto the slopes.
-  tl.fromTo(byId("f04-collapse-sky"), { opacity: 0.5 }, { opacity: 0.84, duration: 1.3, ease: "power1.inOut" }, 1.0);
+  tl.fromTo(byId("__p__-sky"), { opacity: 0.5 }, { opacity: 0.84, duration: 1.3, ease: "power1.inOut" }, 1.0);
 
   // Scene 3 (2.38–5.72): flood runs from the master clock; «≈ 100 КМ/Ч» lockup.
-  var speedNum = byId("f04-collapse-speed-num");
+  var speedNum = byId("__p__-speed-num");
   tl.fromTo(speedNum, { opacity: 0 }, { opacity: 1, duration: 0.25, ease: "power2.out" }, 4.28);
   tl.fromTo(speedNum, { scale: 0.7 }, { scale: 1, duration: 0.8, ease: "power3.out" }, 4.28); // same window + ease as the count
-  tl.fromTo(byId("f04-collapse-approx"), { opacity: 0, x: -28 }, { opacity: 1, x: 0, duration: 0.4, ease: "power2.out" }, 4.61); // «около»
-  tl.fromTo(byId("f04-collapse-speed-unit"), { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 5.64); // «в час»
+  tl.fromTo(byId("__p__-approx"), { opacity: 0, x: -28 }, { opacity: 1, x: 0, duration: 0.4, ease: "power2.out" }, 4.61); // «около»
+  tl.fromTo(byId("__p__-speed-unit"), { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 5.64); // «в час»
 
   // Scene 4 (6.25–7.30): «Город запечатывает» — fire cools (master clock); the speed lockup dims out.
   // In-frame change dictated by the storyboard, not a frame exit (the depth lockup takes over the screen).
-  tl.fromTo(byId("f04-collapse-speed"), { opacity: 1 }, { opacity: 0, duration: 0.4, ease: "power1.inOut", immediateRender: false }, 6.25);
+  tl.fromTo(byId("__p__-speed"), { opacity: 1 }, { opacity: 0, duration: 0.4, ease: "power1.inOut", immediateRender: false }, 6.25);
 
   // Scene 5 (6.55–8.86): strata rise band by band from the ground line, gauge + depth lockup.
   for (var b = 0; b < 5; b++) {
-    tl.fromTo(byId("f04-collapse-b" + b), { scaleY: 0 }, { scaleY: 1, duration: BAND_D, ease: "power2.out" }, BAND_T0 + b * BAND_STEP);
+    tl.fromTo(byId("__p__-b" + b), { scaleY: 0 }, { scaleY: 1, duration: BAND_D, ease: "power2.out" }, BAND_T0 + b * BAND_STEP);
   }
-  tl.fromTo(byId("f04-collapse-axis"), { scaleY: 0 }, { scaleY: 1, duration: 0.6, ease: "power2.out" }, 6.55);
+  tl.fromTo(byId("__p__-axis"), { scaleY: 0 }, { scaleY: 1, duration: 0.6, ease: "power2.out" }, 6.55);
   for (var m = 0; m <= 6; m++) {
     // each tick lights as the drawing axis passes it (inverse of the axis' power2.out)
-    tl.fromTo(byId("f04-collapse-t" + m), { opacity: 0 }, { opacity: 1, duration: 0.14, ease: "power1.out" }, 6.55 + 0.6 * (1 - Math.sqrt(1 - m / 6)));
+    tl.fromTo(byId("__p__-t" + m), { opacity: 0 }, { opacity: 1, duration: 0.14, ease: "power1.out" }, 6.55 + 0.6 * (1 - Math.sqrt(1 - m / 6)));
   }
   tl.fromTo(marker, { opacity: 0 }, { opacity: 1, duration: 0.25, ease: "power2.out" }, 6.55);
-  tl.fromTo(byId("f04-collapse-depth-label"), { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }, 7.34); // «слой»
-  tl.fromTo(byId("f04-collapse-range"), { opacity: 0, scaleY: 0 }, { opacity: 1, scaleY: 1, duration: 0.45, ease: "power2.out" }, 7.82);
+  tl.fromTo(byId("__p__-depth-label"), { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }, 7.34); // «слой»
+  tl.fromTo(byId("__p__-range"), { opacity: 0, scaleY: 0 }, { opacity: 1, scaleY: 1, duration: 0.45, ease: "power2.out" }, 7.82);
   tl.fromTo(digitL, { opacity: 0 }, { opacity: 1, duration: 0.15, ease: "power1.out" }, 7.90); // «четыре»
   tl.fromTo(digitL, { scale: 0.82 }, { scale: 1, duration: 0.30, ease: "power2.out" }, 7.90);
-  tl.fromTo(byId("f04-collapse-dash"), { opacity: 0, scaleX: 0.15 }, { opacity: 1, scaleX: 1, duration: 0.18, ease: "power2.out" }, 8.00);
+  tl.fromTo(byId("__p__-dash"), { opacity: 0, scaleX: 0.15 }, { opacity: 1, scaleX: 1, duration: 0.18, ease: "power2.out" }, 8.00);
   tl.fromTo(digitR, { opacity: 0 }, { opacity: 1, duration: 0.15, ease: "power1.out" }, 8.08);
   tl.fromTo(digitR, { scale: 0.82 }, { scale: 1, duration: 0.32, ease: "power2.out" }, 8.08);
-  tl.fromTo(byId("f04-collapse-dunit"), { opacity: 0, x: -14 }, { opacity: 1, x: 0, duration: 0.35, ease: "power2.out" }, 8.51); // «метров»
+  tl.fromTo(byId("__p__-dunit"), { opacity: 0, x: -14 }, { opacity: 1, x: 0, duration: 0.35, ease: "power2.out" }, 8.51); // «метров»
 
   // Scene 6 (8.86–9.258): heavy hold — only the camera keeps moving (master clock).
 
   renderAt(0); // first paint: the full-height column over the cone, before any seek
   W.apply(tl);
-  window.__timelines["04-collapse"] = tl;
+  window.__timelines["__cid__"] = tl;
 })();
 </script>
 </template>

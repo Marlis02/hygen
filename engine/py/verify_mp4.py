@@ -5,6 +5,7 @@ Reads the rendered file itself, never the composition: snapshots and the render 
 (TRAPS.md). Uses the plan the build wrote (build/verify_plan.json):
 
   format    resolution, fps, one audio track, duration within 0.1 s of the plan
+  size      at most 25 MB per 10 s of video (upload-sized H.264)
   loudness  integrated −14 ±0.5 LUFS, true peak ≤ −1.5 dBTP (ffmpeg ebur128)
   blank     every scene shows structure above the caption band, not only its ground
   frozen    every scene moves, and each planned event (reveal, count, collapse) visibly changes the frame
@@ -34,6 +35,7 @@ BLANK_DETAIL = 1.0       # std of the high-passed content region below this: onl
 FROZEN_MOTION = 0.03     # 95th percentile of frame-to-frame change below this: nothing moves
 EVENT_MIN = 6.0          # an event must change some 100×100 px area by at least this mean luma
 SETTLE_MAX = 32.0        # max mean luma difference of a 120×120 px block, MP4 frame vs snapshot
+MAX_MB_PER_10S = 25.0    # file size budget
 
 
 def ffprobe(path):
@@ -129,6 +131,11 @@ def main():
           f"{video['width']}×{video['height']}, {fps:.2f} fps, аудиодорожек {len(audio)}, "
           f"{duration:.3f} с (план {plan['duration']:.3f}, Δ {delta:+.3f})")
 
+    size_mb = os.path.getsize(a.mp4) / 1e6
+    per10 = size_mb / max(duration, 0.001) * 10
+    check("size", per10 <= MAX_MB_PER_10S, f"{size_mb:.1f} МБ, {per10:.1f} МБ на 10 с (≤ {MAX_MB_PER_10S:.0f}), "
+          f"{int(info['format'].get('bit_rate', 0)) / 1e6:.1f} Мбит/с")
+
     target = plan["loudness"]
     loud = loudness(a.mp4)
     check("loudness", abs(loud["I"] - target["target"]) <= target["tolerance"] and loud["TP"] <= target["maxTruePeak"],
@@ -204,7 +211,8 @@ def main():
     with open(a.out, "w", encoding="utf-8") as f:
         json.dump({"ok": ok, "mp4": os.path.abspath(a.mp4), "checks": checks, "scenes": scenes,
                    "thresholds": {"blank_detail": BLANK_DETAIL, "frozen_motion_p95": FROZEN_MOTION,
-                                  "event_min_change": EVENT_MIN, "settle_max_block_diff": SETTLE_MAX}},
+                                  "event_min_change": EVENT_MIN, "settle_max_block_diff": SETTLE_MAX,
+                                  "max_mb_per_10s": MAX_MB_PER_10S}},
                   f, ensure_ascii=False, indent=2)
     print(f"{'✓' if ok else '✗'} автопроверка {'пройдена' if ok else 'НЕ пройдена'}")
     sys.exit(0 if ok else 1)

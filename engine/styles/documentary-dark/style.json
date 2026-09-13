@@ -1,5 +1,70 @@
 {
-  "ground": "#2E2C29",
-  "accent": "#FF5A1F",
-  "contentMaxY": 1420
+  "id": "documentary-dark",
+  "name": "Документальный тёмный",
+  "colors": {
+    "ground": "#2E2C29",
+    "night": "#0A0A09",
+    "plane": "#121110",
+    "text": "#ECE7DE",
+    "muted": "#A39E95",
+    "mutedLight": "#B6B2AB",
+    "dim": "#7C7870",
+    "ashLight": "#8C877F",
+    "ashMid": "#5A5650",
+    "ash3": "#3A3835",
+    "ashDeep": "#211F1D",
+    "accent": "#FF5A1F",
+    "accentDeep": "#7A2208",
+    "accentHot": "#FF8C50",
+    "accentLight": "#FFB27A",
+    "cold": "#8EC3E6",
+    "coldDeep": "#1C3847",
+    "coldHot": "#B5DCF2",
+    "coldLight": "#D8EEF9",
+    "white": "#FFFFFF",
+    "black": "#000000"
+  },
+  "tones": {
+    "accent": { "hero": "accent", "heroDeep": "accentDeep", "heroHot": "accentHot", "heroLight": "accentLight" },
+    "cold": { "hero": "cold", "heroDeep": "coldDeep", "heroHot": "coldHot", "heroLight": "coldLight" }
+  },
+  "fonts": {
+    "display": { "family": "Cormorant Garamond", "fallback": "serif", "files": { "500": "CormorantGaramond-500.woff2", "600": "CormorantGaramond-600.woff2", "700": "CormorantGaramond-700.woff2" } },
+    "body": { "family": "Inter", "fallback": "sans-serif", "files": { "400": "Inter-400.woff2", "500": "Inter-500.woff2", "600": "Inter-600.woff2", "700": "Inter-700.woff2", "800": "Inter-800.woff2" } }
+  },
+  "sizes": {
+    "display": 560,
+    "numberHero": 300,
+    "numberMid": 180,
+    "headline": 120,
+    "title": 72,
+    "unit": 48,
+    "label": 32,
+    "labelSm": 26,
+    "body": 34,
+    "caption": 60
+  },
+  "captions": {
+    "font": "body",
+    "weight": 700,
+    "size": 60,
+    "plate": "plane",
+    "plateAlpha": 0.93,
+    "border": "hero",
+    "borderAlpha": 0.85,
+    "upcoming": "dim",
+    "active": "text",
+    "spokenAlpha": 0.92
+  },
+  "grain": { "dark": 0.16, "light": 0.12 },
+  "vignette": { "color": "night", "clear": 55, "alpha": 0.6 },
+  "safeZone": {
+    "width": 1080,
+    "height": 1920,
+    "padX": 90,
+    "safeTop": 140,
+    "contentMaxY": 1420,
+    "captionBand": [1450, 1670],
+    "rightRail": { "x": 960, "yFrom": 1000, "yTo": 1700 }
+  }
 }

@@ -1,67 +1,61 @@
-<!-- hygen scene pompeii/03-eruption: ported from examples/pompeii-short (state of the final render). Times in the script are REFERENCE times; the build warps them onto the current voice (engine/scenes/_runtime/warp.js). -->
+<!-- hygen scene scale-gauge (from Pompeii 03-eruption; direction down + ocean scenery added): ported from examples/pompeii-short (state of the final render). Times in the script are REFERENCE times; the build warps them onto the current voice (engine/scenes/_runtime/warp.js). -->
 <template>
 <script src="assets/vendor/gsap.min.js"></script>
 <style>
-@font-face{font-family:"Cormorant Garamond";font-weight:500;font-style:normal;font-display:block;src:url("assets/fonts/CormorantGaramond-500.woff2") format("woff2");}
-@font-face{font-family:"Cormorant Garamond";font-weight:600;font-style:normal;font-display:block;src:url("assets/fonts/CormorantGaramond-600.woff2") format("woff2");}
-@font-face{font-family:"Cormorant Garamond";font-weight:700;font-style:normal;font-display:block;src:url("assets/fonts/CormorantGaramond-700.woff2") format("woff2");}
-@font-face{font-family:"Inter";font-weight:400;font-style:normal;font-display:block;src:url("assets/fonts/Inter-400.woff2") format("woff2");}
-@font-face{font-family:"Inter";font-weight:500;font-style:normal;font-display:block;src:url("assets/fonts/Inter-500.woff2") format("woff2");}
-@font-face{font-family:"Inter";font-weight:600;font-style:normal;font-display:block;src:url("assets/fonts/Inter-600.woff2") format("woff2");}
-@font-face{font-family:"Inter";font-weight:700;font-style:normal;font-display:block;src:url("assets/fonts/Inter-700.woff2") format("woff2");}
-@font-face{font-family:"Inter";font-weight:800;font-style:normal;font-display:block;src:url("assets/fonts/Inter-800.woff2") format("woff2");}
+{{hygen:fontfaces}}
 </style>
 <style>
   #root { position: relative; width: 1080px; height: 1920px; overflow: hidden; }
   /* ground: solid ash plane on its own full-duration clip (shader-safe, no gradients) */
-  #f03-eruption-ground { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; background-color: #2E2C29; }
-  #f03-eruption-sky { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; background-color: #0A0A09; opacity: 0; }
-  #f03-eruption-stage { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; overflow: hidden; }
-  #f03-eruption-camera { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; transform-origin: 50% 50%; will-change: transform; }
-  #f03-eruption-world { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; overflow: visible; }
-  #f03-eruption-canvas { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; }
+  #__p__-ground { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; background-color: {{hygen:color.ground}}; }
+  #__p__-sky { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; background-color: {{hygen:color.night}}; opacity: 0; }
+  #__p__-stage { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; overflow: hidden; }
+  #__p__-camera { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; transform-origin: 50% 50%; will-change: transform; }
+  #__p__-world { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; overflow: visible; }
+  #__p__-canvas { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; }
   /* altitude scale: 1px bone@35% hairlines, ember marker, serif readout */
-  #f03-eruption-axis { position: absolute; left: 990px; top: 150px; width: 1px; height: 861px; background-color: rgba(236, 231, 222, 0.35); transform-origin: 50% 100%; }
-  .f03-eruption-tick { position: absolute; left: 977px; width: 27px; height: 1px; background-color: rgba(236, 231, 222, 0.35); transform-origin: 50% 50%; }
-  #f03-eruption-marker { position: absolute; left: 962px; top: 999px; width: 24px; height: 22px; overflow: visible; }
-  #f03-eruption-readout { position: absolute; left: 715px; top: 1020px; width: 240px; text-align: right; transform-origin: 100% 0%; }
-  #f03-eruption-alt { display: block; font-family: "Cormorant Garamond", serif; font-weight: 600; font-size: 110px; line-height: 0.86; color: #ECE7DE; font-variant-numeric: lining-nums tabular-nums; white-space: nowrap; }
-  #f03-eruption-km { display: block; margin-top: 8px; margin-right: -0.12em; font-family: "Inter", sans-serif; font-weight: 600; font-size: 36px; line-height: 1; letter-spacing: 0.12em; text-transform: uppercase; color: #A39E95; white-space: nowrap; }
+  #__p__-axis { position: absolute; left: 990px; top: 150px; width: 1px; height: 861px; background-color: rgba({{hygen:rgb.text}}, 0.35); transform-origin: 50% 100%; }
+  .__p__-tick { position: absolute; left: 977px; width: 27px; height: 1px; background-color: rgba({{hygen:rgb.text}}, 0.35); transform-origin: 50% 50%; }
+  #__p__-marker { position: absolute; left: 962px; top: 999px; width: 24px; height: 22px; overflow: visible; }
+  #__p__-readout { position: absolute; left: 715px; top: 1020px; width: 240px; text-align: right; transform-origin: 100% 0%; }
+  #__p__-alt { display: block; font-family: {{hygen:font.display}}; font-weight: 600; font-size: 110px; line-height: 0.86; color: {{hygen:color.text}}; font-variant-numeric: lining-nums tabular-nums; white-space: nowrap; }
+  #__p__-km { display: block; margin-top: 8px; margin-right: -0.12em; font-family: {{hygen:font.body}}; font-weight: 600; font-size: 36px; line-height: 1; letter-spacing: 0.12em; text-transform: uppercase; color: {{hygen:color.muted}}; white-space: nowrap; }
   /* date lockup: 79 + Н. Э. */
-  #f03-eruption-date { position: absolute; left: 90px; top: 122px; display: flex; align-items: baseline; white-space: nowrap; }
-  #f03-eruption-year { display: inline-block; width: 177px; font-family: "Cormorant Garamond", serif; font-weight: 600; font-size: 180px; line-height: 0.92; color: #ECE7DE; font-variant-numeric: lining-nums tabular-nums; transform-origin: 0% 100%; }
-  #f03-eruption-era { display: inline-block; margin-left: 20px; font-family: "Inter", sans-serif; font-weight: 600; font-size: 40px; line-height: 1; letter-spacing: 0.18em; text-transform: uppercase; color: #B6B2AB; }
-  #f03-eruption-word { position: absolute; left: 90px; top: 744px; font-family: "Cormorant Garamond", serif; font-weight: 600; font-size: 72px; line-height: 1.05; letter-spacing: 0.12em; text-transform: uppercase; color: #ECE7DE; white-space: nowrap; }
+  #__p__-date { position: absolute; left: 90px; top: 122px; display: flex; align-items: baseline; white-space: nowrap; }
+  #__p__-year { display: inline-block; width: 177px; font-family: {{hygen:font.display}}; font-weight: 600; font-size: 180px; line-height: 0.92; color: {{hygen:color.text}}; font-variant-numeric: lining-nums tabular-nums; transform-origin: 0% 100%; }
+  #__p__-era { display: inline-block; margin-left: 20px; font-family: {{hygen:font.body}}; font-weight: 600; font-size: 40px; line-height: 1; letter-spacing: 0.18em; text-transform: uppercase; color: {{hygen:color.mutedLight}}; }
+  #__p__-word { position: absolute; left: 90px; top: 744px; font-family: {{hygen:font.display}}; font-weight: 600; font-size: 72px; line-height: 1.05; letter-spacing: 0.12em; text-transform: uppercase; color: {{hygen:color.text}}; white-space: nowrap; }
 </style>
-<div id="root" data-composition-id="03-eruption" data-start="0" data-duration="{{hygen:duration}}" data-width="1080" data-height="1920">
-  <div id="f03-eruption-ground" class="clip" data-start="0" data-duration="{{hygen:duration}}" data-track-index="0">
-    <div id="f03-eruption-sky"></div>
+<div id="root" data-composition-id="__cid__" data-start="0" data-duration="{{hygen:duration}}" data-width="1080" data-height="1920">
+  <div id="__p__-ground" class="clip" data-start="0" data-duration="{{hygen:duration}}" data-track-index="0">
+    <div id="__p__-sky"></div>
   </div>
-  <div id="f03-eruption-stage" class="clip" data-start="0" data-duration="{{hygen:duration}}" data-track-index="1">
-    <div id="f03-eruption-camera">
-      <svg id="f03-eruption-world" viewBox="0 0 1080 1920" width="1080" height="1920" overflow="visible" aria-hidden="true">
-        <polygon id="f03-eruption-cone" points="-60,1920 470,1010 610,1010 1140,1920" fill="#211F1D" />
-        <rect id="f03-eruption-town-ground" x="-140" y="1418" width="1360" height="700" fill="#121110" />
-        <g id="f03-eruption-city" />
+  <div id="__p__-stage" class="clip" data-start="0" data-duration="{{hygen:duration}}" data-track-index="1">
+    <div id="__p__-camera">
+      <svg id="__p__-world" viewBox="0 0 1080 1920" width="1080" height="1920" overflow="visible" aria-hidden="true">
+        <polygon id="__p__-cone" points="-60,1920 470,1010 610,1010 1140,1920" fill="{{hygen:color.ashDeep}}" />
+        <rect id="__p__-town-ground" x="-140" y="1418" width="1360" height="700" fill="{{hygen:color.plane}}" />
+        <g id="__p__-city" />
       </svg>
-      <canvas id="f03-eruption-canvas" width="540" height="960"></canvas>
-      <div id="f03-eruption-axis"></div>
-      <div class="f03-eruption-tick" style="top: 1010px"></div>
-      <div class="f03-eruption-tick" style="top: 867px"></div>
-      <div class="f03-eruption-tick" style="top: 723px"></div>
-      <div class="f03-eruption-tick" style="top: 580px"></div>
-      <div class="f03-eruption-tick" style="top: 437px"></div>
-      <div class="f03-eruption-tick" style="top: 293px"></div>
-      <div class="f03-eruption-tick" style="top: 150px"></div>
-      <svg id="f03-eruption-marker" viewBox="0 0 24 22" width="24" height="22" aria-hidden="true"><polygon points="0,11 24,0 24,22" fill="#FF5A1F" /></svg>
-      <div id="f03-eruption-readout"><span id="f03-eruption-alt" data-layout-allow-overlap="">0</span><span id="f03-eruption-km">KM</span></div>
-      <div id="f03-eruption-date"><span id="f03-eruption-year">0</span><span id="f03-eruption-era">AD</span></div>
-      <div id="f03-eruption-word">PUMICE</div>
+      <canvas id="__p__-canvas" width="540" height="960"></canvas>
+      <div id="__p__-axis"></div>
+      <div class="__p__-tick" style="top: 1010px"></div>
+      <div class="__p__-tick" style="top: 867px"></div>
+      <div class="__p__-tick" style="top: 723px"></div>
+      <div class="__p__-tick" style="top: 580px"></div>
+      <div class="__p__-tick" style="top: 437px"></div>
+      <div class="__p__-tick" style="top: 293px"></div>
+      <div class="__p__-tick" style="top: 150px"></div>
+      <svg id="__p__-marker" viewBox="0 0 24 22" width="24" height="22" aria-hidden="true"><polygon points="0,11 24,0 24,22" fill="{{hygen:color.hero}}" /></svg>
+      <div id="__p__-readout"><span id="__p__-alt" data-layout-allow-overlap="">0</span><span id="__p__-km">{{hygen:param.unit}}</span></div>
+      <div id="__p__-date"><span id="__p__-year">0</span><span id="__p__-era">{{hygen:param.dateSuffix}}</span></div>
+      <div id="__p__-word">{{hygen:param.word}}</div>
     </div>
   </div>
 </div>
 <script>
 (function () {
+  /*{{hygen:params}}*/
   "use strict";
   var DUR = 9.545;
   var TAU = Math.PI * 2;
@@ -70,20 +64,37 @@
   var HTOP = 860, K_RISE = 1.8;            // 30 km = 860 px above the crater (28.67 px/km)
   var NORM = 1 - Math.exp(-K_RISE * RISE);
   var UMB_H = 680;                         // above y ~330 the column opens into Pliny's umbrella
-  var INK = "#121110", ASH3 = "#3A3835", ASH_MID = "#5A5650", ASH_LIGHT = "#8C877F", EMBER = "#FF5A1F";
+  var INK = "{{hygen:color.plane}}", ASH3 = "{{hygen:color.ash3}}", ASH_MID = "{{hygen:color.ashMid}}", ASH_LIGHT = "{{hygen:color.ashLight}}", EMBER = "{{hygen:color.hero}}";
 
-  function prand(n) { var x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); }
+  function prand(n) { var x = Math.sin((n + SEED * 101.3) * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); }
   function clamp01(v) { return v < 0 ? 0 : (v > 1 ? 1 : v); }
   // exponential deceleration, normalised so a particle reaches its full height exactly RISE s after birth
   function riseE(a) { if (a <= 0) return 0; if (a >= RISE) return 1; return (1 - Math.exp(-K_RISE * a)) / NORM; }
 
   function byId(id) { return document.getElementById(id); }
-  var sky = byId("f03-eruption-sky"), camera = byId("f03-eruption-camera"), city = byId("f03-eruption-city");
-  var canvas = byId("f03-eruption-canvas"), ctx = canvas.getContext("2d");
-  var axis = byId("f03-eruption-axis"), marker = byId("f03-eruption-marker"), readout = byId("f03-eruption-readout");
-  var altEl = byId("f03-eruption-alt"), yearEl = byId("f03-eruption-year"), eraEl = byId("f03-eruption-era");
-  var wordEl = byId("f03-eruption-word");
-  var ticks = Array.prototype.slice.call(byId("f03-eruption-stage").querySelectorAll(".f03-eruption-tick"));
+  var sky = byId("__p__-sky"), camera = byId("__p__-camera"), city = byId("__p__-city");
+  var canvas = byId("__p__-canvas"), ctx = canvas.getContext("2d");
+  var axis = byId("__p__-axis"), marker = byId("__p__-marker"), readout = byId("__p__-readout");
+  var altEl = byId("__p__-alt"), yearEl = byId("__p__-year"), eraEl = byId("__p__-era");
+  var wordEl = byId("__p__-word");
+  var ticks = Array.prototype.slice.call(byId("__p__-stage").querySelectorAll(".__p__-tick"));
+
+  // ---- params: direction and scenery ----
+  var DOWN = P.direction === "down";
+  var VOLCANO = P.scenery === "volcano" || P.scenery === "volcano-still";
+  var OCEAN = P.scenery === "ocean";
+  var Y0 = 300, Y1 = 1300;                 // down: the surface (0) and the value line
+  function fmtNum(n) { return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
+  if (!VOLCANO) byId("__p__-world").style.display = "none";
+  if (!(P.dateValue > 0)) byId("__p__-date").style.display = "none";
+  yearEl.style.width = (88.5 * String(P.dateValue).length).toFixed(1) + "px";
+  if (!P.word) wordEl.style.display = "none";
+  if (DOWN) {
+    axis.style.top = Y0 + "px";
+    axis.style.height = (Y1 - Y0) + "px";
+    axis.style.transformOrigin = "50% 0%";
+    for (var ti = 0; ti < ticks.length; ti++) ticks[ti].style.top = (Y0 + (ti * (Y1 - Y0)) / (ticks.length - 1)).toFixed(1) + "px";
+  }
 
   // ---- town: 7 cut-paper silhouettes on the ground line y 1420, temple pediment in the middle ----
   var SVGNS = "http://www.w3.org/2000/svg";
@@ -106,7 +117,7 @@
   var roofs = [], strips = [];
   HOUSES.forEach(function (hs, j) {
     var M = (hs.L + hs.R) / 2, lx = hs.L - hs.o, rx = hs.R + hs.o, e = hs.e, r = hs.r;
-    var g = svgEl("g", { id: "f03-eruption-house-" + j }, city);
+    var g = svgEl("g", { id: "__p__-house-" + j }, city);
     if (hs.temple) {
       svgEl("rect", { x: hs.L, y: e - 1, width: hs.R - hs.L, height: 19, fill: INK }, g);
       for (var c = 0; c < 4; c++) svgEl("rect", { x: (462 + c * 45.33).toFixed(2), y: 1335, width: 20, height: 67, fill: INK }, g);
@@ -115,9 +126,9 @@
     } else {
       svgEl("rect", { x: hs.L, y: e - 1, width: hs.R - hs.L, height: 1423 - e, fill: INK }, g);
     }
-    var left = svgEl("g", { id: "f03-eruption-roof-l" + j }, g);
+    var left = svgEl("g", { id: "__p__-roof-l" + j }, g);
     svgEl("polygon", { points: lx + "," + e + " " + M + "," + r + " " + (M + 1) + "," + (r + 1) + " " + (M + 1) + "," + e, fill: INK }, left);
-    var right = svgEl("g", { id: "f03-eruption-roof-r" + j }, g);
+    var right = svgEl("g", { id: "__p__-roof-r" + j }, g);
     svgEl("polygon", { points: M + "," + r + " " + rx + "," + e + " " + M + "," + e, fill: INK }, right);
     // pumice layer lies on each slope; its local y=0 is the slope line, so scale(1 p) grows it off the roof
     var dxL = M - lx, dyL = r - e, dxR = rx - M, dyR = e - r;
@@ -193,9 +204,9 @@
     var rad = 44 + 72 * e + 40 * burst + 5 * flick;
     var al = Math.min(0.45, 0.26 + 0.14 * e + 0.05 * flick + 0.05 * burst);
     var grd = ctx.createRadialGradient(CX, CY, 0, CX, CY, rad);
-    grd.addColorStop(0, "rgba(255,90,31," + al.toFixed(3) + ")");
-    grd.addColorStop(0.45, "rgba(255,90,31," + (al * 0.4).toFixed(3) + ")");
-    grd.addColorStop(1, "rgba(255,90,31,0)");
+    grd.addColorStop(0, "rgba({{hygen:rgb.hero}}," + al.toFixed(3) + ")");
+    grd.addColorStop(0.45, "rgba({{hygen:rgb.hero}}," + (al * 0.4).toFixed(3) + ")");
+    grd.addColorStop(1, "rgba({{hygen:rgb.hero}},0)");
     ctx.globalAlpha = 1;
     ctx.fillStyle = grd;
     ctx.beginPath(); ctx.arc(CX, CY, rad, 0, TAU); ctx.fill();
@@ -325,27 +336,130 @@
       ctx.fill();
     }
   }
+  // ---- ocean scenery (direction down): water, surface, seabed, marine snow, a sinking ship, bubbles ----
+  var NSNOW = 240;
+  var snX = new Float32Array(NSNOW), snY = new Float32Array(NSNOW), snV = new Float32Array(NSNOW), snR = new Float32Array(NSNOW), snP = new Float32Array(NSNOW);
+  for (var sn = 0; sn < NSNOW; sn++) {
+    snX[sn] = prand(sn * 3.1 + 0.7) * 1080;
+    snY[sn] = prand(sn * 4.7 + 1.9);
+    snV[sn] = 12 + 30 * prand(sn * 5.3 + 2.3);
+    snR[sn] = 1 + 1.6 * prand(sn * 6.1 + 3.7);
+    snP[sn] = prand(sn * 7.9 + 4.1) * TAU;
+  }
+  var BED = [];
+  for (var bx = 0; bx <= 1120; bx += 40) BED.push(Y1 + 40 + 22 * prand(bx * 0.37 + 9.1) - 10 * Math.sin(bx / 170));
+  var SHIP_X = 600;
+  function shipY(t) { return Y0 + 4 + (Y1 + 10 - Y0 - 4) * riseE(t - T_ERUPT); }
+  function shipTilt(t) {
+    var e = riseE(t - T_ERUPT);
+    return 1.5 * Math.sin(t * 1.6) * (1 - e) + 16 * Math.sin(Math.PI * Math.min(1, e * 1.15)) + 5 * e;
+  }
+  function drawOcean(t) {
+    var g = ctx.createLinearGradient(0, Y0, 0, 1920);
+    g.addColorStop(0, S.colors.heroDeep);
+    g.addColorStop(0.62, S.colors.night);
+    g.addColorStop(1, S.colors.night);
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = g;
+    ctx.fillRect(0, Y0, 1080, 1920 - Y0);
+    ctx.fillStyle = S.colors.heroLight;                // light shafts under the surface, slowly swaying
+    for (var k = 0; k < 4; k++) {
+      var sx = 170 + k * 250 + 26 * Math.sin(t * 0.4 + k * 1.7);
+      ctx.globalAlpha = 0.045;
+      ctx.beginPath();
+      ctx.moveTo(sx - 34, Y0); ctx.lineTo(sx + 34, Y0); ctx.lineTo(sx - 90, Y0 + 720); ctx.lineTo(sx - 230, Y0 + 720);
+      ctx.closePath(); ctx.fill();
+    }
+    ctx.globalAlpha = 0.55;                            // the surface line
+    ctx.strokeStyle = S.colors.text;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (var x = 0; x <= 1080; x += 20) {
+      var yy = Y0 + 3 * Math.sin(x / 60 + t * 1.8);
+      if (x === 0) ctx.moveTo(x, yy); else ctx.lineTo(x, yy);
+    }
+    ctx.stroke();
+    ctx.fillStyle = S.colors.ashLight;                 // marine snow
+    var span = 1920 - Y0;
+    for (var n = 0; n < NSNOW; n++) {
+      ctx.globalAlpha = 0.26;
+      ctx.beginPath();
+      ctx.arc(snX[n] + 8 * Math.sin(t * 0.7 + snP[n]), Y0 + ((snY[n] * span + snV[n] * t) % span), snR[n], 0, TAU);
+      ctx.fill();
+    }
+    ctx.strokeStyle = S.colors.heroLight;              // bubbles trailing the ship
+    ctx.lineWidth = 1.5;
+    for (var q = 0; q < 60; q++) {
+      var te = T_ERUPT + q * 0.045 + 0.03 * prand(q * 2.3 + 1.1);
+      var age = t - te;
+      if (age <= 0 || age > 1.6) continue;
+      var bby = shipY(te) - 20 - age * (90 + 60 * prand(q * 4.4 + 0.3));
+      if (bby < Y0 + 6) continue;
+      ctx.globalAlpha = 0.45 * (1 - age / 1.6);
+      ctx.beginPath();
+      ctx.arc(SHIP_X + (prand(q * 3.9 + 2.2) - 0.5) * 300 + 6 * Math.sin(age * 5 + q), bby, 2 + 3 * prand(q * 5.1 + 0.9), 0, TAU);
+      ctx.stroke();
+    }
+    ctx.save();                                        // the ship: cut-paper silhouette with a thin rim light
+    ctx.translate(SHIP_X, shipY(t));
+    ctx.rotate((shipTilt(t) * Math.PI) / 180);
+    ctx.beginPath();
+    ctx.moveTo(-200, -8); ctx.lineTo(206, -8); ctx.lineTo(188, 30); ctx.lineTo(-186, 30); ctx.closePath();
+    ctx.rect(-150, -30, 290, 22);
+    for (var f = 0; f < 4; f++) {
+      var fx = -112 + f * 62;
+      ctx.moveTo(fx, -30); ctx.lineTo(fx + 16, -30); ctx.lineTo(fx + 9, -80); ctx.lineTo(fx - 7, -80); ctx.closePath();
+    }
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = S.colors.plane;
+    ctx.fill();
+    ctx.globalAlpha = 0.5;
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(-172, -8); ctx.lineTo(-178, -122); ctx.moveTo(170, -8); ctx.lineTo(164, -122);
+    ctx.stroke();
+    ctx.restore();
+    ctx.globalAlpha = 1;                               // seabed in front of the landed hull
+    ctx.fillStyle = S.colors.plane;
+    ctx.beginPath();
+    ctx.moveTo(-10, 1930);
+    for (var b = 0; b < BED.length; b++) ctx.lineTo(b * 40, BED[b]);
+    ctx.lineTo(1130, 1930);
+    ctx.closePath();
+    ctx.fill();
+  }
+
   // altitude marker + readout: same function as the drawn column top, so they cannot drift apart
   var lastAlt = -1;
   function hud(t) {
     var e = riseE(t - T_ERUPT);
-    var hpx = HTOP * e;
-    marker.style.transform = "translateY(" + (-hpx).toFixed(2) + "px)";
-    readout.style.transform = "translateY(" + (-hpx).toFixed(2) + "px) scale(" + (0.62 + 0.38 * e).toFixed(4) + ")";
-    var v = Math.round(30 * e);
-    if (v !== lastAlt) { altEl.textContent = String(v); lastAlt = v; }
+    if (DOWN) {                                  // depth: marker sinks from the surface to the value line, readout rides above it
+      var yd = Y0 + (Y1 - Y0) * e;
+      marker.style.transform = "translateY(" + (yd - 1010).toFixed(2) + "px)";
+      readout.style.transform = "translateY(" + (yd - 150 - 1020).toFixed(2) + "px) scale(" + (0.62 + 0.38 * e).toFixed(4) + ")";
+    } else {
+      var hpx = HTOP * e;
+      marker.style.transform = "translateY(" + (-hpx).toFixed(2) + "px)";
+      readout.style.transform = "translateY(" + (-hpx).toFixed(2) + "px) scale(" + (0.62 + 0.38 * e).toFixed(4) + ")";
+    }
+    var v = Math.round(P.value * e);
+    if (v !== lastAlt) { altEl.textContent = fmtNum(v); lastAlt = v; }
   }
   function render(t) {
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.globalAlpha = 1;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.setTransform(canvas.width / 1080, 0, 0, canvas.height / 1920, 0, 0);
-    drawGlow(t);
-    drawWisps(t);
-    drawColumn(t);
-    drawSparks(t);
-    drawDust(t);
-    drawPumice(t);
+    if (VOLCANO) {
+      drawGlow(t);
+      drawWisps(t);
+      drawColumn(t);
+      drawSparks(t);
+      drawDust(t);
+      drawPumice(t);
+    } else if (OCEAN) {
+      drawOcean(t);
+    }
     ctx.globalAlpha = 1;
     hud(t);
   }
@@ -363,7 +477,7 @@
     var s = camScale(t);
     var p = TAU * 1.5 * (t / DUR);
     var dx = 4 * Math.sin(p), dy = 2 * Math.sin(p * 1.3);
-    for (var j = 0; j < 7; j++) {
+    for (var j = 0; j < 7 && P.scenery === "volcano"; j++) {
       var d = t - (8.59 + 0.07 * j);
       if (d <= 0) continue;
       var env = 1.4 * Math.exp(-d / 0.16);
@@ -384,7 +498,7 @@
 
   // Scene 1: 79 counts up on "Семьдесят девятый", Н. Э. on "эры"
   // property tween (not onUpdate): a seek that lands past its end still writes 79
-  tl.fromTo(yearEl, { textContent: 0 }, { textContent: 79, snap: { textContent: 1 }, duration: 1, ease: "power2.out" }, 0.2);
+  tl.fromTo(yearEl, { textContent: 0 }, { textContent: P.dateValue, snap: { textContent: 1 }, duration: 1, ease: "power2.out" }, 0.2);
   tl.fromTo(yearEl, { scale: 0.55 }, { scale: 1, duration: 1, ease: "power2.out" }, 0.2);
   tl.fromTo(eraEl, { opacity: 0, x: -14 }, { opacity: 1, x: 0, duration: 0.5, ease: "power2.out" }, 1.54);
 
@@ -392,18 +506,19 @@
   tl.fromTo(axis, { scaleY: 0 }, { scaleY: 1, duration: 0.4, ease: "power2.out" }, T_ERUPT);
   tl.fromTo(ticks, { scaleX: 0 }, { scaleX: 1, duration: 0.22, ease: "power2.out", stagger: 0.055 }, T_ERUPT + 0.02);
   tl.fromTo([marker, readout], { opacity: 0 }, { opacity: 1, duration: 0.25, ease: "power1.out" }, T_ERUPT);
-  tl.fromTo(sky, { opacity: 0 }, { opacity: 0.5, duration: 2.2, ease: "power1.inOut" }, T_ERUPT);
+  if (OCEAN) tl.set(sky, { opacity: 1 }, 0);
+  else tl.fromTo(sky, { opacity: 0 }, { opacity: 0.5, duration: 2.2, ease: "power1.inOut" }, T_ERUPT);
 
   // Scene 4: ПЕМЗА wipes in on "пемза"; pumice layers grow on every roof from "по нескольку"
-  tl.fromTo(wordEl, { clipPath: "inset(-30% 100% -30% -4%)" }, { clipPath: "inset(-30% -8% -30% -4%)", duration: 0.5, ease: "power2.inOut" }, 5.89);
+  if (P.word) tl.fromTo(wordEl, { clipPath: "inset(-30% 100% -30% -4%)" }, { clipPath: "inset(-30% -8% -30% -4%)", duration: 0.5, ease: "power2.inOut" }, 5.89);
   var layer = { p: 0 };
-  tl.fromTo(layer, { p: 0 }, { p: 1, duration: 1.75, ease: "power1.inOut", onUpdate: function () {
+  if (VOLCANO) tl.fromTo(layer, { p: 0 }, { p: 1, duration: 1.75, ease: "power1.inOut", onUpdate: function () {
     var sy = "scale(1 " + layer.p.toFixed(4) + ")";
     for (var k = 0; k < strips.length; k++) strips[k].setAttribute("transform", sy);
   } }, 6.45);
 
   // Scene 5: roofs give way left to right (0.07 s step): halves drop 26 px, rotate ±10°, then hold
-  roofs.forEach(function (rf) {
+  if (P.scenery === "volcano") roofs.forEach(function (rf) {
     var st = { p: 0 };
     tl.fromTo(st, { p: 0 }, { p: 1, duration: 0.35, ease: "power2.in", onUpdate: function () {
       var dy = (26 * st.p).toFixed(2), ang = 10 * st.p;
@@ -416,7 +531,7 @@
   writeCamera(0);
   window.__timelines = window.__timelines || {};
   W.apply(tl);
-  window.__timelines["03-eruption"] = tl;
+  window.__timelines["__cid__"] = tl;
 })();
 </script>
 </template>
