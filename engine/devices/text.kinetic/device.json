@@ -1,0 +1,29 @@
+{
+  "type": "text.kinetic",
+  "name": "Кинетический текст",
+  "use": "Letters as the main object of the frame: a word or a short line in one of 12 kinetic modes — stack, extrude, weight-morph, outline, tilt, marquee, texture, scramble, slam, center-build, type-swap, behind-subject. It leads its beat (dominant, at most one other device); sync voice follows the words, sync music moves on the beats of the track.",
+  "origin": "own: stack, extrude, weight-morph, outline, tilt, marquee · registry: texture-mask-text (texture), caption-matrix-decode (scramble), caption-kinetic-slam (slam), kinetic-center-build (center-build), kinetic-type-swap (type-swap), caption-parallax-layers + remove-background (behind-subject)",
+  "layer": "text",
+  "target": "box|none",
+  "targetNote": "box — область текста; без target — полоса position: center (y 430–1350), top (y 180–880), bottom (y 700–1400)",
+  "explains": false,
+  "figures": ["text", "words"],
+  "text": { "scale": "kinetic", "defaults": { "font": "body", "size": "l", "case": "upper", "position": "center" } },
+  "params": {
+    "mode": { "type": "enum", "values": ["stack", "extrude", "weight-morph", "outline", "tilt", "marquee", "texture", "scramble", "slam", "center-build", "type-swap", "behind-subject"], "default": "stack", "description": "stack — слово столбиком, одна строка залита, остальные контуром; extrude — псевдо-3D из копий; weight-morph — вес и ширина вариативного шрифта плывут; outline — контур, заливка по fillAt; tilt — блок в перспективе; marquee — ряды бегут навстречу; texture — буквы прорезаны текстурой; scramble — символы перебираются и встают; slam — слова падают с ударом; center-build — слова добавляются, строка центрируется; type-swap — постоянная строка, меняется слово; behind-subject — слово за фигурой фото stage." },
+    "text": { "type": "string", "default": "", "maxLength": 40, "description": "Слово или короткая строка; пусто — слово реплики target/at. Для type-swap — постоянная часть строки." },
+    "words": { "type": "list", "default": [], "maxItems": 6, "maxLength": 20, "description": "slam, center-build, type-swap: слова по очереди (пусто — слова text)." },
+    "wordsAt": { "type": "ats", "default": [], "maxItems": 6, "description": "slam, center-build, type-swap: слово реплики (или секунды после at) для каждого слова words — слова встают на слова голоса; пусто — step или биты трека." },
+    "step": { "type": "number", "default": 0.45, "min": 0.1, "max": 3, "description": "Шаг между словами и строками при sync voice, с; при sync music шаг — биты трека." },
+    "repeat": { "type": "integer", "default": 5, "min": 3, "max": 8, "description": "stack — сколько раз слово столбиком; marquee — сколько рядов." },
+    "depth": { "type": "integer", "default": 14, "min": 4, "max": 30, "description": "extrude — число копий глубины." },
+    "angle": { "type": "number", "default": 16, "min": -30, "max": 30, "description": "Угол, °: tilt — поворот блока, extrude — направление глубины, stack — скос." },
+    "fillAt": { "type": "at", "default": 0.9, "description": "outline — когда приходит заливка: слово реплики или секунды после at." },
+    "texture": { "type": "enum", "values": ["concrete", "rock", "lava", "wood", "metal", "snow"], "default": "concrete", "description": "texture — маска яркости из texture-mask-text, прорезающая буквы." }
+  },
+  "events": [
+    { "label": "in", "offset": 0 },
+    { "label": "land", "offset": 0.7 }
+  ],
+  "demo": { "params": { "text": "PLASTER", "mode": "stack" }, "at": 0.4, "stage": { "type": "color", "color": "night", "glow": true } }
+}

@@ -26,5 +26,7 @@
   "transitions": { "default": "hard-cut", "hit": "smoke-wipe" },
   "grain": 1.3,
   "vignette": { "alpha": 0.7, "clear": 50 },
-  "sound": { "hit": "thunder", "whoosh": "smoke" }
+  "sound": { "hit": "thunder", "whoosh": "smoke" },
+  "captions": { "family": "calm", "preset": "plain", "activeWord": "none" },
+  "typography": { "kinetic": false }
 }

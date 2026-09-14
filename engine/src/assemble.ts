@@ -1,7 +1,9 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import type { StyleDef } from "./contract.ts";
-import { substituteStyle, toneColors } from "./contract.ts";
+import { toneColors } from "./contract.ts";
 import { join } from "node:path";
+import type { CaptionPlan } from "./captions.ts";
+import { installCaptions, planCaptions, writeCaptions } from "./captions.ts";
 import type { SceneBuild } from "./scenes.ts";
 import type { SoundPlan } from "./sound.ts";
 import type { MusicPlan } from "./music.ts";
@@ -51,30 +53,33 @@ function nodeScript(script: string, args: string[], cwd: string, keep = 8): void
 }
 
 /**
- * HyperFrames project in build/: captions.mjs → assemble-index.mjs (vendored skill scripts) →
- * finishing pass (buses, drone, SFX, shader transition, grain, vignette, local scripts) → carve.
+ * HyperFrames project in build/: captions (the device text.caption, engine/src/captions.ts) → assemble-index.mjs (vendored
+ * skill script, mounts compositions/captions.html) → finishing pass (buses, drone, SFX, transitions, grain, vignette, local
+ * scripts) → carve.
  */
-export function assembleProject(input: AssembleInput): number {
+export function assembleProject(input: AssembleInput): { total: number; captions: CaptionPlan } {
   const { spec, style, buildDir } = input;
-  stage(spec, style, buildDir);
+  stage(spec, buildDir);
   writeStoryboard(input);
   writeAudioMeta(input);
   const scripts = join(VENDOR_SKILLS, "faceless-explainer", "scripts");
-  nodeScript(join(scripts, "captions.mjs"), ["build", "--storyboard", "STORYBOARD.md", "--audio-meta", "audio_meta.json", "--hyperframes", ".", "--out", "caption_groups.json"], buildDir, 3);
+  const last = input.timings[input.timings.length - 1] as BeatTiming;
+  const hits = input.sound.sfx.filter((c) => c.kind === "thud" || c.kind === "thud-heavy").map((c) => c.at);
+  const captions = planCaptions({ spec, look: input.look, style, timings: input.timings, words: input.words, total: last.end, hits });
+  writeCaptions(buildDir, captions, style);
+  installCaptions(buildDir, captions.cfg.groups.map((g) => g.style.preset));
   nodeScript(join(scripts, "assemble-index.mjs"), ["--storyboard", "STORYBOARD.md", "--hyperframes", "."], buildDir, 12);
-  const total = finalizeIndex(input, style);
+  const total = finalizeIndex(input, style, captions);
   carveBeds(input);
   writeVerifyPlan(input, style, total);
-  return total;
+  return { total, captions };
 }
 
-function stage(spec: VideoSpec, style: StyleDef, buildDir: string): void {
+function stage(spec: VideoSpec, buildDir: string): void {
   copyInto(join(ENGINE_DIR, "assets", "fonts"), join(buildDir, "assets", "fonts"));
   copyInto(join(ENGINE_DIR, "assets", "vendor"), join(buildDir, "assets", "vendor"));
   copyInto(join(ENGINE_DIR, "styles", spec.style, "frame.md"), join(buildDir, "frame.md"));
-  const skin = readFileSync(join(ENGINE_DIR, "captions", `${spec.captions}.html`), "utf8");
-  ensureDir(join(buildDir, ".hyperframes"));
-  writeFileSync(join(buildDir, ".hyperframes", "caption-skin.html"), substituteStyle(skin, style, "accent", `engine/captions/${spec.captions}.html`));
+  ensureDir(join(buildDir, "compositions"));
   writeJson(join(buildDir, "hyperframes.json"), {
     $schema: "https://hyperframes.heygen.com/schema/hyperframes.json",
     paths: { blocks: "compositions", components: "compositions/components", assets: "assets" },
@@ -124,7 +129,7 @@ function writeAudioMeta({ buildDir, voices, words, sound }: AssembleInput): void
 }
 
 /** Finishing pass over assemble-index's output — ported from examples/pompeii-short/scripts/assemble/finalize_index.mjs. */
-function finalizeIndex({ spec, look, buildDir, timings, words, sound, scenes, music }: AssembleInput, style: StyleDef): number {
+function finalizeIndex({ spec, look, buildDir, timings, words, sound, scenes, music }: AssembleInput, style: StyleDef, captions: CaptionPlan): number {
   const colors = toneColors(style, "accent");
   const indexPath = join(buildDir, "index.html");
   let html = readFileSync(indexPath, "utf8");
@@ -156,7 +161,8 @@ function finalizeIndex({ spec, look, buildDir, timings, words, sound, scenes, mu
     spans: spans.map(({ beat, timing, index }) => ({ beatId: beat.id, start: timing.start, duration: timing.duration, textures: beat.textures, word: (ref: string) => wordTime(words[index] as BeatWords, ref) })),
   });
   const motion = motionConfig({ id: spec.id, look, style, beats: spans.map(({ beat, timing, index }) => ({ beat, start: timing.start, end: timing.end, index })), hits, bgs, layers, transitions: planned });
-  const runtime = motion.needs.runtime || scenes.some((s) => s.injected);
+  // captions that follow the camera read HygenMotion.camera from the root's runtime
+  const runtime = motion.needs.runtime || scenes.some((s) => s.injected) || captions.cfg.groups.some((g) => g.camera);
   if (runtime) installRuntime(buildDir);
   const stageBeats = spec.beats.some((b) => b.scene === undefined);
   if (stageBeats) installDevices(buildDir);

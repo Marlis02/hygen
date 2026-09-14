@@ -1,0 +1,212 @@
+{
+  "ok": true,
+  "mp4": "/home/marlis/Desktop/hygen/videos/krakatoa-en/renders/krakatoa-en.mp4",
+  "checks": [
+    {
+      "check": "format",
+      "ok": true,
+      "detail": "1080×1920, 30.00 fps, аудиодорожек 1, 44.100 с (план 44.068, Δ +0.032)"
+    },
+    {
+      "check": "size",
+      "ok": true,
+      "detail": "90.9 МБ, 20.6 МБ на 10 с (≤ 25), 16.5 Мбит/с"
+    },
+    {
+      "check": "loudness",
+      "ok": true,
+      "detail": "-14.0 LUFS (цель -14 ±0.5), пик -2.0 dBTP (≤ -1.5), LRA 3.3 LU"
+    },
+    {
+      "check": "blank",
+      "ok": true,
+      "detail": "пустых сцен нет"
+    },
+    {
+      "check": "frozen",
+      "ok": true,
+      "detail": "все сцены двигаются, 13 событий меняют кадр"
+    },
+    {
+      "check": "settled",
+      "ok": true,
+      "detail": "кадры совпадают со снимками композиции (макс. расхождение 14.8)"
+    },
+    {
+      "check": "sources",
+      "ok": true,
+      "detail": "у всех цифр на экране есть источник"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "01-hook",
+      "start": 0,
+      "end": 6.8,
+      "detail_max": 19.1,
+      "motion_p95": 3.928,
+      "events": [
+        {
+          "t": 4,
+          "label": "number counts",
+          "change": 69.2,
+          "ok": true
+        },
+        {
+          "t": 5.19,
+          "label": "unit",
+          "change": 63.6,
+          "ok": true
+        },
+        {
+          "t": 6.01,
+          "label": "heat dies",
+          "change": 55,
+          "ok": true
+        }
+      ],
+      "settle": {
+        "t": 6.698,
+        "max_block_diff": 14.8,
+        "snapshot": "frame-00-at-6.698s.png"
+      }
+    },
+    {
+      "id": "02-year",
+      "start": 6.8,
+      "end": 12.167,
+      "detail_max": 19.73,
+      "motion_p95": 3.038,
+      "events": [
+        {
+          "t": 9.74,
+          "label": "year uncovered",
+          "change": 65.4,
+          "ok": true
+        }
+      ],
+      "settle": {
+        "t": 11.882,
+        "max_block_diff": 4,
+        "snapshot": "frame-01-at-11.882s.png"
+      }
+    },
+    {
+      "id": "03-map",
+      "start": 12.167,
+      "end": 22.367,
+      "detail_max": 18.36,
+      "motion_p95": 2.802,
+      "events": [
+        {
+          "t": 12.367,
+          "label": "marker",
+          "change": 133,
+          "ok": true
+        },
+        {
+          "t": 17.417,
+          "label": "counter counts",
+          "change": 81.9,
+          "ok": true
+        },
+        {
+          "t": 19.725,
+          "label": "item 1",
+          "change": 31.1,
+          "ok": true
+        }
+      ],
+      "settle": {
+        "t": 22.185,
+        "max_block_diff": 2.7,
+        "snapshot": "frame-02-at-22.185s.png"
+      }
+    },
+    {
+      "id": "04-wave",
+      "start": 22.367,
+      "end": 30.234,
+      "detail_max": 6,
+      "motion_p95": 1.932,
+      "events": [
+        {
+          "t": 23.137,
+          "label": "rise",
+          "change": 31.2,
+          "ok": true
+        },
+        {
+          "t": 26.817,
+          "label": "word",
+          "change": 23.8,
+          "ok": true
+        }
+      ],
+      "settle": {
+        "t": 30.009,
+        "max_block_diff": 2.9,
+        "snapshot": "frame-03-at-30.009s.png"
+      }
+    },
+    {
+      "id": "05-picture",
+      "start": 30.234,
+      "end": 37.201,
+      "detail_max": 18.86,
+      "motion_p95": 1.816,
+      "events": [
+        {
+          "t": 31.984,
+          "label": "title",
+          "change": 37.8,
+          "ok": true
+        }
+      ],
+      "settle": {
+        "t": 36.9,
+        "max_block_diff": 2,
+        "snapshot": "frame-04-at-36.9s.png"
+      }
+    },
+    {
+      "id": "06-finale",
+      "start": 37.201,
+      "end": 44.068,
+      "detail_max": 27.4,
+      "motion_p95": 1.745,
+      "events": [
+        {
+          "t": 39.201,
+          "label": "fraction counts",
+          "change": 120.9,
+          "ok": true
+        },
+        {
+          "t": 40.601,
+          "label": "scale fills",
+          "change": 26.8,
+          "ok": true
+        },
+        {
+          "t": 43.612,
+          "label": "fade out",
+          "change": 95,
+          "ok": true
+        }
+      ],
+      "settle": {
+        "t": 43.285,
+        "max_block_diff": 2.7,
+        "snapshot": "frame-05-at-43.285s.png"
+      }
+    }
+  ],
+  "thresholds": {
+    "blank_detail": 1,
+    "frozen_motion_p95": 0.03,
+    "event_min_change": 6,
+    "settle_max_block_diff": 32,
+    "max_mb_per_10s": 25
+  }
+}

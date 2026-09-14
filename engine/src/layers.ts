@@ -204,7 +204,7 @@ export function typeInjection(input: { beat: BeatSpec; scene: SceneDef; look: Lo
 // ── transitions ──────────────────────────────────────────────────────────────────────────────────
 
 /** Transitions that draw on the shared transition canvas (#hy-tr-canvas); flash and ash-burst have their own overlays. */
-const CANVAS_TRANSITIONS = ["whip", "water-ripple", "smoke-wipe"];
+const CANVAS_TRANSITIONS = ["whip", "water-ripple", "smoke-wipe", "iris", "blinds", "grid-dissolve", "film-burn", "directional-wipe", "grade-split"];
 
 export interface PlannedTransition {
   fromBeat: string;

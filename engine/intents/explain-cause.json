@@ -1,0 +1,27 @@
+{
+  "id": "explain-cause",
+  "use": "One thing caused another: on the picture the cause is lit and an arrow with a short label points from it to what it did.",
+  "stage": {
+    "types": ["media"],
+    "default": { "type": "media", "src": "$data.src" }
+  },
+  "devices": [
+    {
+      "type": "focus.spotlight",
+      "target": "$target",
+      "at": "$at",
+      "params": { "mode": "$data.mode|dim" }
+    },
+    {
+      "type": "annotate.arrow",
+      "target": "$data.effect",
+      "at": "$at+0.5",
+      "params": { "label": "$data.label", "from": "$data.from|left" },
+      "explains": "$data.explains|what caused what on this picture",
+      "source": "$data.source"
+    }
+  ],
+  "dominant": 1,
+  "requires": ["target", "data.effect", "data.label"],
+  "rhythm": { "density": 3, "note": "Плотный бит: следующий — пауза." }
+}

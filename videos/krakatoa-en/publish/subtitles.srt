@@ -1,71 +1,87 @@
 1
-00:00:00,280 --> 00:00:02,200
-Krakatoa made the loudest sound
+00:00:00,190 --> 00:00:01,580
+The loudest sound in history
 
 2
-00:00:02,200 --> 00:00:03,160
-in history.
+00:00:01,580 --> 00:00:02,780
+was not a war,
 
 3
-00:00:03,410 --> 00:00:06,550
-It was heard 4,800 kilometers away.
+00:00:02,780 --> 00:00:03,620
+or a bomb.
 
 4
-00:00:07,000 --> 00:00:11,290
-Its final blast came on 27 August 1883.
+00:00:03,960 --> 00:00:05,110
+It was an island.
 
 5
-00:00:12,377 --> 00:00:13,867
-The volcano stood in the
+00:00:06,280 --> 00:00:08,140
+In August 1883,
 
 6
-00:00:13,867 --> 00:00:16,637
-Sunda Strait, between Java and Sumatra.
+00:00:08,480 --> 00:00:10,470
+Krakatoa was a quiet volcanic
 
 7
-00:00:16,637 --> 00:00:19,667
-More than 36,000 people died,
+00:00:10,470 --> 00:00:12,290
+island in the Sunda Strait,
 
 8
-00:00:19,917 --> 00:00:21,867
-most of them in the tsunamis.
+00:00:12,680 --> 00:00:14,590
+between Java and Sumatra.
 
 9
-00:00:22,587 --> 00:00:23,767
-Some of those waves were
+00:00:15,407 --> 00:00:17,987
+4,800 kilometers away,
 
 10
-00:00:23,767 --> 00:00:25,827
-more than 30 meters high,
+00:00:17,987 --> 00:00:20,357
+on Rodrigues, people heard it
 
 11
-00:00:25,857 --> 00:00:28,327
-and 165 villages and towns
+00:00:20,437 --> 00:00:22,077
+and thought it was cannon fire.
 
 12
-00:00:28,327 --> 00:00:29,757
-were destroyed.
+00:00:22,734 --> 00:00:24,044
+Artists drew it for the
 
 13
-00:00:30,434 --> 00:00:31,984
-Its pressure wave circled the
+00:00:24,044 --> 00:00:25,014
+Royal Society.
 
 14
-00:00:31,984 --> 00:00:34,014
-globe several times and was
+00:00:25,014 --> 00:00:27,214
+The column of ash rose
 
 15
-00:00:34,014 --> 00:00:36,744
-still being recorded five days later.
+00:00:27,214 --> 00:00:29,724
+about 80 kilometers into the sky.
 
 16
-00:00:39,181 --> 00:00:40,141
-When the ash settled,
+00:00:30,711 --> 00:00:33,781
+More than 36,000 people died,
 
 17
-00:00:40,141 --> 00:00:41,761
-two thirds of the island
+00:00:33,791 --> 00:00:34,771
+most of them in the
 
 18
-00:00:41,761 --> 00:00:42,591
-were gone.
+00:00:34,771 --> 00:00:38,041
+tsunamis, and 165 villages and
+
+19
+00:00:38,041 --> 00:00:39,651
+towns were destroyed.
+
+20
+00:00:41,014 --> 00:00:42,834
+When the ash finally settled,
+
+21
+00:00:43,084 --> 00:00:44,424
+two-thirds of the island were
+
+22
+00:00:44,424 --> 00:00:45,344
+simply gone.

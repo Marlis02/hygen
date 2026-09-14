@@ -78,3 +78,21 @@ python3 -m pip install --user kokoro-onnx      # голос Kokoro
 Ролик описывается одним файлом `videos/<ролик>/video.json`: биты с текстом на английском, сцена библиотеки на бит, её параметры и якорные слова, оттенок, сид, источники цифр, переходы и звук. Сцены живут в `engine/scenes/` (контракт — [engine/scenes/CONTRACT.md](engine/scenes/CONTRACT.md)), стиль на токенах — в `engine/styles/`.
 
 Каждый ролик — свой мир поверх стиля: `look` (`engine/looks/` — палитра, текстуры, камера, типографика, пост-эффекты, переходы; или свой объект в video.json), текстуры (`engine/textures/`), медиафон бита, motion (`engine/motion/`) и переходы (`engine/transitions/`). Сцены о слоях не знают. Автопроверка `uniqueness` падает, если ролик похож на другой из `videos/` (акцент ближе 30° и тот же набор текстур). MP4 — H.264 crf 18, до 25 МБ на 10 с; автопроверка падает, если у цифры на экране нет ссылки на источник. Всё привязано к словам голоса: сменился голос — сцены и субтитры сдвинулись вместе с ним.
+
+## Текст на экране, ритм и голос (D6)
+
+```bash
+. ~/.nvm/nvm.sh
+npm run scene -- --device text.caption --preset pill-karaoke --look bright-explainer   # превью пресета субтитров (20 пресетов, семейства — engine/devices/text.caption/families.json)
+npm run scene -- --device text.kinetic --beat '{"devices":[{"type":"text.kinetic","at":0.4,"params":{"mode":"stack","text":"BLUE"}}],"dominant":0}'
+npm run scene -- --device data.dots          # вторая волна: data.dots, data.timeline, edit.pip
+npm run voice                                # бюджет ElevenLabs: потрачено и осталось (ELEVENLABS_BUDGET_CHARS в .env)
+npm run voice -- --reset-budget              # сброс счёта символов
+npm run media -- "harbour 1917" --provider pexels   # поиск только в Pexels (all | commons | pexels)
+python3 engine/py/beats.py <трек.wav> --out .cache/beats/x.json                    # сетка битов вручную (сборка делает сама)
+```
+
+- Субтитры — `captions` в video.json и `caption` у бита поверх `look.captions`; старый слой с плашкой и линией убран. Контраст под субтитрами сборка меряет сама до рендера и подкладывает wash/blur.
+- Кинетический текст — устройство `text.kinetic` (12 режимов), ритм устройств — `sync: voice | music | both`, тестовый трек с битом — `engine/assets/music/test-beat-100.wav`.
+- Контракт — `engine/scenes/CONTRACT.md`, раздел «Текст на экране (D6)»; навык `/short` v3.2 — шаг «текст на экране».
+- Proof текстовой системы — `videos/_proof/typo` (look `bright-explainer`).

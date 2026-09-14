@@ -26,5 +26,7 @@
   "transitions": { "default": "hard-cut", "hit": "water-ripple" },
   "grain": 0.7,
   "vignette": { "alpha": 0.66, "clear": 52 },
-  "sound": { "hit": "deep-boom", "whoosh": "water" }
+  "sound": { "hit": "deep-boom", "whoosh": "water" },
+  "captions": { "family": "calm", "preset": "plain", "activeWord": "none" },
+  "typography": { "kinetic": false }
 }

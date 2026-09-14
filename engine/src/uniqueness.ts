@@ -30,6 +30,7 @@ interface Fingerprint {
   observed: number | null;
   textures: string[];
   stages: string[];
+  devices: string[];
   arc: string | null;
   retells: string | null;
   built: number;
@@ -38,6 +39,27 @@ interface Fingerprint {
 /** scene beats → "scene:<id>", stage beats → the stage type. */
 export const stageSequence = (spec: VideoSpec): string[] => spec.beats.map((b) => (b.scene !== undefined ? `scene:${b.scene}` : String(b.stage?.type)));
 
+/**
+ * Fingerprint of a video (ROADMAP D6): per beat the stage type + what leads the frame — the dominant device or the stage
+ * itself; a scene beat is its scene. «photo + label → quote → counter» of two videos in a row is caught here, not by the arc.
+ */
+export const deviceFingerprint = (spec: VideoSpec): string[] =>
+  spec.beats.map((b) => {
+    if (b.scene !== undefined) return `scene:${b.scene}`;
+    const lead = typeof b.dominant === "number" ? (b.devices?.[b.dominant]?.type ?? "stage") : "stage";
+    return `${String(b.stage?.type)}+${lead}`;
+  });
+
+/** Share of positions where two fingerprints agree, over the longer one. */
+export function fingerprintMatch(a: string[], b: string[]): { eq: number; n: number; share: number } {
+  const n = Math.max(a.length, b.length, 1);
+  const eq = a.filter((x, i) => b[i] === x).length;
+  return { eq, n, share: eq / n };
+}
+
+export const FINGERPRINT_ERROR = 0.6;
+export const FINGERPRINT_WARN = 0.4;
+
 function fingerprint(spec: VideoSpec, dir: string, observed: number | null): Fingerprint {
   const look = loadLook(spec.look);
   const style = applyLook(loadStyle(spec.style), look);
@@ -45,7 +67,7 @@ function fingerprint(spec: VideoSpec, dir: string, observed: number | null): Fin
   for (const beat of spec.beats) for (const t of beat.textures ?? []) textures.add(t.id);
   const build = join(dir, "renders", `${spec.id}.build.json`);
   const built = existsSync(build) ? statSync(build).mtimeMs : statSync(join(dir, "video.json")).mtimeMs;
-  return { id: spec.id, dir, hue: Math.round(hueOf(style.colors.accent as string)), observed, textures: [...textures].sort(), stages: stageSequence(spec), arc: arcKey(spec), retells: spec.retells ?? null, built };
+  return { id: spec.id, dir, hue: Math.round(hueOf(style.colors.accent as string)), observed, textures: [...textures].sort(), stages: stageSequence(spec), devices: deviceFingerprint(spec), arc: arcKey(spec), retells: spec.retells ?? null, built };
 }
 
 /** Observed accent hue of a finished video: engine/py/verify_mp4.py writes it into <id>.verify.json → palette. */
@@ -104,12 +126,17 @@ export function checkUniqueness(spec: VideoSpec, videoDir: string, observed: num
     const n = Math.max(me.stages.length, other.stages.length);
     const eq = me.stages.filter((s, i) => other.stages[i] === s).length;
     if (!same && eq / n > 0.5) warnings.push(`уникальность: с ${other.id} совпадает ${eq} из ${n} позиций stage`);
-    skeleton.push(`${other.id}: арка ${other.arc ? (other.arc === me.arc ? "та же" : "другая") : "не задана"}, stage ${eq}/${n}`);
+    // fingerprint (D6): stage + the device that leads, position by position
+    const fp = fingerprintMatch(me.devices, other.devices);
+    const pct = Math.round(fp.share * 100);
+    if (fp.share > FINGERPRINT_ERROR) bad.push(`${other.id}: отпечаток совпадает на ${pct} % (${fp.eq} из ${fp.n}: ${me.devices.join(" → ")})`);
+    else if (fp.share >= FINGERPRINT_WARN) warnings.push(`уникальность: отпечаток с ${other.id} совпадает на ${pct} % (${fp.eq} из ${fp.n}) — порог ошибки 60 %`);
+    skeleton.push(`${other.id}: арка ${other.arc ? (other.arc === me.arc ? "та же" : "другая") : "не задана"}, stage ${eq}/${n}, отпечаток ${pct} %`);
   }
-  const head = `акцент ${me.hue}°${me.observed === null ? "" : ` (по кадрам ${Math.round(me.observed)}°)`}, текстуры: ${me.textures.join(", ") || "нет"}; арка ${me.arc ?? "не задана"}; stage ${me.stages.join(" → ")}`;
+  const head = `акцент ${me.hue}°${me.observed === null ? "" : ` (по кадрам ${Math.round(me.observed)}°)`}, текстуры: ${me.textures.join(", ") || "нет"}; арка ${me.arc ?? "не задана"}; stage ${me.stages.join(" → ")}; отпечаток ${me.devices.join(" → ")}`;
   return {
     ok: bad.length === 0,
-    detail: bad.length ? `похож на: ${bad.join("; ")} — нужно ≥ ${MIN_HUE}° или другой набор текстур, другая арка и другая последовательность stage` : `${head}; ${pairs.join("; ") || "других роликов нет"}; скелет против двух последних: ${skeleton.join("; ") || "—"}`,
+    detail: bad.length ? `похож на: ${bad.join("; ")} — нужно ≥ ${MIN_HUE}° или другой набор текстур, другая арка, другая последовательность stage и отпечаток ≤ 60 %` : `${head}; ${pairs.join("; ") || "других роликов нет"}; скелет против двух последних: ${skeleton.join("; ") || "—"}`,
     warnings,
     hue: me.hue,
     textures: me.textures,

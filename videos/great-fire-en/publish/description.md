@@ -5,6 +5,7 @@ Sources:
 - https://en.wikipedia.org/wiki/Monument_to_the_Great_Fire_of_London
 
 Media:
+- Documentary dark 01 — low drone (procedural) — hygen engine (engine/py/sound_design.py, drone of videos/pompeii-en), CC0. https://github.com/Marlis02/hygen/blob/main/engine/py/sound_design.py
 - The Great Fire of London, seen from a boat near Tower Wharf — Unknown artist (Dutch school, c. 1675), Museum of London, Public domain. https://commons.wikimedia.org/wiki/File:Great_Fire_London.jpg
 - Wenceslaus Hollar — London before and after the fire (State 1): view after the fire — Wenceslaus Hollar (1607–1677), Public domain. https://commons.wikimedia.org/wiki/File:Wenceslas_Hollar_-_London_before_and_after_the_fire_(State_1).jpg
 - Wenceslaus Hollar — London before and after the fire (State 1): view before the fire — Wenceslaus Hollar (1607–1677), Public domain. https://commons.wikimedia.org/wiki/File:Wenceslas_Hollar_-_London_before_and_after_the_fire_(State_1).jpg

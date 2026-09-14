@@ -1,4 +1,4 @@
-import { appendFileSync, copyFileSync, existsSync, writeFileSync } from "node:fs";
+import { appendFileSync, copyFileSync, existsSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import type { VideoSpec } from "./spec.ts";
@@ -60,6 +60,44 @@ interface LineMeta {
 export const ELEVEN_DEFAULT_MODEL = "eleven_multilingual_v2";
 const KOKORO_DEFAULT_VOICE = "am_michael";
 const ELEVEN_DIR = join(ROOT_DIR, ".cache", "voice", "elevenlabs");
+const USAGE = join(ELEVEN_DIR, "usage.jsonl");
+
+/** The ElevenLabs budget is spent: this line goes to Kokoro, the rest of the build continues (not a failure of the API). */
+export class BudgetError extends Error {}
+
+/**
+ * ELEVENLABS_BUDGET_CHARS in .env against the characters sent since the last reset (.cache/voice/elevenlabs/usage.jsonl;
+ * a cached take is not sent and not recorded). `npm run voice -- --reset-budget` appends a reset mark.
+ */
+export function budgetState(): { budget: number | null; spent: number; left: number | null; since: string | null } {
+  const raw = loadEnv().ELEVENLABS_BUDGET_CHARS;
+  const budget = raw !== undefined && raw !== "" && Number.isFinite(Number(raw)) ? Number(raw) : null;
+  let spent = 0;
+  let since: string | null = null;
+  if (existsSync(USAGE)) {
+    for (const line of readFileSync(USAGE, "utf8").split("\n")) {
+      if (!line.trim()) continue;
+      try {
+        const rec = JSON.parse(line) as { reset?: boolean; at?: string; chars?: number };
+        if (rec.reset) {
+          spent = 0;
+          since = rec.at ?? null;
+        } else spent += Number(rec.chars ?? 0);
+      } catch {
+        // a torn line of an interrupted build
+      }
+    }
+  }
+  return { budget, spent, left: budget === null ? null : Math.max(0, budget - spent), since };
+}
+
+export function resetBudget(): void {
+  ensureDir(ELEVEN_DIR);
+  appendFileSync(USAGE, JSON.stringify({ at: new Date().toISOString(), reset: true }) + "\n");
+}
+
+/** Characters promised to requests in flight: three parallel lines must not all pass the same check. */
+let reserved = 0;
 
 export function resolveVoice(spec: VideoSpec, cli?: string): VoiceChoice {
   const env = loadEnv();
@@ -141,6 +179,19 @@ export async function elevenTake(text: string, voiceId: string, model: string, l
   const apiKey = loadEnv().ELEVENLABS_API_KEY;
   if (!apiKey) throw new Error("нет ELEVENLABS_API_KEY в .env");
   if (!voiceId) throw new Error("нет voiceId: voice.voiceId в video.json или ELEVENLABS_VOICE_ID в .env");
+  const budget = budgetState();
+  if (budget.budget !== null && budget.spent + reserved + text.length > budget.budget) {
+    throw new BudgetError(`бюджет ElevenLabs: потрачено ${budget.spent} из ${budget.budget} символов${reserved ? ` (+${reserved} в пути)` : ""}, реплике нужно ${text.length}`);
+  }
+  reserved += text.length;
+  try {
+    return await sendTake(text, voiceId, model, label, apiKey, dir, wav, alignPath);
+  } finally {
+    reserved -= text.length;
+  }
+}
+
+async function sendTake(text: string, voiceId: string, model: string, label: string, apiKey: string, dir: string, wav: string, alignPath: string): Promise<ElevenTake> {
   let res: Response;
   let format: string;
   for (;;) {
@@ -169,7 +220,7 @@ export async function elevenTake(text: string, voiceId: string, model: string, l
   writeJson(alignPath, words);
   const record = { label, voiceId, model, output_format: format, chars: text.length, character_cost: Number.isFinite(cost) ? cost : null };
   writeJson(join(dir, "meta.json"), { ...record, text });
-  appendFileSync(join(ELEVEN_DIR, "usage.jsonl"), JSON.stringify({ at: new Date().toISOString(), ...record }) + "\n");
+  appendFileSync(USAGE, JSON.stringify({ at: new Date().toISOString(), ...record }) + "\n");
   return { wav, alignment: words, chars: text.length, cached: false };
 }
 
@@ -203,10 +254,26 @@ export async function makeVoices(spec: VideoSpec, videoDir: string, buildDir: st
     return { beatId, index: i, rel, abs: join(buildDir, rel), duration: meta.duration_s, speechStart: meta.speech_start_s, speechEnd: meta.speech_end_s, lufs: meta.lufs, truePeak: meta.true_peak_dbtp, tts, cached, provider, alignment };
   };
 
+  // Kokoro voice when ElevenLabs is out: the video's own Kokoro voice (voice.voice / voiceId of a Kokoro spec), else am_michael
+  const kokoroFallback = (from: VoiceChoice["from"]): VoiceChoice => {
+    const v = spec.voice ?? {};
+    const own = (v.provider ?? v.engine) === "kokoro";
+    return { provider: "kokoro", voiceId: (own ? (v.voiceId ?? v.voice) : v.voice) ?? KOKORO_DEFAULT_VOICE, model: "kokoro-v1.0", speed: v.speed ?? 1, from };
+  };
+  let overBudget = 0;
   const eleven = async (choice: VoiceChoice): Promise<VoiceLine[]> =>
     pool(spec.beats, 3, async (beat, i) => {
       const { tts } = parseBeatText(beat.text);
-      const take = await elevenTake(tts, choice.voiceId, choice.model, `${spec.id}/${beat.id}`);
+      let take: ElevenTake;
+      try {
+        take = await elevenTake(tts, choice.voiceId, choice.model, `${spec.id}/${beat.id}`);
+      } catch (err) {
+        if (!(err instanceof BudgetError)) throw err;
+        // over the budget: this line only goes to Kokoro, no API call (ROADMAP D6)
+        log.warn(`${beat.id}: ${err.message} — реплика озвучена Kokoro`);
+        overBudget++;
+        return kokoroLine(kokoroFallback(choice.from), beat, i);
+      }
       chars += take.chars;
       const key = sha({ v: 2, provider: "elevenlabs", voiceId: choice.voiceId, model: choice.model, tts, pad: beat.pad, fps: spec.fps });
       const done = await finishLine(take.wav, ensureDir(join(videoDir, ".cache", "voice", `${beat.id}-${key}`)), beat.pad, spec.fps);
@@ -216,20 +283,21 @@ export async function makeVoices(spec: VideoSpec, videoDir: string, buildDir: st
       return place(beat.id, i, tts, done.line, done.meta, take.cached && done.cached, "elevenlabs", alignment);
     });
 
+  async function kokoroLine(choice: VoiceChoice, beat: VideoSpec["beats"][number], i: number): Promise<VoiceLine> {
+    const { tts } = parseBeatText(beat.text);
+    // same key as before D5 for {engine, voice, speed}: Kokoro takes of existing videos stay cached
+    const key = sha({ v: 1, engine: "kokoro", voice: choice.voiceId, speed: choice.speed, tts, pad: beat.pad, fps: spec.fps });
+    const cacheDir = ensureDir(join(videoDir, ".cache", "voice", `${beat.id}-${key}`));
+    const raw = join(cacheDir, "raw.wav");
+    if (!existsSync(join(cacheDir, "line.wav")) && !existsSync(raw)) {
+      await runAsync(hyperframesBin(), ["tts", tts, "--voice", choice.voiceId, "--speed", String(choice.speed), "--output", raw, "--json"], { cwd: cacheDir });
+    }
+    const done = await finishLine(raw, cacheDir, beat.pad, spec.fps);
+    return place(beat.id, i, tts, done.line, done.meta, done.cached, "kokoro");
+  }
+
   const kokoro = async (choice: VoiceChoice): Promise<VoiceLine[]> => {
-    const bin = hyperframesBin();
-    const line1 = async (beat: VideoSpec["beats"][number], i: number): Promise<VoiceLine> => {
-      const { tts } = parseBeatText(beat.text);
-      // same key as before D5 for {engine, voice, speed}: Kokoro takes of existing videos stay cached
-      const key = sha({ v: 1, engine: "kokoro", voice: choice.voiceId, speed: choice.speed, tts, pad: beat.pad, fps: spec.fps });
-      const cacheDir = ensureDir(join(videoDir, ".cache", "voice", `${beat.id}-${key}`));
-      const raw = join(cacheDir, "raw.wav");
-      if (!existsSync(join(cacheDir, "line.wav")) && !existsSync(raw)) {
-        await runAsync(bin, ["tts", tts, "--voice", choice.voiceId, "--speed", String(choice.speed), "--output", raw, "--json"], { cwd: cacheDir });
-      }
-      const done = await finishLine(raw, cacheDir, beat.pad, spec.fps);
-      return place(beat.id, i, tts, done.line, done.meta, done.cached, "kokoro");
-    };
+    const line1 = (beat: VideoSpec["beats"][number], i: number): Promise<VoiceLine> => kokoroLine(choice, beat, i);
     // Cold machine: the model downloads inside `hyperframes tts`, so three parallel calls would
     // fetch the same 330 МБ three times. The first line goes alone and warms the cache (TRAPS.md).
     const cold = !existsSync(join(homedir(), ".cache", "hyperframes", "tts", "models", "kokoro-v1.0.onnx"));
@@ -243,12 +311,12 @@ export async function makeVoices(spec: VideoSpec, videoDir: string, buildDir: st
 
   if (wanted.provider === "elevenlabs") {
     try {
-      return { lines: await eleven(wanted), choice: wanted, chars };
+      const lines = await eleven(wanted);
+      if (overBudget) log.warn(`ElevenLabs: бюджет кончился — ${overBudget} из ${lines.length} реплик озвучены Kokoro (смешанные голоса; пересоберите после npm run voice -- --reset-budget)`);
+      return { lines, choice: wanted, chars };
     } catch (err) {
       log.warn(`ElevenLabs: ${err instanceof Error ? err.message : String(err)} — откат на Kokoro, сборка продолжается`);
-      const v = spec.voice ?? {};
-      const own = (v.provider ?? v.engine) === "kokoro";
-      const fallback: VoiceChoice = { provider: "kokoro", voiceId: (own ? (v.voiceId ?? v.voice) : undefined) ?? KOKORO_DEFAULT_VOICE, model: "kokoro-v1.0", speed: v.speed ?? 1, from: wanted.from };
+      const fallback = kokoroFallback(wanted.from);
       return { lines: await kokoro(fallback), choice: fallback, chars };
     }
   }

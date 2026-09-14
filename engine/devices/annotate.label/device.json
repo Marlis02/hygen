@@ -8,6 +8,7 @@
   "targetNote": "point — маркер-кольцо с точкой; box — рукописный овал вокруг области",
   "explains": true,
   "figures": ["text", "sub"],
+  "text": { "scale": "label", "defaults": { "case": "upper", "position": "near-target" } },
   "params": {
     "text": { "type": "string", "default": "", "maxLength": 28, "description": "Подпись; пусто — слово реплики, к которому привязано устройство." },
     "side": { "type": "enum", "values": ["auto", "left", "right", "top", "bottom"], "default": "auto", "description": "Куда уходит выноска: auto — к центру кадра, где хватает места." },

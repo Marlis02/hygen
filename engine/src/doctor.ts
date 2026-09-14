@@ -2,6 +2,7 @@ import { existsSync, readdirSync, statfsSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { ENGINE_DIR, ROOT_DIR, VENDOR_SKILLS, loadEnv, python, readJson, run, stripAnsi } from "./lib/util.ts";
+import { budgetState } from "./voice.ts";
 
 const PINNED: Record<string, string> = {
   hyperframes: "0.8.36",
@@ -63,6 +64,10 @@ export function doctor(): boolean {
   const provider = env.VOICE_PROVIDER || (env.ELEVENLABS_LIVE === "1" ? "elevenlabs" : "kokoro");
   const hasKey = Boolean(env.ELEVENLABS_API_KEY);
   add("голос по умолчанию (.env)", provider === "kokoro" || (provider === "elevenlabs" && hasKey), `${provider} · ключ ElevenLabs: ${hasKey ? "есть" : "нет"} · ELEVENLABS_VOICE_ID: ${env.ELEVENLABS_VOICE_ID ? "задан" : "не задан"} · Pexels: ${env.PEXELS_API_KEY ? "ключ есть" : "ключа нет"}`, true);
+  const budget = budgetState();
+  add("бюджет ElevenLabs", budget.budget === null || (budget.left ?? 0) > 0, budget.budget === null ? `не задан (ELEVENLABS_BUDGET_CHARS) · потрачено ${budget.spent} символов` : `осталось ${budget.left} из ${budget.budget} символов (потрачено ${budget.spent}; сброс — npm run voice -- --reset-budget)`, true);
+  const emoji = run("fc-list", [], { allowFail: true });
+  add("эмодзи-шрифт (субтитры emoji-pop)", emoji.status === 0 && /emoji/i.test(emoji.stdout), emoji.status === 0 && /emoji/i.test(emoji.stdout) ? "есть" : "нет цветного эмодзи-шрифта — значки emoji-pop пропадут (apt install fonts-noto-color-emoji)", true);
 
   const cache = join(homedir(), ".cache", "hyperframes");
   add("модель Kokoro", existsSync(join(cache, "tts", "models", "kokoro-v1.0.onnx")), "скачается при первом голосе (~330 МБ)", true);

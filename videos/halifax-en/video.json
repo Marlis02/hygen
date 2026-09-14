@@ -71,7 +71,6 @@
       "whoosh": "smoke"
     }
   },
-  "captions": "word-by-word",
   "voice": {
     "provider": "elevenlabs"
   },

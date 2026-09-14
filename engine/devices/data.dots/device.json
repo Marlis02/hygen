@@ -1,0 +1,27 @@
+{
+  "type": "data.dots",
+  "name": "Точки-люди",
+  "use": "Show a share of a crowd as dots: N dots in a grid appear, then on the anchor word part of them change — light up in the hero colour (seats, survivors) or fade out (the lost). One dot can stand for one person or for a round number of people (per).",
+  "origin": "own (dot grid after chart-story bars: attr tweens in a stagger)",
+  "layer": "data",
+  "target": "box",
+  "targetNote": "область сетки; точки раскладываются рядами по её ширине",
+  "explains": false,
+  "figures": ["count", "mark", "label", "per"],
+  "params": {
+    "count": { "type": "integer", "default": 100, "min": 4, "max": 600, "description": "Сколько точек всего." },
+    "mark": { "type": "integer", "default": 30, "min": 0, "max": 600, "description": "Сколько точек меняются на markAt." },
+    "mode": { "type": "enum", "values": ["color", "fade"], "default": "color", "description": "color — отмеченные загораются цветом героя; fade — отмеченные гаснут до 15 %." },
+    "from": { "type": "enum", "values": ["start", "end", "spread"], "default": "start", "description": "Какие точки отмечаются: первые, последние или вразброс (по сиду)." },
+    "markAt": { "type": "at", "default": 1.2, "description": "Когда меняются точки: слово реплики или секунды после at." },
+    "per": { "type": "string", "default": "", "maxLength": 24, "description": "Подпись масштаба: «1 DOT = 10 PEOPLE»." },
+    "label": { "type": "string", "default": "", "maxLength": 28, "description": "Подпись под сеткой, ЗАГЛАВНЫМИ." },
+    "color": { "type": "string", "default": "text", "maxLength": 16, "description": "Цвет обычных точек: токен палитры или #RRGGBB." },
+    "markColor": { "type": "string", "default": "hero", "maxLength": 16, "description": "Цвет отмеченных точек (mode color)." }
+  },
+  "events": [
+    { "label": "in", "offset": 0 },
+    { "label": "fill", "offset": "markAt" }
+  ],
+  "demo": { "target": { "x": 12, "y": 22, "w": 76, "h": 40 }, "params": { "count": 222, "mark": 118, "per": "1 DOT = 10 PEOPLE", "label": "SEATS IN LIFEBOATS" }, "at": 0.4 }
+}

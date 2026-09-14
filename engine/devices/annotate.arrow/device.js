@@ -96,7 +96,7 @@ HygenDevices.define("annotate.arrow", function (api, dev) {
   function placeText(node, x, y, hA, vA, w, hh) {
     var left = hA === "right" ? x - w : hA === "center" ? x - w / 2 : x;
     var top = vA === "bottom" ? y - hh : vA === "middle" ? y - hh / 2 : y;
-    top = Math.max(140, Math.min(1420 - hh, top));
+    top = Math.max(154, Math.min(1420 - hh, top));
     var maxR = top + hh > 1000 && top < 1700 ? 960 : 1020;
     left = Math.max(60, Math.min(maxR - w, left));
     node.style.top = top.toFixed(0) + "px";

@@ -6,6 +6,8 @@ import type { CameraSpec, PostSpec, TransitionRef } from "./motion.ts";
 import { checkCamera, checkPost, checkTransitionRef, checkTypeMap, PARALLAX_DEFAULTS } from "./motion.ts";
 import type { TextureRef } from "./textures.ts";
 import { checkTextureRefs } from "./textures.ts";
+import { checkCaptionFields } from "./captions.ts";
+import { captionFamilies, familyOf } from "./text.ts";
 import { ENGINE_DIR, fail, readJson } from "./lib/util.ts";
 
 // The look of one video (engine/looks/<id>/look.json or an inline object in video.json): palette over the
@@ -38,10 +40,14 @@ export interface LookDef {
   grain: number;
   vignette: { alpha: number; clear: number };
   sound: { hit: string; whoosh: string };
+  /** Caption defaults of the world (engine/devices/text.caption): family calm | explainer | energetic, preset, activeWord and any caption field. */
+  captions: { family: string; preset: string; activeWord: string; [key: string]: string };
+  /** kinetic: true — a typographic world, text.kinetic is not limited to 2 beats of a video. */
+  typography: { kinetic: boolean };
 }
 
 const HEX_RE = /^#[0-9A-Fa-f]{6}$/;
-const TOP_KEYS = ["$schema", "id", "name", "about", "palette", "textures", "motion", "transitions", "grain", "vignette", "sound"];
+const TOP_KEYS = ["$schema", "id", "name", "about", "palette", "textures", "motion", "transitions", "grain", "vignette", "sound", "captions", "typography"];
 const PALETTE_KEYS = ["accent", "secondary", "groundTint", "temperature", "textColor", "colors"];
 const MOTION_KEYS = ["camera", "parallax", "type", "post"];
 
@@ -212,8 +218,16 @@ export function validateLook(raw: Record<string, unknown>, where: string): LookD
   const snd = (raw.sound ?? {}) as Record<string, unknown>;
   if (!isObj(snd)) bad("sound — {hit, whoosh}");
   unknown(snd, ["hit", "whoosh"], "sound.");
+  const cap = checkCaptionFields(raw.captions ?? { family: "calm", preset: "plain", activeWord: "none" }, `${where}: captions`, true) as Record<string, string>;
+  const capFamily = cap.family ?? (cap.preset ? familyOf(cap.preset) : null) ?? "calm";
+  const typo = (raw.typography ?? {}) as Record<string, unknown>;
+  if (!isObj(typo)) bad("typography — {kinetic}");
+  unknown(typo, ["kinetic"], "typography.");
+  if (typo.kinetic !== undefined && typeof typo.kinetic !== "boolean") bad("typography.kinetic — true/false");
 
   return {
+    captions: { ...cap, family: capFamily, preset: cap.preset ?? captionFamilies()[capFamily]?.[0] ?? "plain", activeWord: cap.activeWord ?? "none" },
+    typography: { kinetic: typo.kinetic === true },
     id: raw.id as string,
     name: raw.name as string,
     about: { mood: "", topics: "", avoid: "", ...((about as object) ?? {}) },

@@ -44,8 +44,9 @@ HygenDevices.define("annotate.label", function (api, dev) {
   tl.set(markG, { scale: 1, svgOrigin: om }, 0);
   tl.fromTo(markG, { scale: 1, svgOrigin: om }, { scale: 1.045, duration: 0.16, ease: "power1.out", yoyo: true, repeat: 1, immediateRender: false }, at + DRAW * 0.7);
 
-  // label block size (estimates: fonts may still be loading at mount)
-  var size = api.sizes.label, subSize = api.sizes.labelSm;
+  // label block size (estimates: fonts may still be loading at mount); size, font, case, background, type — shared text schema
+  var T = window.HygenText;
+  var size = T.px("label", P.size, api.sizes), subSize = Math.round(size * 0.81);
   var estW = Math.max(text.length * size * 0.74, sub.length * subSize * 0.62), estH = size * 1.2 + (sub ? subSize * 1.35 : 0);
   function geom(s) {
     if (s === "right") { var M = [mx1 + 4, mcy - (my1 - my0) * 0.18]; return { M: M, E: [M[0] + 130, M[1] - 110] }; }
@@ -75,18 +76,20 @@ HygenDevices.define("annotate.label", function (api, dev) {
     var shadow = "0 0 16px rgba(" + api.RGB.night + ",0.95), 0 0 4px rgba(" + api.RGB.night + ",0.9)";
     var hA = side === "right" ? "left" : side === "left" ? "right" : "center";
     var block = api.el("div", { id: api.id("label"), style: { position: "absolute", whiteSpace: "nowrap", textShadow: shadow } });
-    if (text) api.el("div", { text: text, style: { fontFamily: api.F.body, fontWeight: "700", fontSize: size + "px", lineHeight: "1.2", letterSpacing: "0.1em", textTransform: "uppercase", color: col } }, block);
+    if (text) api.el("div", { text: text, style: { fontFamily: P.font === "display" ? api.F.display : api.F.body, fontWeight: P.font === "display" ? "600" : "700", fontSize: size + "px", lineHeight: "1.2", letterSpacing: P["case"] === "normal" ? "0.02em" : "0.1em", textTransform: P["case"] === "normal" ? "none" : "uppercase", color: col } }, block);
     if (sub) api.el("div", { text: sub, style: { fontFamily: api.F.body, fontWeight: "500", fontSize: subSize + "px", lineHeight: "1.35", letterSpacing: "0.04em", color: api.C.text, opacity: "0.82" } }, block);
+    if (P.background && P.background !== "none") T.background(block, P.background, { RGB: api.RGB, C: api.C, text: col });
     var ax = side === "right" ? E[0] + 12 : side === "left" ? E[0] - 12 : E[0];
     var ay = side === "top" ? E[1] - 10 : side === "bottom" ? E[1] + 10 : E[1];
     placeText(block, ax, ay, hA, side === "top" ? "bottom" : side === "bottom" ? "top" : "middle", estW, estH);
-    api.show(block, at + NOTE_AT, NOTE, { y: 14 });
+    if (P.type && P.type !== "none") T.enter(tl, block, at + NOTE_AT, P.type, { heroRgb: api.RGB.hero });
+    else api.show(block, at + NOTE_AT, NOTE, { y: 14 });
   }
 
   function placeText(node, x, y, hA2, vA2, w, hh) {
     var left = hA2 === "right" ? x - w : hA2 === "center" ? x - w / 2 : x;
     var top = vA2 === "bottom" ? y - hh : vA2 === "middle" ? y - hh / 2 : y;
-    top = Math.max(140, Math.min(1420 - hh, top));
+    top = Math.max(154, Math.min(1420 - hh, top));
     var maxR = top + hh > 1000 && top < 1700 ? 960 : 1020;
     left = Math.max(60, Math.min(maxR - w, left));
     node.style.top = top.toFixed(0) + "px";

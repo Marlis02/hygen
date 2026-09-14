@@ -3,7 +3,8 @@ import { join } from "node:path";
 import type { ParamDef, StyleDef } from "./contract.ts";
 import { checkValue } from "./contract.ts";
 import { normalizeWords } from "./spec.ts";
-import { ENGINE_DIR, ensureDir, fail, r3, readJson } from "./lib/util.ts";
+import { SYNC_VALUES, textSchema, textSchemaScript } from "./text.ts";
+import { ENGINE_DIR, copyInto, ensureDir, fail, r3, readJson } from "./lib/util.ts";
 
 // Devices of a stage beat (engine/scenes/CONTRACT.md, «Бит v2»): engine/devices/<type>/device.json + device.js.
 // Checked here before the voice, resolved here once the words are timed: target in % of the frame → px, `at` word →
@@ -15,8 +16,8 @@ export const LAYER_Z: Record<string, number> = { stage: 1, focus: 2, data: 3, an
 export const FRAME = { w: 1080, h: 1920 };
 
 export interface DeviceParamDef extends Omit<ParamDef, "type"> {
-  /** numbers — array of numbers; at — a moment inside the device: a word of the line or seconds after the device's `at`. */
-  type: ParamDef["type"] | "numbers" | "at";
+  /** numbers — array of numbers; at — a moment inside the device: a word of the line or seconds after the device's `at`; ats — a list of such moments. */
+  type: ParamDef["type"] | "numbers" | "at" | "ats";
 }
 
 export interface DeviceDef {
@@ -36,6 +37,8 @@ export interface DeviceDef {
   /** Events that visibly change the frame; offset — seconds after `at` or the name of a number param. */
   events: { label: string; offset: number | string }[];
   demo: { target?: unknown; params?: Record<string, unknown>; at?: number | string; until?: number | string; text?: string; stage?: Record<string, unknown> };
+  /** A text device takes the shared text schema (engine/devices/text.schema.json): its scale of sizes and own defaults. */
+  text?: { scale: string; defaults?: Record<string, unknown> };
 }
 
 export interface Box {
@@ -63,6 +66,8 @@ export interface DeviceSpec {
   explains?: string;
   /** Link for the digits this device shows. */
   source?: string;
+  /** Rhythm: voice (the words, default) | music (the nearest beat of the track) | both (the word says what, a beat ≤ 100 ms away when). */
+  sync?: string;
 }
 
 /** Time of the beat: seconds of its clip, speech bounds and the words of the voice. */
@@ -72,6 +77,8 @@ export interface Clock {
   speechEnd: number;
   spoken: string[];
   word: (ref: string) => number;
+  /** Beat grid of the music bed inside the beat (seconds of its clip), or null without music. */
+  grid?: { beats: number[]; strong: number[] } | null;
 }
 
 export interface ResolvedDevice {
@@ -86,6 +93,9 @@ export interface ResolvedDevice {
   word: string | null;
   explains: string | null;
   dominant: boolean;
+  sync: string;
+  /** The beat grid inside the beat for sync music | both (per-beat motion), null for voice. */
+  grid: { beats: number[]; strong: number[] } | null;
 }
 
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
@@ -111,6 +121,14 @@ export function loadDevice(type: string, where = "устройство"): Device
   if (!existsSync(join(dir, "device.json"))) fail(`${where}: нет устройства «${type}»; есть: ${deviceTypes().join(", ")}`);
   if (!existsSync(join(dir, "device.js"))) fail(`engine/devices/${type}: нет device.js`);
   const d = readJson<DeviceDef>(join(dir, "device.json"));
+  // the shared text schema: fields the device does not define itself; an own enum keeps its legacy values and gains the schema's
+  if (d.text) {
+    for (const [name, p] of Object.entries(textSchema().params)) {
+      const own = d.params[name] as (DeviceParamDef & { values?: string[] }) | undefined;
+      if (!own) d.params[name] = { ...(p as unknown as DeviceParamDef), default: d.text.defaults?.[name] ?? p.default };
+      else if (own.type === "enum" && p.values) own.values = [...new Set([...(own.values ?? []), ...p.values])];
+    }
+  }
   const at = `engine/devices/${type}/device.json`;
   const need = (cond: unknown, msg: string): void => {
     if (!cond) fail(`${at}: ${msg}`);
@@ -141,6 +159,11 @@ function checkParam(def: DeviceParamDef, value: unknown, where: string): void {
   }
   if (def.type === "at") {
     if (!NUM(value) && typeof value !== "string") fail(`${where}: слово реплики или секунды после at`);
+    return;
+  }
+  if (def.type === "ats") {
+    if (!Array.isArray(value) || value.some((v) => !NUM(v) && typeof v !== "string")) fail(`${where}: нужен список слов реплики или секунд после at`);
+    if (def.maxItems !== undefined && (value as unknown[]).length > def.maxItems) fail(`${where}: больше ${def.maxItems} моментов`);
     return;
   }
   checkValue(def as ParamDef, value, where);
@@ -233,6 +256,8 @@ export function resolveTarget(target: unknown, def: DeviceDef, regions: Record<s
     const zone = style.safeZone;
     const bottom = box ? box.y + box.h : (point as Point).y;
     if (bottom > zone.contentMaxY + 0.5) fail(`${where}: ${def.type} уходит ниже безопасной зоны (y ${Math.round(bottom)} px > ${zone.contentMaxY})`);
+    // Shorts safe zone for text: the top 8 % belongs to the player (ROADMAP D6)
+    if (def.layer === "text" && box && box.y < textSchema().bands.safeTop - 0.5) fail(`${where}: текст ${def.type} выше безопасной зоны (y ${Math.round(box.y)} px < ${textSchema().bands.safeTop})`);
     if (def.layer === "text" && box && box.x + box.w > zone.rightRail.x && box.y + box.h > zone.rightRail.yFrom) fail(`${where}: текст заходит в правую полосу кнопок (x > ${zone.rightRail.x} при y ${zone.rightRail.yFrom}–${zone.rightRail.yTo})`);
   }
   return { box, point, word: null };
@@ -243,10 +268,18 @@ export function resolveTarget(target: unknown, def: DeviceDef, regions: Record<s
 export function checkDeviceSpec(dev: unknown, i: number, beatId: string, regions: Record<string, unknown>, spoken: string[], style: StyleDef): DeviceDef {
   const where = `${beatId}: devices[${i}]`;
   if (!isObj(dev)) fail(`${where}: {type, target, at, params, explains}`);
-  for (const key of Object.keys(dev)) if (!["type", "target", "at", "until", "params", "explains", "source"].includes(key)) fail(`${where}: неизвестное поле ${key}`);
+  for (const key of Object.keys(dev)) if (!["type", "target", "at", "until", "params", "explains", "source", "sync"].includes(key)) fail(`${where}: неизвестное поле ${key}`);
+  if (dev.type === "text.caption") fail(`${where}: субтитры — не устройство в devices, а поле caption бита (или captions ролика)`);
+  if (dev.sync !== undefined && !SYNC_VALUES.includes(dev.sync as string)) fail(`${where}: sync — ${SYNC_VALUES.join(", ")}`);
   const def = loadDevice(String(dev.type), where);
   const params = deviceParams(def, dev.params as Record<string, unknown> | undefined, `${where} (${def.type})`);
   for (const [name, p] of Object.entries(def.params)) if (p.type === "at" && typeof params[name] === "string") checkAt(params[name], spoken, `${where} (${def.type}).${name}`);
+  for (const [name, p] of Object.entries(def.params)) {
+    if (p.type !== "ats") continue;
+    ((params[name] as unknown[]) ?? []).forEach((v, k) => {
+      if (typeof v === "string") checkAt(v, spoken, `${where} (${def.type}).${name}[${k}]`);
+    });
+  }
   resolveTarget(dev.target, def, regions, spoken, style, `${where} (${def.type})`);
   if (dev.at !== undefined) checkAt(dev.at, spoken, `${where}.at`);
   if (dev.until !== undefined) checkAt(dev.until, spoken, `${where}.until`);
@@ -257,19 +290,33 @@ export function checkDeviceSpec(dev: unknown, i: number, beatId: string, regions
 }
 
 /** Devices of a timed beat → the runtime config (engine/devices/runtime.js). */
-export function resolveDevices(devices: DeviceSpec[], dominant: "stage" | number | undefined, regions: Record<string, unknown>, clock: Clock, style: StyleDef, beatId: string): ResolvedDevice[] {
+export function resolveDevices(devices: DeviceSpec[], dominant: "stage" | number | undefined, regions: Record<string, unknown>, clock: Clock, style: StyleDef, beatId: string, beatSync?: string): ResolvedDevice[] {
   return devices.map((dev, index) => {
     const where = `${beatId}: devices[${index}] (${dev.type})`;
     const def = loadDevice(dev.type, where);
     const params = deviceParams(def, dev.params, where);
     const target = resolveTarget(dev.target, def, regions, clock.spoken, style, where);
-    const at = atSeconds(dev.at, clock, Math.min(clock.speechStart + 0.2 * index, clock.duration - 0.1), `${where}.at`);
+    const sync = dev.sync ?? beatSync ?? "voice";
+    let at = atSeconds(dev.at, clock, Math.min(clock.speechStart + 0.2 * index, clock.duration - 0.1), `${where}.at`);
+    const grid = clock.grid ?? null;
+    if (sync !== "voice") {
+      if (!grid || !grid.beats.length) fail(`${where}: sync ${sync} — у ролика нет музыки с сеткой битов (video.json music)`);
+      const beats = (grid as { beats: number[] }).beats;
+      const near = beats.reduce((best, b) => (Math.abs(b - at) < Math.abs(best - at) ? b : best), beats[0] as number);
+      // music — the nearest beat of the track; both — the word says what, the nearest beat ≤ 100 ms away says when
+      if (sync === "music" || Math.abs(near - at) <= 0.1) at = r3(Math.min(Math.max(0, near), clock.duration - 0.05));
+    }
     let until = dev.until === undefined ? null : atSeconds(dev.until, clock, clock.duration, `${where}.until`);
     if (until !== null && until <= at) fail(`${where}: until (${until} с) раньше at (${at} с)`);
     if (dev.type === "edit.hold" && until === null) until = r3(Math.min(clock.duration - 0.05, at + Number(params.dur)));
     // at-params become seconds after the device's own at, so the device adds them to dev.at
     for (const [name, p] of Object.entries(def.params)) if (p.type === "at" && typeof params[name] === "string") params[name] = r3(Math.max(0, atSeconds(params[name] as string, clock, at, `${where}.${name}`) - at));
-    return { type: dev.type, index, layer: def.layer, at, until, params, box: target.box, point: target.point, word: target.word, explains: dev.explains ?? null, dominant: dominant === index };
+    // ats: every word → seconds after the device's at (numbers already are offsets)
+    for (const [name, p] of Object.entries(def.params)) {
+      if (p.type !== "ats") continue;
+      params[name] = ((params[name] as (string | number)[]) ?? []).map((v, k) => (typeof v === "string" ? r3(Math.max(0, atSeconds(v, clock, at, `${where}.${name}[${k}]`) - at)) : v));
+    }
+    return { type: dev.type, index, layer: def.layer, at, until, params, box: target.box, point: target.point, word: target.word, explains: dev.explains ?? null, dominant: dominant === index, sync, grid: sync === "voice" ? null : grid };
   });
 }
 
@@ -280,6 +327,12 @@ export function deviceEvents(devs: ResolvedDevice[]): { t: number; label: string
     for (const ev of def.events) {
       const off = typeof ev.offset === "number" ? ev.offset : Number(dev.params[ev.offset] ?? 0);
       out.push({ t: r3(dev.at + off), label: `${dev.type}: ${ev.label}` });
+    }
+    // words placed on words of the voice (ats params, e.g. text.kinetic wordsAt) change the frame one by one: each is an
+    // event, so the frame settles after the last one (a settle on the swap itself failed `settled` — TRAPS.md)
+    for (const [name, p] of Object.entries(def.params)) {
+      if (p.type !== "ats") continue;
+      for (const off of (dev.params[name] as unknown[] | undefined) ?? []) if (typeof off === "number") out.push({ t: r3(dev.at + off), label: `${dev.type}: word` });
     }
   }
   return out;
@@ -300,8 +353,12 @@ export function deviceFigures(dev: DeviceSpec): string[] {
 
 /** engine/devices/runtime.js + engine/stage/runtime.js + every device.js → assets/hygen/devices.js. */
 export function installDevices(dir: string): void {
-  const parts = [readFileSync(join(ENGINE_DIR, "devices", "runtime.js"), "utf8"), readFileSync(join(ENGINE_DIR, "stage", "runtime.js"), "utf8")];
-  for (const type of deviceTypes()) parts.push(readFileSync(join(ENGINE_DIR, "devices", type, "device.js"), "utf8"));
+  // text.kinetic texture: the luminance masks of registry texture-mask-text (engine/devices/vendor/texture-mask-text/masks)
+  const masks = join(ENGINE_DIR, "devices", "vendor", "texture-mask-text", "masks");
+  if (existsSync(masks)) copyInto(masks, join(dir, "assets", "hygen", "masks"));
+  const parts = [textSchemaScript(), readFileSync(join(ENGINE_DIR, "devices", "text.js"), "utf8"), readFileSync(join(ENGINE_DIR, "devices", "runtime.js"), "utf8"), readFileSync(join(ENGINE_DIR, "stage", "runtime.js"), "utf8")];
+  // text.caption plays in the captions layer (engine/src/captions.ts → assets/hygen/captions.js), not inside a stage beat
+  for (const type of deviceTypes()) if (type !== "text.caption") parts.push(readFileSync(join(ENGINE_DIR, "devices", type, "device.js"), "utf8"));
   ensureDir(join(dir, "assets", "hygen"));
   writeFileSync(join(dir, "assets", "hygen", "devices.js"), parts.join("\n"));
 }

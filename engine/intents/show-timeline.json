@@ -1,0 +1,20 @@
+{
+  "id": "show-timeline",
+  "use": "When things happened: 3–7 dates on a line, a marker travels from date to date, each date and its short label land in turn.",
+  "stage": {
+    "types": ["color", "media"],
+    "default": { "type": "color", "color": "night", "glow": true }
+  },
+  "devices": [
+    {
+      "type": "data.timeline",
+      "target": "$target",
+      "at": "$at",
+      "params": { "dates": "$data.dates", "labels": "$data.labels", "step": "$data.step" },
+      "source": "$data.source"
+    }
+  ],
+  "dominant": 0,
+  "requires": ["target", "data.dates", "data.source"],
+  "rhythm": { "density": 2, "note": "Даты — цифры: source обязателен; следующий бит — картинка, не ещё одна лента." }
+}

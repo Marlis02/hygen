@@ -1,0 +1,58 @@
+{
+  "id": "krakatoa-en",
+  "duration_s": 44.068,
+  "build_seconds": 163.1,
+  "steps": [
+    {
+      "name": "голос: Kokoro, громкость, паузы",
+      "seconds": 0
+    },
+    {
+      "name": "тайминги слов: whisper + выравнивание по сценарию",
+      "seconds": 0
+    },
+    {
+      "name": "звук: гул, удары, пепел; зерно",
+      "seconds": 0
+    },
+    {
+      "name": "сцены по таймингам голоса",
+      "seconds": 0
+    },
+    {
+      "name": "index.html: субтитры, шины, переход, приглушение",
+      "seconds": 1.1
+    },
+    {
+      "name": "hyperframes lint",
+      "seconds": 1.5
+    },
+    {
+      "name": "hyperframes check",
+      "seconds": 15.9
+    },
+    {
+      "name": "рендер (standard)",
+      "seconds": 70.5
+    },
+    {
+      "name": "мастеринг: −14 LUFS, пики ≤ −1,5 dBTP; H.264 crf 18",
+      "seconds": 57.9
+    },
+    {
+      "name": "автопроверка MP4",
+      "seconds": 16.1
+    }
+  ],
+  "check_ok": false,
+  "master": {
+    "input_lufs": -13.6,
+    "input_tp": -1,
+    "lufs": -14,
+    "true_peak": -2,
+    "ceiling": -2,
+    "passes": 1
+  },
+  "verify_ok": false,
+  "mp4": "videos/krakatoa-en/renders/krakatoa-en.mp4"
+}

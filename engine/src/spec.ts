@@ -55,6 +55,10 @@ export interface BeatSpec {
   post?: unknown[];
   /** Transition into this beat: id or list of ids (overrides the look's default and hit transitions). */
   transition?: unknown;
+  /** Captions of this beat over the video's (engine/devices/text.caption): {preset, group, activeWord, type, font, size, case, color, background, position}. */
+  caption?: Record<string, unknown>;
+  /** Rhythm of the beat's devices: voice (the words, default) | music (beats of the track) | both. */
+  sync?: string;
 }
 
 export interface TransitionSpec {
@@ -124,7 +128,8 @@ export interface VideoSpec {
   style: string;
   /** Look: id from engine/looks or an inline object {extends, palette, textures, motion, …}; none — ember. */
   look?: unknown;
-  captions: string;
+  /** Captions of the video over the look's defaults: {preset, group, activeWord, type, font, size, case, color, background, position}; the old string "word-by-word" is ignored. */
+  captions?: string | Record<string, unknown>;
   voice?: VoiceSpec;
   beats: BeatSpec[];
   transitions: TransitionSpec[];
@@ -183,9 +188,8 @@ export function loadSpec(videoDir: string): VideoSpec {
   need(Array.isArray(spec.beats) && spec.beats.length > 0, "нет битов");
   spec.language = spec.language ?? "en";
   spec.style = spec.style ?? "documentary-dark";
-  spec.captions = spec.captions ?? "word-by-word";
   need(existsSync(join(ENGINE_DIR, "styles", spec.style, "style.json")) && existsSync(join(ENGINE_DIR, "styles", spec.style, "frame.md")), `нет стиля engine/styles/${spec.style} (style.json и frame.md)`);
-  need(existsSync(join(ENGINE_DIR, "captions", `${spec.captions}.html`)), `нет пресета субтитров engine/captions/${spec.captions}.html`);
+  need(spec.captions === undefined || typeof spec.captions === "string" || (typeof spec.captions === "object" && spec.captions !== null && !Array.isArray(spec.captions)), "captions — объект {preset, group, activeWord, …} (строка — старая форма, не действует)");
   const ids = new Set<string>();
   for (const beat of spec.beats) {
     need(beat.id && !ids.has(beat.id), `пустой или повторный id бита «${beat.id}»`);
@@ -195,7 +199,7 @@ export function loadSpec(videoDir: string): VideoSpec {
     need(typeof beat.text === "string" && beat.text.trim().length > 0, `${beat.id}: пустой text`);
     need(beat.tone === undefined || beat.tone === "accent" || beat.tone === "cold", `${beat.id}: tone — accent или cold`);
     need(beat.seed === undefined || Number.isInteger(beat.seed), `${beat.id}: seed — целое`);
-    const known = new Set(["id", "scene", "text", "pad", "tone", "seed", "params", "anchors", "cues", "sources", "textures", "background", "type", "camera", "post", "transition", "intent", "stage", "devices", "dominant", "target", "at", "data", "role"]);
+    const known = new Set(["id", "scene", "text", "pad", "tone", "seed", "params", "anchors", "cues", "sources", "textures", "background", "type", "camera", "post", "transition", "intent", "stage", "devices", "dominant", "target", "at", "data", "role", "caption", "sync"]);
     for (const key of Object.keys(beat)) need(known.has(key), `${beat.id}: неизвестное поле «${key}»`);
     beat.pad = beat.pad ?? [0.2, 0.4];
   }

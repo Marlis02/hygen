@@ -1,0 +1,5 @@
+{
+  "calm": ["plain", "karaoke", "typewriter", "weight-shift", "blend-difference", "editorial-emphasis"],
+  "explainer": ["pill-karaoke", "highlight", "clip-wipe", "gradient-fill", "emoji-pop", "texture"],
+  "energetic": ["kinetic-slam", "neon-glow", "neon-accent", "glitch-rgb", "particle-burst", "matrix-decode", "parallax-layers", "camera-follow"]
+}

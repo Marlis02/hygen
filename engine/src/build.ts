@@ -12,7 +12,8 @@ import type { MasterResult } from "./render.ts";
 import { writeScenes } from "./scenes.ts";
 import { makeEventSounds, makeGrain, makeSound, planEventSounds, planSound } from "./sound.ts";
 import { planTransitions } from "./layers.ts";
-import { makeMusic } from "./music.ts";
+import { makeMusic, musicGrid } from "./music.ts";
+import { checkCaptionFields, probeCaptionContrast } from "./captions.ts";
 import { loadSpec } from "./spec.ts";
 import { beatTimings } from "./timeline.ts";
 import { verifyVideo } from "./verify.ts";
@@ -39,6 +40,8 @@ export async function build(videoDir: string, opts: BuildOptions): Promise<boole
   validateBeats(spec, style, videoDir);
   for (const beat of spec.beats) if (beat.scene === undefined) checkStageBeat(beat, style, videoDir);
   validateLayers(spec, look, videoDir);
+  if (spec.captions !== undefined && typeof spec.captions !== "string") checkCaptionFields(spec.captions, "video.json: captions");
+  for (const beat of spec.beats) if (beat.caption !== undefined) checkCaptionFields(beat.caption, `${beat.id}: caption`);
   const grammar = checkGrammar(spec, look, videoDir);
   for (const w of grammar.warnings) log.warn(`грамматика: ${w}`);
   if (grammar.errors.length) fail(`грамматика бита:\n  ${grammar.errors.join("\n  ")}`);
@@ -65,7 +68,8 @@ export async function build(videoDir: string, opts: BuildOptions): Promise<boole
     makeGrain(videoDir, buildDir);
     return plan;
   });
-  const scenes = await timer.step("сцены по таймингам голоса", () => writeScenes(spec, style, videoDir, buildDir, timings, words, look, sound.sfx.filter((c) => c.kind === "thud" || c.kind === "thud-heavy").map((c) => c.at)));
+  const grid = musicGrid(spec, style, videoDir, timings, words);
+  const scenes = await timer.step("сцены по таймингам голоса", () => writeScenes(spec, style, videoDir, buildDir, timings, words, look, sound.sfx.filter((c) => c.kind === "thud" || c.kind === "thud-heavy").map((c) => c.at), grid));
   if (spec.sound.events !== false) {
     await timer.step("звук по событиям: устройства, сцены, переходы", () => {
       const hits = sound.sfx.filter((c) => c.kind === "thud" || c.kind === "thud-heavy").map((c) => c.at);
@@ -79,9 +83,11 @@ export async function build(videoDir: string, opts: BuildOptions): Promise<boole
     });
   }
   const music = await timer.step("музыка: подложка, приглушение под голос", () => makeMusic(spec, style, videoDir, buildDir, voices, timings, words));
-  const total = await timer.step("index.html: субтитры, шины, переход, приглушение", () =>
+  const { total, captions } = await timer.step("index.html: субтитры, шины, переход, приглушение", () =>
     assembleProject({ spec, style, look, buildDir, voices, words, timings, sound, scenes, music }),
   );
+  await timer.step("субтитры: контраст под текстом (снимки)", () => probeCaptionContrast(buildDir, captions, style));
+  for (const w of captions.warnings) log.warn(`субтитры: ${w}`);
   await timer.step("hyperframes lint", () => lintProject(buildDir));
   const checkOk = opts.check ? await timer.step("hyperframes check", () => checkProject(buildDir)) : null;
 

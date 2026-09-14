@@ -1,9 +1,9 @@
 ---
-description: ИИ-режиссёр Short v3.1 (D5) — тема → исследование с источниками → концепция (look) → арка → сценарий → «что видит зритель» на каждый бит → intent + target + данные → медиа с ролью → грамматика → снимки → сборка MP4
+description: ИИ-режиссёр Short v3.2 (D6) — тема → исследование с источниками → концепция (look) → арка → сценарий → «что видит зритель» на каждый бит → intent + target + данные → текст на экране (субтитры, text.kinetic, sync) → медиа с ролью → грамматика → снимки → сборка MP4
 argument-hint: "<тема, например: Krakatoa 1883>"
 ---
 
-# /short — режиссёр Short (v3.1: stage + devices + intent)
+# /short — режиссёр Short (v3.2: stage + devices + intent + текст)
 
 Тема: **$ARGUMENTS**
 
@@ -115,10 +115,27 @@ grep -o -i -E "[^.]*\b([0-9][0-9,.]*|half|dozen|hundred|thousand|million|two|thr
 - `fit: cover`, картинка уже 9:16: видимая доля высоты `Hv = (1920 / 1080) · w / h`, верх `top = (1 − Hv) · focus[1]`; `x% = 100·u`, `y% = 100·(v − top) / Hv`.
 - Камера с amplitude увеличивает кадр до ~×1,1 — держи цели в 5 % от краёв.
 
+### Правила кадра (D6)
+- **До/после — один бит `compare` со `split`,** а не два бита с одной и той же картинкой: шторка показывает перемену в одном кадре (гравюры Холлара «до» и «после» — один split).
+- **Обводка и spotlight — только на читаемом с телефона:** предмет, лицо, деталь, одна строка крупной надписи. Мелкий текст документа, подпись под гравюрой, цифры таблицы не обводятся — их показывает `text.quote` или `annotate.label` словами.
+- **Одна картинка — один бит.** Повтор того же файла в соседнем бите — только через `edit.hold` (стоп-кадр того же видео) или `split`.
+
 ### Грамматика (ошибки ломают сборку)
 - ровно один stage; ≤ 3 устройств; ≤ 1 `data.*`; `explains` у каждого `annotate.*`; `dominant` есть; ≤ 2 видео одновременно;
 - ритм (предупреждения): не два бита плотности ≥ 3 подряд (плотность = 1 + устройства); после плотного — бит ≤ 1; hero-эффект не чаще раза за ролик; один intent не дважды подряд; текст на экране ≤ 7 слов (кроме `text.quote`); камера без reason стоит.
 - безопасная зона: смысловые метки **строго** выше y 74 % (1420 px): у области `y + h ≤ 73,9`; текст не заходит за x 89 % при y 52–88 %.
+
+## 5.5. Текст на экране (5 мин)
+
+Контракт — `engine/scenes/CONTRACT.md`, раздел «Текст на экране (D6)».
+
+1. **Субтитры.** Умолчание берётся из look (`look.captions`: семейство, пресет, активное слово): документальные ember/abyss/storm — calm · plain, `bright-explainer` — explainer · pill-karaoke. Ролик может сменить стиль целиком (`"captions": {…}` в video.json), бит — точечно (`"caption": {…}`), но **не больше 2 битов с пресетом не из look**. Выбор:
+   - calm (plain, karaoke, typewriter, weight-shift, blend-difference, editorial-emphasis) — документалка, тишина, цитаты;
+   - explainer (pill-karaoke, highlight, clip-wipe, gradient-fill, emoji-pop, texture) — объяснения, списки, факты;
+   - energetic (kinetic-slam, neon-glow, neon-accent, glitch-rgb, particle-burst, matrix-decode, parallax-layers, camera-follow) — пик, удар, развлекательный ролик; slam и particle-burst — один бит на ролик.
+   - `group`: word — короткие реплики и хук; phrase — объяснение; line — медленная документалка. `activeWord`: highlight-sweep и color — объяснение, none — тишина. `position: near-target` — подпись у предмета, если в бите есть устройство с целью. Фон не ставь: движок сам измерит контраст и подложит wash/blur.
+2. **`text.kinetic`** — когда слово само и есть кадр: хук-вопрос (slam, scramble), термин (outline, texture, extrude), перечисление (center-build, marquee, stack), смена состояния (type-swap), «посмотрите вверх» над человеком на фото (behind-subject — нужен человек в кадре). В документальном look — не больше 2 битов, dominant — это устройство, соседей ≤ 1. В бите с цитатой документа лучше `text.quote`.
+3. **`sync`.** По умолчанию всё идёт по словам (voice). `"sync": "music"` у бита — когда кадр держится на музыке без важного слова (перечисление, пауза, монтажная связка), `both` — когда слово важно, но хочется попасть в бит. В одном бите — один ритм.
 
 ## 6. Медиа с ролью (10 мин)
 
@@ -148,7 +165,7 @@ grep -o -i -E "[^.]*\b([0-9][0-9,.]*|half|dozen|hundred|thousand|million|two|thr
 
 ## 8. video.json, снимки и сборка
 
-Образец — `videos/great-fire-en/video.json`: `id, title, format, fps 30, language, style, look, captions, voice, arc, beats, transitions [], sound, publish`.
+Образец — `videos/great-fire-en/video.json` (документалка), `videos/_proof/typo/video.json` (объяснение с кинетикой): `id, title, format, fps 30, language, style, look, voice, arc, beats, transitions [], sound, publish`; `captions` — объект только если стиль субтитров всего ролика отличается от look, `caption` и `sync` — у бита (шаг 5.5).
 
 - **Голос.** Финал — ElevenLabs: `"voice": {"provider": "elevenlabs"}` (голос по умолчанию — `ELEVENLABS_VOICE_ID` из `.env`, свой — `"voiceId": "…"`); тайминги слов приходят из API, дубли кэшируются — пересборка символов не тратит. Черновик без трат — `npm run build -- videos/<id> --voice kokoro` (`am_michael`; британская тема — `bm_george`). Если ElevenLabs недоступен, сборка сама откатится на Kokoro и предупредит.
 - **Звук.** Гул: `peak` на кульминации, `cut` на старте финала; ручные удары (`hits`) — только на главных стыках, один `heavy`. Штрихи пометок, тапы подписей, тики счётчиков, свист шторки, затвор стоп-кадра движок ставит сам по событиям устройств и сцен (`sound.events` по умолчанию включён). Музыка — трек стиля с приглушением под голос; свой трек или без музыки — `engine/assets/music/MUSIC.md`.

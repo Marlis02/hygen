@@ -139,7 +139,7 @@ HygenDevices.define("annotate.circle", function (api, dev) {
   function placeText(node, x, y, hA2, vA2, w, hh) {
     var left = hA2 === "right" ? x - w : hA2 === "center" ? x - w / 2 : x;
     var top = vA2 === "bottom" ? y - hh : vA2 === "middle" ? y - hh / 2 : y;
-    top = Math.max(140, Math.min(1420 - hh, top));
+    top = Math.max(154, Math.min(1420 - hh, top));
     var maxR = top + hh > 1000 && top < 1700 ? 960 : 1020;
     left = Math.max(60, Math.min(maxR - w, left));
     node.style.top = top.toFixed(0) + "px";

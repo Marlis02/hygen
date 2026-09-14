@@ -454,19 +454,23 @@ async function makeSheet(items: Found[], out: string): Promise<void> {
   }
 }
 
-async function search(query: string, n: number, video: boolean, sheet: string | undefined): Promise<number> {
+async function search(query: string, n: number, video: boolean, sheet: string | undefined, provider = "all"): Promise<number> {
   const kind = video ? "видео" : "картинки";
   const all: Found[] = [];
-  const commons = await searchCommons(query, n, video);
-  const dropped = [...commons.dropped].map(([name, count]) => `${name} ×${count}`).join(", ");
-  console.log(
-    `Wikimedia Commons · ${kind} · «${query}»: подходящих ${commons.found.length} из ${commons.seen} просмотренных` +
-      (dropped ? ` · отброшено по лицензии: ${dropped}` : ""),
-  );
-  printTable(commons.found, 1);
-  all.push(...commons.found);
+  if (provider !== "pexels") {
+    const commons = await searchCommons(query, n, video);
+    const dropped = [...commons.dropped].map(([name, count]) => `${name} ×${count}`).join(", ");
+    console.log(
+      `Wikimedia Commons · ${kind} · «${query}»: подходящих ${commons.found.length} из ${commons.seen} просмотренных` +
+        (dropped ? ` · отброшено по лицензии: ${dropped}` : ""),
+    );
+    printTable(commons.found, 1);
+    all.push(...commons.found);
+  }
   const key = loadEnv().PEXELS_API_KEY;
-  if (!key) console.log("\nPexels: ключа нет, пропущено");
+  if (provider === "commons") {
+    // Commons only
+  } else if (!key) console.log(`\nPexels: ключа нет (PEXELS_API_KEY в .env), ${provider === "pexels" ? "поиск не выполнен" : "пропущено"}`);
   else {
     try {
       const found = await searchPexels(query, n, video, key);
@@ -648,12 +652,12 @@ async function get(ref: string, videoArg: string, opt: GetOptions): Promise<numb
 // ── cli ─────────────────────────────────────────────────────────────────────────────────────────────────
 
 const USAGE = [
-  'npm run media -- "<запрос>" [--n 5] [--video] [--sheet <файл.jpg>]',
+  'npm run media -- "<запрос>" [--n 5] [--video] [--sheet <файл.jpg>] [--provider all|commons|pexels]',
   'npm run media -- --get "<File:Имя>" <videoId> [--as <имя>] [--width 2400] [--in <с> --out <с>]',
   "  --get: File:Имя или ссылка Commons; pexels:photo:<id>, pexels:video:<id> или ссылка Pexels (нужен PEXELS_API_KEY)",
 ].join("\n");
 
-const VALUE_FLAGS = ["--n", "--sheet", "--get", "--as", "--width", "--in", "--out"];
+const VALUE_FLAGS = ["--n", "--sheet", "--get", "--as", "--width", "--in", "--out", "--provider"];
 
 function number(value: string | undefined, flag: string, min: number, max: number, int = false): number | undefined {
   if (value === undefined) return undefined;
@@ -688,7 +692,9 @@ async function main(argv: string[]): Promise<number> {
     });
   }
   if (!positional.length) return (console.log(USAGE), 2);
-  return search(positional.join(" "), number(flags["--n"], "--n", 1, 50, true) ?? 5, video, flags["--sheet"]);
+  const provider = flags["--provider"] ?? "all";
+  if (!["all", "commons", "pexels"].includes(provider)) fail(`--provider: all, commons или pexels, а не «${provider}»`);
+  return search(positional.join(" "), number(flags["--n"], "--n", 1, 50, true) ?? 5, video, flags["--sheet"], provider);
 }
 
 main(process.argv.slice(2)).then(

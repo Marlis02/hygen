@@ -1,7 +1,8 @@
 import { existsSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { checkExpanded } from "./expanded.ts";
-import { checkGrammar } from "./grammar.ts";
+import { checkGrammar, textWarnings } from "./grammar.ts";
+import { checkCaptionPlan } from "./captions.ts";
 import { loadLook } from "./look.ts";
 import { allMissingSources } from "./stage.ts";
 import { checkUniqueness } from "./uniqueness.ts";
@@ -73,7 +74,13 @@ export function verifyVideo(videoDir: string, spec: VideoSpec, opts: VerifyOptio
   const pub = checkPublish(videoDir, spec);
   log.info(`${pub.ok ? "✓" : "✗"} publish   ${pub.detail}`);
   rep.checks.push({ check: "publish", ok: pub.ok, detail: pub.detail });
-  rep.ok = rep.ok && sourcesOk && uniq.ok && grammarOk && exp.ok && pub.ok;
+  // text on screen (ROADMAP D6): contrast under the captions (measured before the render), safe zone, text warnings of the grammar
+  const text = checkCaptionPlan(buildDir);
+  const textWarn = textWarnings(spec, loadLook(spec.look));
+  const tDetail = text.detail + (textWarn.length ? ` · предупреждения: ${textWarn.join("; ")}` : "");
+  log.info(`${text.ok ? "✓" : "✗"} text      ${tDetail}`);
+  rep.checks.push({ check: "text", ok: text.ok, detail: tDetail });
+  rep.ok = rep.ok && sourcesOk && uniq.ok && grammarOk && exp.ok && pub.ok && text.ok;
   writeJson(report, rep);
-  return { ok: r.status === 0 && sourcesOk && uniq.ok && grammarOk && exp.ok && pub.ok, report, sheet };
+  return { ok: r.status === 0 && sourcesOk && uniq.ok && grammarOk && exp.ok && pub.ok && text.ok, report, sheet };
 }

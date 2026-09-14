@@ -1,134 +1,406 @@
 {
   "id": "krakatoa-en",
-  "title": "Krakatoa 1883: the loudest sound in history",
+  "title": "Krakatoa, 1883: the loudest sound in history was an island",
   "format": "1080x1920",
   "fps": 30,
   "language": "en",
   "style": "documentary-dark",
   "look": "storm",
-  "captions": "word-by-word",
-  "voice": { "engine": "kokoro", "voice": "am_michael", "speed": 1.0 },
+  "retells": "krakatoa-v2",
+  "voice": {
+    "provider": "elevenlabs",
+    "voice": "am_michael"
+  },
+  "arc": {
+    "structure": "mechanism",
+    "hook": "counterintuitive-claim",
+    "protagonist": "sound",
+    "ending": "what-remains",
+    "why": "The loudest sound ever recorded was not a war but an island: step by step — where it stood, how far it was heard, how high the ash went, what the waves took — to what was left of it."
+  },
   "beats": [
     {
-      "id": "01-hook",
-      "scene": "counter-title",
-      "seed": 1,
-      "text": "Krakatoa made the loudest sound in history. It was heard [4,800|four thousand eight hundred] kilometers away.",
-      "pad": [0.3, 0.4],
-      "params": { "value": 4800, "format": "thousands", "unit": "KM", "heat": "burn-cool" },
-      "anchors": { "ignite": "four", "unit": "kilometers", "cool": "away" },
-      "textures": [ { "id": "lightning", "strikes": ["loudest"], "x": 0.3, "reach": 0.6 } ],
-      "post": [ { "id": "chromatic", "strength": 0.6 } ],
-      "sources": { "value": "https://en.wikipedia.org/wiki/1883_eruption_of_Krakatoa" }
-    },
-    {
-      "id": "02-year",
-      "scene": "year-odometer",
-      "seed": 2,
-      "text": "Its final blast came on [27 August 1883.|the twenty-seventh of August, eighteen eighty-three.]",
-      "pad": [0.2, 0.8],
-      "params": { "year": 1883, "delta": 0, "dust": false, "dig": true, "section": false, "voids": false },
-      "anchors": { "year": "eighteen", "yearLand": "three.end" },
-      "background": { "image": "media/krakatoa-lithograph.jpg", "treatment": ["duotone", "parallax"], "focus": [0.5, 0.4], "opacity": 0.42 },
-      "textures": [ { "id": "lightning", "strikes": ["blast"], "x": 0.72, "flash": 0.8 } ],
-      "type": { "year": "stagger" },
+      "id": "01-claim",
+      "role": "hook",
+      "text": "The loudest sound in history was not a war, or a bomb. It was an island.",
+      "pad": [
+        0.2,
+        1.1
+      ],
+      "stage": {
+        "type": "color",
+        "color": "night",
+        "glow": true
+      },
+      "devices": [
+        {
+          "type": "text.kinetic",
+          "at": "loudest",
+          "params": {
+            "mode": "type-swap",
+            "text": "THE LOUDEST SOUND",
+            "words": [
+              "A WAR?",
+              "A BOMB?",
+              "AN ISLAND"
+            ],
+            "wordsAt": [
+              "war",
+              "bomb",
+              "island"
+            ],
+            "size": "m"
+          }
+        }
+      ],
+      "dominant": 0,
       "sources": {
-        "year": "https://en.wikipedia.org/wiki/1883_eruption_of_Krakatoa",
         "text": "https://en.wikipedia.org/wiki/1883_eruption_of_Krakatoa"
       }
     },
     {
-      "id": "03-map",
-      "scene": "map-marker",
-      "seed": 3,
-      "text": "The volcano stood in the Sunda Strait, between Java and Sumatra. More than [36,000|thirty-six thousand] people died, most of them in the tsunamis.",
-      "pad": [0.2, 0.5],
-      "params": {
+      "id": "02-strait",
+      "role": "setup",
+      "text": "In August [1883,|eighteen eighty-three,] Krakatoa was a quiet volcanic island in the Sunda Strait, between Java and Sumatra.",
+      "pad": [
+        0.2,
+        0.6
+      ],
+      "stage": {
+        "type": "map",
         "map": "sunda-strait",
-        "marker": { "x": 506, "y": 570 },
-        "label": "KRAKATOA",
-        "region": ["SUNDA", "STRAIT"],
-        "regionAt": { "x": 600, "y": 420 },
-        "route": false,
-        "counterValue": 36000,
-        "counterFormat": "thousands",
-        "counterPrefix": "",
-        "counterLabel": "LIVES LOST",
-        "items": ["JAVA", "SUMATRA"],
-        "peak": false
+        "reveal": "krakatoa",
+        "draw": true,
+        "markers": [
+          {
+            "x": 46.9,
+            "y": 29.7,
+            "label": "KRAKATOA",
+            "at": "strait"
+          }
+        ]
       },
-      "anchors": { "counter": "thirty", "counterLabel": "died" },
-      "sources": { "counterValue": "https://en.wikipedia.org/wiki/Krakatoa" }
+      "devices": [],
+      "dominant": "stage",
+      "camera": {
+        "reason": "approach",
+        "amplitude": 0.35
+      },
+      "sources": {
+        "text": "https://en.wikipedia.org/wiki/1883_eruption_of_Krakatoa"
+      }
     },
     {
-      "id": "04-wave",
-      "scene": "scale-gauge",
-      "tone": "cold",
-      "seed": 4,
-      "text": "Some of those waves were more than [30|thirty] meters high, and [165|a hundred and sixty-five] villages and towns were destroyed.",
-      "pad": [0.2, 0.6],
-      "params": { "direction": "up", "value": 30, "unit": "M", "scenery": "none", "dateValue": 0, "dateSuffix": "", "word": "TSUNAMI" },
-      "anchors": { "rise": "waves", "value": "meters", "word": "villages" },
-      "textures": [
-        { "id": "rain", "density": 0.8, "speed": 1.4, "angle": -22, "length": 1.6, "opacity": 0.7 },
-        { "id": "wind", "density": 0.5, "direction": "right", "angle": 6, "opacity": 0.45 }
+      "id": "03-heard",
+      "role": "step",
+      "text": "[4,800|Four thousand eight hundred] kilometers away, on Rodrigues, people heard it and thought it was cannon fire.",
+      "pad": [
+        0.2,
+        0.6
       ],
-      "type": { "word": "split-reveal", "readout": "count-roll" },
-      "camera": { "preset": "handheld", "amplitude": 1.3, "shake": 1.2 },
+      "caption": {
+        "preset": "karaoke",
+        "group": "phrase"
+      },
+      "stage": {
+        "type": "map",
+        "map": "indian-ocean",
+        "reveal": "kilometers",
+        "draw": true,
+        "markers": [
+          {
+            "x": 54.6,
+            "y": 32.7,
+            "label": "KRAKATOA",
+            "at": "kilometers"
+          },
+          {
+            "x": 18.7,
+            "y": 39.5,
+            "label": "RODRIGUES",
+            "at": "rodrigues"
+          }
+        ]
+      },
+      "devices": [
+        {
+          "type": "data.chart",
+          "target": {
+            "x": 8,
+            "y": 14,
+            "w": 84,
+            "h": 12
+          },
+          "at": "four",
+          "until": "away",
+          "params": {
+            "kind": "line",
+            "values": [
+              0,
+              2,
+              -3,
+              5,
+              -8,
+              14,
+              -22,
+              31,
+              -40,
+              52,
+              -61,
+              70,
+              -58,
+              44,
+              -33,
+              25,
+              -18,
+              12,
+              -8,
+              5,
+              -3,
+              2,
+              -1,
+              0
+            ],
+            "axis": false,
+            "drawDur": 1.0,
+            "color": "hero"
+          },
+          "source": "https://en.wikipedia.org/wiki/1883_eruption_of_Krakatoa"
+        },
+        {
+          "type": "annotate.circle",
+          "target": {
+            "x": 54.6,
+            "y": 32.7
+          },
+          "at": "rodrigues",
+          "params": {
+            "radius": 405,
+            "grow": true,
+            "growDur": 1.6,
+            "label": "4,800 KM",
+            "labelSide": "bottom"
+          },
+          "explains": "the circle reaches Rodrigues: everyone inside it could hear the blast",
+          "source": "https://en.wikipedia.org/wiki/1883_eruption_of_Krakatoa"
+        }
+      ],
+      "dominant": 1,
+      "camera": {
+        "reason": "reveal",
+        "amplitude": 0.5
+      }
+    },
+    {
+      "id": "04-column",
+      "role": "step",
+      "text": "Artists drew it for the Royal Society. The column of ash rose about [80|eighty] kilometers into the sky.",
+      "pad": [
+        0.2,
+        0.9
+      ],
+      "stage": {
+        "type": "media",
+        "src": "media/krakatoa-lithograph.jpg",
+        "fit": "contain",
+        "treatment": "engraved",
+        "regions": {
+          "column": {
+            "x": 22,
+            "y": 16,
+            "w": 56,
+            "h": 54
+          }
+        }
+      },
+      "devices": [
+        {
+          "type": "edit.hold",
+          "at": "drew",
+          "until": "ash",
+          "params": {
+            "dur": 1.5
+          }
+        },
+        {
+          "type": "focus.spotlight",
+          "target": "column",
+          "at": "ash",
+          "params": {
+            "shape": "rect",
+            "mode": "dim",
+            "strength": 0.6
+          }
+        },
+        {
+          "type": "annotate.measure",
+          "target": {
+            "x": 86,
+            "y": 16.5,
+            "w": 0,
+            "h": 53.4
+          },
+          "at": "rose",
+          "params": {
+            "label": "80 KM"
+          },
+          "explains": "the height the ash column reached",
+          "source": "https://en.wikipedia.org/wiki/1883_eruption_of_Krakatoa"
+        }
+      ],
+      "dominant": 2
+    },
+    {
+      "id": "05-waves",
+      "role": "consequence",
+      "text": "More than [36,000|thirty-six thousand] people died, most of them in the tsunamis, and [165|a hundred and sixty-five] villages and towns were destroyed.",
+      "pad": [
+        0.2,
+        0.9
+      ],
+      "tone": "cold",
+      "stage": {
+        "type": "color",
+        "color": "night",
+        "glow": true
+      },
+      "devices": [
+        {
+          "type": "data.dots",
+          "target": {
+            "x": 10,
+            "y": 18,
+            "w": 80,
+            "h": 42
+          },
+          "at": "more",
+          "params": {
+            "count": 297,
+            "mark": 165,
+            "mode": "fade",
+            "from": "spread",
+            "markAt": "hundred",
+            "label": "165 DESTROYED · 132 DAMAGED",
+            "per": "1 DOT = 1 TOWN"
+          },
+          "source": "https://en.wikipedia.org/wiki/Krakatoa"
+        }
+      ],
+      "dominant": 0,
+      "textures": [
+        {
+          "id": "rain",
+          "density": 0.6,
+          "speed": 1.2,
+          "angle": -20,
+          "length": 1.4,
+          "opacity": 0.5
+        }
+      ],
       "sources": {
-        "value": "https://en.wikipedia.org/wiki/1883_eruption_of_Krakatoa",
         "text": "https://en.wikipedia.org/wiki/Krakatoa"
       }
     },
     {
-      "id": "05-picture",
-      "scene": "picture-zoom",
-      "seed": 5,
-      "text": "Its pressure wave circled the globe several times and was still being recorded five days later.",
-      "pad": [0.2, 0.6],
-      "params": {
-        "image": "media/krakatoa-lithograph.jpg",
-        "fit": "cover",
-        "crop": 0.5,
-        "focus": { "x": 540, "y": 700 },
-        "zoomFrom": 1.02,
-        "zoomTo": 1.14,
-        "particles": "ash",
-        "tint": 0.45,
-        "title": "KRAKATOA",
-        "credit": "PARKER & COWARD, 1888",
-        "creditSub": "Royal Society report · Public domain"
+      "id": "06-island",
+      "role": "ending",
+      "text": "When the ash finally settled, [two-thirds|two thirds] of the island were simply gone.",
+      "pad": [
+        0.6,
+        2.4
+      ],
+      "stage": {
+        "type": "split",
+        "a": {
+          "src": "media/krakatoa-before.jpg"
+        },
+        "b": {
+          "src": "media/krakatoa-after.jpg"
+        },
+        "at": "settled",
+        "dur": 1.2,
+        "direction": "left",
+        "labels": [
+          "BEFORE",
+          "AFTER"
+        ]
       },
-      "anchors": { "title": "globe" },
-      "transition": "whip",
-      "sources": { "credit": "https://commons.wikimedia.org/wiki/File:Krakatoa_eruption_lithograph.jpg" }
-    },
-    {
-      "id": "06-finale",
-      "scene": "fraction-finale",
-      "seed": 6,
-      "text": "When the ash settled, two thirds of the island were gone.",
-      "pad": [2.0, 1.6],
-      "params": { "numerator": 2, "denominator": 3, "label": "GONE" },
-      "anchors": { "slash": "two", "fill": "thirds", "outline": "island" },
-      "camera": { "preset": "push-in", "amplitude": 0.8, "shake": 0 },
-      "transition": "smoke-wipe",
-      "sources": {
-        "numerator": "https://en.wikipedia.org/wiki/Krakatoa",
-        "denominator": "https://en.wikipedia.org/wiki/Krakatoa"
-      }
+      "devices": [
+        {
+          "type": "data.count",
+          "target": {
+            "x": 50,
+            "y": 11
+          },
+          "at": "two",
+          "params": {
+            "from": 0,
+            "to": 2,
+            "format": "fraction",
+            "display": "2/3",
+            "label": "OF THE ISLAND GONE",
+            "size": "hero",
+            "color": "night",
+            "labelColor": "night",
+            "countDur": 1.0
+          },
+          "source": "https://en.wikipedia.org/wiki/Krakatoa"
+        }
+      ],
+      "dominant": 0
     }
   ],
   "transitions": [],
   "sound": {
-    "drone": { "peak": "03-map:thirty+0.3", "cut": "06-finale:start", "volume": 0.42, "carve": 0.65 },
-    "ash": { "at": "02-year:start", "until": "04-wave:end", "swell": "03-map:thirty", "debris": "04-wave:villages", "volume": 0.5, "carve": 0.6 },
+    "drone": {
+      "peak": "03-heard:rodrigues",
+      "cut": "06-island:start",
+      "volume": 0.42,
+      "carve": 0.65
+    },
     "hits": [
-      { "at": "02-year:start", "volume": 0.55, "carve": 0.75 },
-      { "at": "03-map:start+0.3", "heavy": true, "volume": 0.62, "carve": 0.75 },
-      { "at": "04-wave:start", "volume": 0.55, "carve": 0.75 },
-      { "at": "05-picture:start", "volume": 0.5, "carve": 0.75 },
-      { "at": "06-finale:start", "volume": 0.42 }
+      {
+        "at": "01-claim:island",
+        "heavy": true,
+        "volume": 0.6,
+        "carve": 0.75
+      },
+      {
+        "at": "03-heard:kilometers",
+        "volume": 0.55,
+        "carve": 0.75
+      },
+      {
+        "at": "05-waves:start",
+        "volume": 0.5,
+        "carve": 0.75
+      },
+      {
+        "at": "06-island:start",
+        "volume": 0.42
+      }
+    ]
+  },
+  "publish": {
+    "titles": [
+      "The loudest sound in history was not a bomb: Krakatoa, 1883",
+      "Heard 4,800 km away: how an island became the loudest sound ever",
+      "Krakatoa 1883: what was left of the island after the loudest blast"
+    ],
+    "description": "In August 1883 the volcanic island of Krakatoa, in the Sunda Strait between Java and Sumatra, exploded. People on Rodrigues, 4,800 km away, heard it and thought it was cannon fire; the ash rose about 80 km. More than 36,000 people died, most of them in the tsunamis, 165 villages and towns were destroyed — and two thirds of the island were gone.",
+    "tags": [
+      "krakatoa",
+      "krakatoa 1883",
+      "volcano",
+      "loudest sound",
+      "tsunami",
+      "indonesia",
+      "sunda strait",
+      "history",
+      "natural disasters",
+      "eruption",
+      "history shorts",
+      "geology"
     ]
   }
 }

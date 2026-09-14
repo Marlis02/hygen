@@ -1,0 +1,206 @@
+{
+  "ok": true,
+  "mp4": "/home/marlis/Desktop/hygen/videos/titanic-en/renders/titanic-en.mp4",
+  "checks": [
+    {
+      "check": "format",
+      "ok": true,
+      "detail": "1080×1920, 30.00 fps, аудиодорожек 1, 35.114 с (план 35.101, Δ +0.013)"
+    },
+    {
+      "check": "size",
+      "ok": true,
+      "detail": "72.5 МБ, 20.7 МБ на 10 с (≤ 25), 16.5 Мбит/с"
+    },
+    {
+      "check": "loudness",
+      "ok": true,
+      "detail": "-14.0 LUFS (цель -14 ±0.5), пик -2.0 dBTP (≤ -1.5), LRA 2.9 LU"
+    },
+    {
+      "check": "blank",
+      "ok": true,
+      "detail": "пустых сцен нет"
+    },
+    {
+      "check": "frozen",
+      "ok": true,
+      "detail": "все сцены двигаются, 12 событий меняют кадр"
+    },
+    {
+      "check": "settled",
+      "ok": true,
+      "detail": "кадры совпадают со снимками композиции (макс. расхождение 12.4)"
+    },
+    {
+      "check": "sources",
+      "ok": true,
+      "detail": "у всех цифр на экране есть источник"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "01-hook",
+      "start": 0,
+      "end": 4.867,
+      "detail_max": 25.93,
+      "motion_p95": 4.896,
+      "events": [
+        {
+          "t": 0.42,
+          "label": "number counts",
+          "change": 114.9,
+          "ok": true
+        },
+        {
+          "t": 0.66,
+          "label": "unit",
+          "change": 112.5,
+          "ok": true
+        },
+        {
+          "t": 3.75,
+          "label": "heat dies",
+          "change": 56.1,
+          "ok": true
+        }
+      ],
+      "settle": {
+        "t": 4.764,
+        "max_block_diff": 12.4,
+        "snapshot": "frame-00-at-4.764s.png"
+      }
+    },
+    {
+      "id": "02-map",
+      "start": 4.867,
+      "end": 10.834,
+      "detail_max": 15.18,
+      "motion_p95": 2.102,
+      "events": [
+        {
+          "t": 5.067,
+          "label": "marker",
+          "change": 22.9,
+          "ok": true
+        },
+        {
+          "t": 7.487,
+          "label": "counter counts",
+          "change": 72.6,
+          "ok": true
+        }
+      ],
+      "settle": {
+        "t": 10.654,
+        "max_block_diff": 4.1,
+        "snapshot": "frame-01-at-10.654s.png"
+      }
+    },
+    {
+      "id": "03-depth",
+      "start": 10.834,
+      "end": 17.801,
+      "detail_max": 8.53,
+      "motion_p95": 1.843,
+      "events": [
+        {
+          "t": 11.994,
+          "label": "rise",
+          "change": 39,
+          "ok": true
+        }
+      ],
+      "settle": {
+        "t": 17.578,
+        "max_block_diff": 3.9,
+        "snapshot": "frame-02-at-17.578s.png"
+      }
+    },
+    {
+      "id": "04-found",
+      "start": 17.801,
+      "end": 24.201,
+      "detail_max": 19.32,
+      "motion_p95": 3.14,
+      "events": [
+        {
+          "t": 19.771,
+          "label": "year uncovered",
+          "change": 81.4,
+          "ok": true
+        },
+        {
+          "t": 21.441,
+          "label": "delta counts",
+          "change": 62.4,
+          "ok": true
+        }
+      ],
+      "settle": {
+        "t": 23.994,
+        "max_block_diff": 3.3,
+        "snapshot": "frame-03-at-23.994s.png"
+      }
+    },
+    {
+      "id": "05-ship",
+      "start": 24.201,
+      "end": 28.268,
+      "detail_max": 24.88,
+      "motion_p95": 1.852,
+      "events": [
+        {
+          "t": 26.041,
+          "label": "title",
+          "change": 28.1,
+          "ok": true
+        }
+      ],
+      "settle": {
+        "t": 27.859,
+        "max_block_diff": 3.1,
+        "snapshot": "frame-04-at-27.859s.png"
+      }
+    },
+    {
+      "id": "06-finale",
+      "start": 28.268,
+      "end": 35.101,
+      "detail_max": 27.31,
+      "motion_p95": 1.749,
+      "events": [
+        {
+          "t": 30.268,
+          "label": "fraction counts",
+          "change": 115.2,
+          "ok": true
+        },
+        {
+          "t": 30.718,
+          "label": "scale fills",
+          "change": 27,
+          "ok": true
+        },
+        {
+          "t": 34.646,
+          "label": "fade out",
+          "change": 70.8,
+          "ok": true
+        }
+      ],
+      "settle": {
+        "t": 34.321,
+        "max_block_diff": 2.4,
+        "snapshot": "frame-05-at-34.321s.png"
+      }
+    }
+  ],
+  "thresholds": {
+    "blank_detail": 1,
+    "frozen_motion_p95": 0.03,
+    "event_min_change": 6,
+    "settle_max_block_diff": 32,
+    "max_mb_per_10s": 25
+  }
+}

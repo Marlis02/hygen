@@ -1,0 +1,23 @@
+{
+  "type": "data.timeline",
+  "name": "Лента времени",
+  "use": "Walk through 3–7 dates in order: a line with stations draws, a bright marker travels from station to station, each date and its short label land when the marker reaches it. For sequences of days, years or steps of a process.",
+  "origin": "registry:beat-timeline + pan-stations (idea: stations on a line, a marker travelling between them) — own port",
+  "layer": "data",
+  "target": "box",
+  "targetNote": "область ленты: горизонтальная, если шире высоты, иначе вертикальная",
+  "explains": false,
+  "figures": ["dates", "labels"],
+  "params": {
+    "dates": { "type": "list", "default": ["1", "2", "3"], "maxItems": 7, "maxLength": 12, "description": "3–7 дат или шагов по порядку: «1883», «DAY 2», «02:20»." },
+    "labels": { "type": "list", "default": [], "maxItems": 7, "maxLength": 18, "description": "Короткие подписи станций, ЗАГЛАВНЫМИ; пусто — без подписей." },
+    "step": { "type": "number", "default": 0.7, "min": 0.2, "max": 4, "description": "Шаг бегущей метки между станциями, с (sync voice); при sync music — биты трека." },
+    "color": { "type": "string", "default": "text", "maxLength": 16, "description": "Цвет линии и дат: токен палитры или #RRGGBB." },
+    "markColor": { "type": "string", "default": "hero", "maxLength": 16, "description": "Цвет бегущей метки и пройденной части линии." }
+  },
+  "events": [
+    { "label": "draw", "offset": 0 },
+    { "label": "marker", "offset": 0.9 }
+  ],
+  "demo": { "target": { "x": 8, "y": 30, "w": 84, "h": 16 }, "params": { "dates": ["DAY 1", "DAY 2", "DAY 3", "DAY 4", "DAY 5"], "labels": ["BLAST", "", "", "", "STILL RECORDED"] }, "at": 0.4 }
+}

@@ -16,6 +16,7 @@ import math
 import shutil
 
 from PIL import Image, ImageDraw, ImageFont, ImageOps
+RESAMPLE = getattr(Image, "Resampling", Image)  # Pillow < 9.1: filters live on Image
 
 TILE = 400
 CAPTION = 50
@@ -60,7 +61,7 @@ def sheet(args):
             if not item.get("path"):
                 raise OSError("no thumbnail")
             im = ImageOps.exif_transpose(Image.open(item["path"])).convert("RGB")
-            im = ImageOps.contain(im, (TILE, TILE), Image.Resampling.LANCZOS)
+            im = ImageOps.contain(im, (TILE, TILE), RESAMPLE.LANCZOS)
             canvas.paste(im, (x + (TILE - im.width) // 2, y + (TILE - im.height) // 2))
         except (OSError, ValueError):
             draw.text((x + 24, y + TILE // 2 - 10), "нет миниатюры", fill=MUTED, font=small)
@@ -92,7 +93,7 @@ def fit(args):
     elif im.mode not in ("RGB", "RGBA", "L", "LA"):
         im = im.convert("RGBA" if "transparency" in im.info else "RGB")
     if im.width > args.width:
-        im = im.resize((args.width, max(1, round(im.height * args.width / im.width))), Image.Resampling.LANCZOS)
+        im = im.resize((args.width, max(1, round(im.height * args.width / im.width))), RESAMPLE.LANCZOS)
     params = {"icc_profile": icc} if icc else {}
     if FORMATS.get(ext, "JPEG") == "JPEG":
         im = im if im.mode in ("RGB", "L") else im.convert("RGB")

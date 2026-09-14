@@ -23,5 +23,7 @@
   "transitions": { "default": "hard-cut", "hit": ["flash", "ash-burst"] },
   "grain": 1,
   "vignette": { "alpha": 0.6, "clear": 55 },
-  "sound": { "hit": "thud", "whoosh": "ash" }
+  "sound": { "hit": "thud", "whoosh": "ash" },
+  "captions": { "family": "calm", "preset": "plain", "activeWord": "none" },
+  "typography": { "kinetic": false }
 }

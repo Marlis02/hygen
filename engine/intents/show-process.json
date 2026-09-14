@@ -1,0 +1,20 @@
+{
+  "id": "show-process",
+  "use": "The line walks a process step by step: a line of stations draws and a marker reaches each step as the voice names it (days of a disaster, stages of a mechanism).",
+  "stage": {
+    "types": ["color", "media", "map"],
+    "default": { "type": "color", "color": "night", "glow": true }
+  },
+  "devices": [
+    {
+      "type": "data.timeline",
+      "target": "$target",
+      "at": "$at",
+      "params": { "dates": "$data.steps", "labels": "$data.labels", "step": "$data.step" },
+      "source": "$data.source"
+    }
+  ],
+  "dominant": 0,
+  "requires": ["target", "data.steps"],
+  "rhythm": { "density": 2, "note": "Ровный бит: одна лента шагов, остальное делает голос; с sync music метка шагает по битам." }
+}

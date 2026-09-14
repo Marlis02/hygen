@@ -1,0 +1,20 @@
+{
+  "id": "show-consequence",
+  "use": "What it cost: a crowd of dots — one per person or per a round number of people — and on the anchor word the share that was lost fades (or the share that was saved lights up).",
+  "stage": {
+    "types": ["color", "media"],
+    "default": { "type": "color", "color": "night", "glow": true }
+  },
+  "devices": [
+    {
+      "type": "data.dots",
+      "target": "$target",
+      "at": "$at",
+      "params": { "count": "$data.count", "mark": "$data.mark", "mode": "$data.mode|fade", "from": "$data.from|end", "markAt": "$data.markAt|1.0", "label": "$data.label", "per": "$data.per" },
+      "source": "$data.source"
+    }
+  ],
+  "dominant": 0,
+  "requires": ["target", "data.count", "data.mark", "data.source"],
+  "rhythm": { "density": 2, "note": "Цифры на экране: source обязателен; после — тихий бит." }
+}

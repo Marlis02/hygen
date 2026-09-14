@@ -1,0 +1,58 @@
+{
+  "id": "titanic-en",
+  "duration_s": 35.101,
+  "build_seconds": 238.1,
+  "steps": [
+    {
+      "name": "голос: Kokoro, громкость, паузы",
+      "seconds": 24.1
+    },
+    {
+      "name": "тайминги слов: whisper + выравнивание по сценарию",
+      "seconds": 62.3
+    },
+    {
+      "name": "звук: гул, удары, пепел; зерно",
+      "seconds": 11
+    },
+    {
+      "name": "сцены по таймингам голоса",
+      "seconds": 0
+    },
+    {
+      "name": "index.html: субтитры, шины, переход, приглушение",
+      "seconds": 0.8
+    },
+    {
+      "name": "hyperframes lint",
+      "seconds": 1.5
+    },
+    {
+      "name": "hyperframes check",
+      "seconds": 16.4
+    },
+    {
+      "name": "рендер (standard)",
+      "seconds": 57.3
+    },
+    {
+      "name": "мастеринг: −14 LUFS, пики ≤ −1,5 dBTP; H.264 crf 18",
+      "seconds": 49.6
+    },
+    {
+      "name": "автопроверка MP4",
+      "seconds": 14.9
+    }
+  ],
+  "check_ok": false,
+  "master": {
+    "input_lufs": -13.3,
+    "input_tp": -1.1,
+    "lufs": -14,
+    "true_peak": -2,
+    "ceiling": -2,
+    "passes": 1
+  },
+  "verify_ok": true,
+  "mp4": "videos/titanic-en/renders/titanic-en.mp4"
+}

@@ -169,7 +169,7 @@
 
 ## Текстуры
 
-`engine/textures/<id>/texture.json` + `texture.html` — полнокадровый слой над сценой и под субтитрами со своим таймлайном. Библиотека: `grain` (всегда, сила — `look.grain`), `fire` (crater, horizon, glow), `embers`, `ash` (flakes, pumice), `rain`, `bubbles`, `smoke`, `fog`, `lightning`, `wind`, `snow`; параметры с дефолтами — в их `texture.json`.
+`engine/textures/<id>/texture.json` + `texture.html` — полнокадровый слой над сценой и под субтитрами со своим таймлайном. Библиотека: `grain` (всегда, сила — `look.grain`), `fire` (crater, horizon, glow), `embers`, `ash` (flakes, pumice), `rain`, `bubbles`, `smoke`, `fog`, `lightning`, `wind`, `snow`, `paper` (D6); параметры с дефолтами — в их `texture.json`.
 
 Ссылка (в look или бите): `{"id": "rain", "density": 0.8, "angle": -20, "opacity": 0.6, "blend": "screen", "depth": "fg", "seed": 3}`. У любой текстуры есть `opacity` 0–1, `blend` (normal, screen, lighten, overlay, soft-light, multiply, color-dodge, plus-lighter), `depth` (bg, mid, fg или множитель — слой параллакса и порядок: bg ниже fg) и `seed`.
 
@@ -202,7 +202,7 @@
 
 ## Переходы
 
-`engine/transitions/<id>/`: `transition.json` (`id`, `name`, `use`, `duration`) и `transition.js` — модуль, который сборка дописывает к runtime: `window.HygenTransitions[id] = {host(fx, role, d, tr, api), overlay(api, d, tr), frame(api), always}` — `host` сдвигает, масштабирует и размывает уходящую (`from`) или входящую (`to`) сцену, `overlay` рисует над стыком (`api.ctx` — общий canvas переходов, `api.el`, `api.C.rgb`/`api.C.hex` — палитра look), `d` — секунды от стыка. Библиотека: `hard-cut`, `flash`, `ash-burst`, `whip`, `water-ripple`, `smoke-wipe`. Каждый стык получает переход по порядку: `video.json → transitions` (`{"from", "to", "type": ["flash", "ash-burst"], "duration"}`, только соседние биты) → `"transition"` бита (переход в этот бит) → `look.transitions.hit`, если на стык падает тяжёлый удар (`heavy`) → `look.transitions.default`. Разгон перехода до стыка — не дольше 0,08 с: settle-кадр уходящей сцены остаётся чистым.
+`engine/transitions/<id>/`: `transition.json` (`id`, `name`, `use`, `duration`) и `transition.js` — модуль, который сборка дописывает к runtime: `window.HygenTransitions[id] = {host(fx, role, d, tr, api), overlay(api, d, tr), frame(api), always}` — `host` сдвигает, масштабирует и размывает уходящую (`from`) или входящую (`to`) сцену, `overlay` рисует над стыком (`api.ctx` — общий canvas переходов, `api.el`, `api.C.rgb`/`api.C.hex` — палитра look), `d` — секунды от стыка. Библиотека: `hard-cut`, `flash`, `ash-burst`, `whip`, `water-ripple`, `smoke-wipe`; D6 — `iris`, `blinds`, `grid-dissolve`, `film-burn`, `directional-wipe`, `grade-split` (canvas по идеям компонентов реестра, `engine/devices/VENDOR.md`). Каждый стык получает переход по порядку: `video.json → transitions` (`{"from", "to", "type": ["flash", "ash-burst"], "duration"}`, только соседние биты) → `"transition"` бита (переход в этот бит) → `look.transitions.hit`, если на стык падает тяжёлый удар (`heavy`) → `look.transitions.default`. Разгон перехода до стыка — не дольше 0,08 с: settle-кадр уходящей сцены остаётся чистым.
 
 ## Проверка сцены без голоса
 
@@ -251,6 +251,7 @@ npm run scene -- counter-title --beat '{"background":{"image":"videos/titanic-en
 | `target`, `at`, `data` | короткая форма для intent и JSON-рецепта |
 | `role` | роль бита в структуре арки |
 | `tone`, `seed`, `textures`, `post`, `transition`, `sources` | как у бита со сценой; `type` и `background` у stage-бита — ошибка (текст — устройства `text.*`, медиа — stage) |
+| `caption`, `sync` | субтитры бита поверх look и ролика; ритм устройств бита voice \| music \| both (раздел «Текст на экране») |
 
 - **Координаты — проценты кадра**: область `{x, y, w, h}`, точка `{x, y}` (px ÷ 10,8 по x, ÷ 19,2 по y). `target` может быть именем из `stage.regions` или словом реплики (для устройств с target `none`).
 - **Моменты** (`at`, `until`, параметры типа `at`, `hold`, `reveal`, `pan.at`, `markers[].at`): слово реплики (`six`, `six#2`, `gone.end`, `six+0.3`), `start`, `speech` (начало речи), `end` (конец речи) или секунды внутри клипа бита. Варпа нет: всё стоит на реальных временах слов текущего голоса.
@@ -301,6 +302,8 @@ npm run scene -- counter-title --beat '{"background":{"image":"videos/titanic-en
 | `text.title` | text | calm / typewriter / slam, kicker | titlecard-calm + своё |
 | `text.quote` | text | цитата по словам, автор, год | своё |
 | `edit.hold` | focus | стоп-кадр stage с `at` до `until`: сборка режет видео, модуль рисует уголки видоискателя | своё |
+| `text.kinetic` | text | буквы как главный объект: 12 режимов (раздел «Текст на экране») | своё + texture-mask-text, kinetic-center-build, kinetic-type-swap |
+| `text.caption` | — | субтитры ролика: 20 пресетов, не ставится в `devices` (раздел «Текст на экране») | своё + 17 caption-* |
 
 Компоненты реестра вендорены (`engine/devices/vendor/`, версии и хэши — `engine/devices/VENDOR.md`) и портированы в `mount`: их boil и squash через `tl.eventCallback("onUpdate")` застывают при перемотке (TRAPS.md). Сети и WebGL в рендере нет. У каждого устройства `until` — момент ухода.
 
@@ -362,4 +365,89 @@ npm run scene -- quote-card                                       # JSON-рец�
 
 **Музыка.** `style.json → music {tracks, volume, duck, fadeIn, fadeOut}`; `video.json → "music": false | {track, volume, duck, fadeIn, fadeOut, in, out}`. Подложка (`engine/py/music_bed.py`): трек к −24 LUFS, петли с кроссфейдом, под речью `duck` дБ, клип `music-bed` на шине music. Треки и лицензии — `engine/assets/music/MUSIC.md`.
 
-**Публикация.** `video.json → "publish": {titles[3], description, tags[10–15]}`. `build` после мастеринга пишет `videos/<id>/publish/`: `title.txt`, `description.md` (+ «Sources:» — все ссылки video.json, «Media:» — кредиты из license.json всех медиа, карт и музыки), `tags.txt`, `subtitles.srt` фразами по 3–5 слов, `thumbnail.jpg` — settle-кадр самого плотного бита. Без рендера — `npm run publish -- videos/<id>`. `verify → publish`: всё на месте, в описании все источники и кредиты.
+**Публикация (D5).** `video.json → "publish": {titles[3], description, tags[10–15]}`. `build` после мастеринга пишет `videos/<id>/publish/`: `title.txt`, `description.md` (+ «Sources:» — все ссылки video.json, «Media:» — кредиты из license.json всех медиа, карт и музыки), `tags.txt`, `subtitles.srt` фразами по 3–5 слов, `thumbnail.jpg` — settle-кадр самого плотного бита. Без рендера — `npm run publish -- videos/<id>`. `verify → publish`: всё на месте, в описании все источники и кредиты.
+
+## Текст на экране (D6)
+
+### Общая текстовая схема
+
+Любой текст на экране — `text.title`, `text.quote`, `annotate.label`, `text.caption`, `text.kinetic` — принимает одни поля (`engine/devices/text.schema.json`, рантайм `engine/devices/text.js` → `HygenText`). Устройство включает схему полем `"text": {"scale", "defaults"}` в device.json; его собственные enum-поля сохраняют старые значения.
+
+| Поле | Значения |
+|---|---|
+| `type` | `none` (свой вход устройства), `pop`, `stagger`, `slide`, `typewriter`, `split-reveal`, `count-roll`, `glow-pulse`, `mask-wipe` |
+| `font` | `display` (Cormorant Garamond) или `body` (Inter) |
+| `size` | `s`, `m`, `l`, `xl` по шкале устройства, px: caption 48/64/84/112, title 48/72/120/180, quote 48/60/76/96, label 26/32/42/56, kinetic 120/170/240/320; старые `headline`, `title`, `label`, `large`, `medium` работают |
+| `case` | `normal` или `upper` |
+| `color` | `text`, `accent`, `secondary` (= `cold`, цвет второго тона look), токен палитры или `#RRGGBB` |
+| `background` | `none` (мягкая тень), `pill`, `bar` (во всю строку), `blur` (≤ 24 px под текстом), `wash` (мягкое затемнение) — цветами look |
+| `position` | `bottom`, `center`, `top`, `near-target` (рядом с целью другого устройства бита), `follow-camera` (едет с камерой бита) — когда у текста нет своей области |
+
+Полосы позиций (px кадра): bottom 1180–1640 (текст прижат вниз, ширина 840), center 700–1220, top 170–640 (ширина 900), near-target — под целью (или над ней, если внизу тесно), ширина 700. Безопасная зона Shorts для текста: y ≥ 154 (верх 8 %), y ≤ 1670 (низ 13 %), справа при y 1000–1700 — до x 960. Текст устройства выше 154 px — ошибка сборки.
+
+### Субтитры — устройство `text.caption`
+
+Слой на весь ролик, в `devices` бита не ставится и в плотность грамматики не входит. Стиль бита: `look.captions` ← `video.json → captions` ← `caption` бита.
+
+```json
+"captions": { "preset": "pill-karaoke", "group": "phrase", "activeWord": "highlight-sweep", "size": "l" },
+"beats": [ { "id": "07-air", "caption": { "preset": "neon-glow", "position": "near-target" }, … } ]
+```
+
+| Поле | Что |
+|---|---|
+| `preset` | поведение строки, 20 пресетов (`engine/devices/text.caption/presets`, семейства — `families.json`): **calm** — plain, karaoke, typewriter, weight-shift, blend-difference, editorial-emphasis; **explainer** — pill-karaoke, highlight, clip-wipe, gradient-fill, emoji-pop, texture; **energetic** — kinetic-slam, neon-glow, neon-accent, glitch-rgb, particle-burst, matrix-decode, parallax-layers, camera-follow. Свои — plain, karaoke, typewriter; остальные — порты caption-* реестра (`engine/devices/VENDOR.md`) |
+| `group` | `word` — одно слово на экране (умолчание); `phrase` — до 4 слов до паузы или знака; `line` — до 7 слов / 34 символов |
+| `activeWord` | как выделено звучащее слово: `color`, `scale`, `weight`, `highlight-sweep`, `underline`, `none` |
+| общие поля | `type`, `font`, `size`, `case`, `color`, `background`, `position` |
+
+Умолчание — `plain`, без фона, внизу, по слову, шрифт body: ни плашки, ни линии. Субтитры идут по словам голоса всегда, `sync` на них не действует.
+
+**Контраст.** До рендера сборка пишет слой субтитров пустым, снимает 2 момента каждого бита без подложки и сравнивает цвет текста с яркостью под ним (`engine/py/caption_contrast.py`); ниже 4,5:1 бит получает `wash` (bottom, top, follow-camera) или `blur` (center, near-target) и предупреждение. Итог — `build/captions.plan.json`, проверка `verify → text`.
+
+**Пресет** — `HygenCaptions.define(name, {family, origin, owns: {background, active, entrance}, mount(api, g)})`; `api` описан в шапке `engine/devices/text.caption/device.js` (`words`, `active`, `enter`, `drive`, `canvas`, `blend` — смешивание всего слоя на время группы). Превью: `npm run scene -- --device text.caption --preset <имя> [--look id] [--text "…"] [--beat '{"caption":{…},"stage":{…}}']` → `.preview/caption-<имя>/sheet.jpg`.
+
+### `text.kinetic` — буквы как главный объект
+
+Устройство-кадр слоя text. `mode`: `stack` (слово столбиком, одна строка залита), `extrude` (глубина из копий), `weight-morph` (вес и ширина вариативного Archivo), `outline` (контур, заливка по `fillAt`), `tilt` (блок в перспективе), `marquee` (ряды навстречу), `texture` (буквы прорезаны маской: concrete, rock, lava, wood, metal, snow), `scramble` (перебор символов), `slam` (слова падают с ударом), `center-build` (строка собирается и центрируется), `type-swap` (постоянная строка `text`, меняется слово из `words`), `behind-subject` (слово за человеком с фото stage). Параметры: `text`, `words`, `step`, `repeat`, `depth`, `angle`, `fillAt`, `texture` + общие поля.
+
+- У бита с `text.kinetic` dominant — это устройство, соседей не больше одного (ошибка); в ролике не больше 2 таких битов, кроме look с `typography.kinetic: true` (предупреждение).
+- `behind-subject`: stage `media` с картинкой без `crop`, `pan`, `zoom`; фигуру вырезает `hyperframes remove-background` (кэш `.cache/stage`) — модель находит людей (TRAPS.md).
+- Превью: `npm run scene -- --device text.kinetic --beat '{"devices":[{"type":"text.kinetic","at":0.4,"params":{"mode":"marquee","text":"BLUE"},"sync":"music"}],"dominant":0}'`.
+
+### `sync` — ритм устройств
+
+У любого устройства и у бита: `"sync": "voice" | "music" | "both"`. `voice` — моменты по словам (умолчание); `music` — `at` встаёт на ближайший бит трека подложки, ритм внутри устройства (строки stack, ряды marquee, волна weight-morph, буквы scramble, слова slam и type-swap) шагает по битам; `both` — слово задаёт что, бит в пределах 100 мс — когда. Сетка — `engine/py/beats.py` один раз на трек (`.cache/beats/<sha>.json`), петли подложки учтены как в `music_bed.py`. В бите один ритм — иначе ошибка грамматики. Превью берёт сетку тестового трека `engine/assets/music/test-beat-100.wav` (100 BPM, CC0).
+
+### Look: `captions` и `typography`
+
+`"captions": {"family": "calm" | "explainer" | "energetic", "preset", "activeWord", …любое поле субтитров}` — умолчания субтитров мира (только семейство — первый пресет семейства); `"typography": {"kinetic": false}`. ember, abyss, storm — calm · plain · none. `bright-explainer` — светлый лист (`palette.colors`: night — бумага, text — тушь), explainer · pill-karaoke · highlight-sweep · phrase · l, `typography.kinetic: true`.
+
+### Текстура `paper`
+
+Мятая бумага поверх кадра: `crumple` 0–1 (складки), `tape` 0–4 (скотч по углам), `offset` 0–2 (дрожание печати 8 раз в секунду), `color`, `tapeColor`; слой fg, multiply. Для светлых миров: на тёмной земле multiply почти ничего не меняет.
+
+### Проверки текста
+
+- **Ошибки** (сборка, `verify → grammar`, `verify → text`): два ритма в бите; `text.kinetic` не dominant или больше одного соседа; текст устройства выше безопасной зоны; контраст под субтитрами ниже 4,5:1 без подложки.
+- **Предупреждения:** пресет субтитров не из look больше чем в 2 битах; slam и particle-burst больше чем в одном бите (кроме look семейства energetic); `text.kinetic` больше чем в 2 битах (кроме `typography.kinetic`); near-target без устройства с целью; подложка, поставленная движком по контрасту.
+
+### Вторая волна устройств и intents (D6)
+
+| type | слой | что | origin |
+|---|---|---|---|
+| `data.timeline` | data | 3–7 дат на линии (`dates`, `labels`), бегущая метка доходит до каждой станции: при sync voice — шаг `step`, при sync music — биты; горизонтально в широкой области, вертикально в высокой | beat-timeline / pan-stations (идея) + своё |
+| `data.dots` | data | `count` точек сеткой (1 точка = человек или `per`), на `markAt` `mark` из них загораются (`mode: color`) или гаснут (`fade`), первые, последние или вразброс по сиду | своё |
+| `edit.pip` | data | вторая картинка в окне: `src` (с license.json), `corner` или target, `size`, `ratio`, `fit`, `frame` none/thin/rounded/polaroid, `enter` pop/slide/wipe, `label`; сборка ставит `<img>` статично — рендер его предзагружает | своё |
+
+Intents: `show-process` (шаги процесса лентой: `data.steps`), `show-timeline` (даты: `data.dates` + `data.source`), `explain-cause` (spotlight на причину и стрелка к следствию: `target`, `data.effect`, `data.label`), `show-consequence` (точки-люди: `data.count`, `data.mark`, `data.source`, по умолчанию `fade`).
+
+У `text.kinetic` параметр `wordsAt` — список слов реплики для слов `words` режимов slam, center-build, type-swap: слова встают на слова голоса. Тип параметра устройства `ats` — список моментов (слов или секунд после `at`).
+
+### Отпечаток ролика (D6)
+
+`verify → uniqueness` сравнивает с двумя последними роликами ещё и отпечаток: для каждого бита `<stage>+<доминирующее устройство>` (или `+stage`), бит со сценой — `scene:<id>`. Совпадение позиций больше 60 % — ошибка, 40–60 % — предупреждение.
+
+### Бюджет ElevenLabs (D6)
+
+`.env`: `ELEVENLABS_BUDGET_CHARS=3000`. Сборка считает символы, отправленные после последнего сброса (`.cache/voice/elevenlabs/usage.jsonl`, кэш не считается); реплика, которой не хватает бюджета, озвучивается Kokoro с предупреждением, API не вызывается. `npm run voice` — остаток, `npm run voice -- --reset-budget` — сброс; `doctor` показывает остаток. Запасной голос Kokoro — `voice.voice` в video.json (`{"provider": "elevenlabs", "voice": "bm_george"}`).

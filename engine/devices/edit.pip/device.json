@@ -1,0 +1,26 @@
+{
+  "type": "edit.pip",
+  "name": "Картинка в окне",
+  "use": "A second picture in a window over the stage — a portrait next to the place, a document next to the event, a detail next to the whole: a corner or area, a frame (thin, rounded, polaroid) and an entrance (pop, slide, wipe), with an optional caption.",
+  "origin": "own (picture-in-picture of the HyperFrames video doctrine: a second media in a framed window)",
+  "layer": "data",
+  "target": "box|none",
+  "targetNote": "box — окно; без target — угол corner шириной size",
+  "explains": false,
+  "figures": ["label"],
+  "params": {
+    "src": { "type": "string", "default": "", "maxLength": 160, "description": "Картинка от папки ролика (jpg, png, webp) с license.json рядом; сборка копирует её в assets/media." },
+    "corner": { "type": "enum", "values": ["top-right", "top-left", "bottom-right", "bottom-left", "center"], "default": "top-right", "description": "Угол окна без target; низ — выше безопасной зоны субтитров." },
+    "size": { "type": "number", "default": 0.42, "min": 0.2, "max": 0.8, "description": "Ширина окна без target — доля ширины кадра." },
+    "ratio": { "type": "number", "default": 1.25, "min": 0.5, "max": 2, "description": "Высота окна к ширине без target." },
+    "fit": { "type": "enum", "values": ["cover", "contain"], "default": "cover", "description": "Как картинка ложится в окно." },
+    "frame": { "type": "enum", "values": ["none", "thin", "rounded", "polaroid"], "default": "rounded", "description": "Рамка: без, тонкая, скруглённая, полароид с полем для подписи." },
+    "enter": { "type": "enum", "values": ["pop", "slide", "wipe"], "default": "pop", "description": "Вход: pop — из 60 % с перелётом, slide — въезд сбоку, wipe — шторка слева." },
+    "label": { "type": "string", "default": "", "maxLength": 28, "description": "Подпись под картинкой (у полароида — в поле)." }
+  },
+  "events": [
+    { "label": "in", "offset": 0 },
+    { "label": "land", "offset": 0.45 }
+  ],
+  "demo": { "params": { "src": "videos/_proof/titanic-v2/media/titanic-lifeboat-ogden.jpg", "corner": "top-right", "frame": "polaroid", "label": "LIFEBOAT, APRIL 15" }, "at": 0.5, "stage": { "type": "media", "src": "videos/_proof/titanic-v2/media/rms-titanic.jpg", "fit": "cover" } }
+}

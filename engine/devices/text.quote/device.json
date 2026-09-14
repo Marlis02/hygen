@@ -8,6 +8,7 @@
   "targetNote": "область текста; без target — центр кадра x 90–990, y 520–1250",
   "explains": false,
   "figures": ["text", "author", "year"],
+  "text": { "scale": "quote", "defaults": { "font": "display", "position": "center" } },
   "params": {
     "text": { "type": "string", "default": "", "maxLength": 140, "description": "Цитата дословно, как в источнике (по-английски)." },
     "author": { "type": "string", "default": "", "maxLength": 32, "description": "Кто сказал: имя или роль." },

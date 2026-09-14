@@ -30,3 +30,8 @@
 
 ## Проверка
 `npm run build -- videos/<id> --no-render` — шаг «музыка» пишет `build/assets/music/bed.wav` и `build/music.json`; полная сборка — автопроверка `loudness` (−14 LUFS ±0,5).
+
+## Тестовый трек с битом
+`test-beat-100` — процедурный трек 100 BPM, 30 тактов 4/4 (72 с, длиннее Short — подложка не склеивается): бочка на каждую долю, хлопок на 2 и 4, хэты восьмыми, пэд Am–F–C–G. CC0, генерируется `python3 engine/py/make_test_beat.py engine/assets/music/test-beat-100.wav`. Только для проверки `sync: music` (proof `videos/_proof/typo`), не для публикации.
+
+Сетка битов: `engine/py/beats.py` (numpy/scipy: спектральный поток → автокорреляция 60–180 BPM → фаза сетки → привязка к пикам; сильные доли — каждый 4-й бит с наибольшей энергией), один раз на трек в `.cache/beats/<sha файла>.json`. На `test-beat-100`: 99,94 BPM, отклонение битов от сетки 0,6 с ≤ 8 мс.

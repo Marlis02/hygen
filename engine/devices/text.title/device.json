@@ -8,6 +8,7 @@
   "targetNote": "box — блок текста в области; point — центр блока; none — верхняя треть кадра по центру (y ≈ 380)",
   "explains": false,
   "figures": ["text", "kicker"],
+  "text": { "scale": "title", "defaults": { "font": "display", "position": "top" } },
   "params": {
     "text": { "type": "string", "default": "", "maxLength": 40, "description": "Строка титра; пусто — слово реплики, к которому привязано устройство." },
     "kicker": { "type": "string", "default": "", "maxLength": 28, "description": "Мелкая строка над титром, ЗАГЛАВНЫМИ с разрядкой." },

@@ -22,22 +22,62 @@
       "textColor": "#F1E8D6"
     },
     "textures": [
-      { "id": "smoke", "density": 0.4, "speed": 0.45, "opacity": 0.35, "depth": "bg" },
-      { "id": "embers", "density": 0.3, "angle": -25, "opacity": 0.75, "depth": "fg" }
+      {
+        "id": "smoke",
+        "density": 0.4,
+        "speed": 0.45,
+        "opacity": 0.35,
+        "depth": "bg"
+      },
+      {
+        "id": "embers",
+        "density": 0.3,
+        "angle": -25,
+        "opacity": 0.75,
+        "depth": "fg"
+      }
     ],
     "motion": {
-      "camera": { "preset": "none" },
-      "parallax": { "enabled": false },
-      "type": { "number": "count-roll", "title": "typewriter", "label": "typewriter" },
-      "post": [ { "id": "bloom", "strength": 0.3 }, { "id": "flicker", "strength": 0.2 } ]
+      "camera": {
+        "preset": "none"
+      },
+      "parallax": {
+        "enabled": false
+      },
+      "type": {
+        "number": "count-roll",
+        "title": "typewriter",
+        "label": "typewriter"
+      },
+      "post": [
+        {
+          "id": "bloom",
+          "strength": 0.3
+        },
+        {
+          "id": "flicker",
+          "strength": 0.2
+        }
+      ]
     },
-    "transitions": { "default": "hard-cut", "hit": "smoke-wipe" },
+    "transitions": {
+      "default": "hard-cut",
+      "hit": "smoke-wipe"
+    },
     "grain": 1.2,
-    "vignette": { "alpha": 0.66, "clear": 52 },
-    "sound": { "hit": "thud", "whoosh": "smoke" }
+    "vignette": {
+      "alpha": 0.66,
+      "clear": 52
+    },
+    "sound": {
+      "hit": "thud",
+      "whoosh": "smoke"
+    }
   },
-  "captions": "word-by-word",
-  "voice": { "engine": "kokoro", "voice": "bm_george", "speed": 1.0 },
+  "voice": {
+    "provider": "elevenlabs",
+    "voice": "bm_george"
+  },
   "arc": {
     "structure": "mechanism",
     "hook": "rhetorical-question",
@@ -50,9 +90,17 @@
       "id": "01-bakery",
       "role": "hook",
       "text": "How does one bakery burn down the heart of London?",
-      "pad": [0.2, 0.5],
+      "pad": [
+        0.2,
+        0.5
+      ],
       "intent": "show-evidence",
-      "target": { "x": 3, "y": 35, "w": 94, "h": 14 },
+      "target": {
+        "x": 3,
+        "y": 35,
+        "w": 94,
+        "h": 14
+      },
       "at": "how",
       "data": {
         "src": "media/plaque-pudding-lane.jpg",
@@ -62,25 +110,46 @@
         "explains": "this plaque marks the shop of the King's baker where the Great Fire began in September 1666",
         "source": "https://en.wikipedia.org/wiki/Great_Fire_of_London"
       },
-      "stage": { "type": "media", "fit": "contain" },
-      "camera": { "reason": "approach", "amplitude": 0.12 },
-      "sources": { "text": "https://en.wikipedia.org/wiki/Great_Fire_of_London" }
+      "stage": {
+        "type": "media",
+        "fit": "contain"
+      },
+      "camera": {
+        "reason": "approach",
+        "amplitude": 0.12
+      },
+      "sources": {
+        "text": "https://en.wikipedia.org/wiki/Great_Fire_of_London"
+      }
     },
     {
       "id": "02-timber",
       "role": "setup",
       "text": "In [1666|sixteen sixty-six], the City was mostly timber, its upper floors almost touching across narrow lanes.",
-      "pad": [0.2, 0.6],
+      "pad": [
+        0.2,
+        0.6
+      ],
       "intent": "reveal",
-      "data": { "src": "media/hollar-london-before-1666.jpg" },
-      "stage": { "type": "media", "fit": "contain" },
-      "sources": { "text": "https://en.wikipedia.org/wiki/Great_Fire_of_London" }
+      "data": {
+        "src": "media/hollar-london-before-1666.jpg"
+      },
+      "stage": {
+        "type": "media",
+        "fit": "contain"
+      },
+      "sources": {
+        "text": "https://en.wikipedia.org/wiki/Great_Fire_of_London"
+      }
     },
     {
       "id": "03-mayor",
       "role": "step",
       "text": "The Lord Mayor delayed for hours. Then he cried: the fire overtakes us faster than we can do it.",
-      "pad": [0.2, 0.9],
+      "pad": [
+        0.2,
+        0.9
+      ],
       "scene": "quote-card",
       "at": "cried.end",
       "data": {
@@ -89,15 +158,25 @@
         "year": "1666",
         "source": "https://en.wikipedia.org/wiki/Great_Fire_of_London"
       },
-      "sources": { "text": "https://en.wikipedia.org/wiki/Great_Fire_of_London" }
+      "sources": {
+        "text": "https://en.wikipedia.org/wiki/Great_Fire_of_London"
+      }
     },
     {
       "id": "04-bridge",
       "role": "step",
       "text": "The flames took the water wheels under London Bridge. The pipes ran dry, and the east wind did the rest.",
-      "pad": [0.2, 0.6],
+      "pad": [
+        0.2,
+        0.6
+      ],
       "intent": "show-detail",
-      "target": { "x": 2, "y": 58, "w": 90, "h": 15.5 },
+      "target": {
+        "x": 2,
+        "y": 58,
+        "w": 90,
+        "h": 15.5
+      },
       "at": "london",
       "data": {
         "src": "media/great-fire-1675-tower-wharf.jpg",
@@ -106,28 +185,64 @@
         "explains": "the fire burned the water wheels under London Bridge and the city lost its piped water",
         "source": "https://en.wikipedia.org/wiki/Great_Fire_of_London"
       },
-      "stage": { "type": "media", "fit": "cover", "focus": [0.14, 0.5] },
-      "textures": [ { "id": "wind", "opacity": 0.3 } ],
-      "sources": { "text": "https://en.wikipedia.org/wiki/Great_Fire_of_London" }
+      "stage": {
+        "type": "media",
+        "fit": "cover",
+        "focus": [
+          0.14,
+          0.5
+        ]
+      },
+      "textures": [
+        {
+          "id": "wind",
+          "opacity": 0.3
+        }
+      ],
+      "sources": {
+        "text": "https://en.wikipedia.org/wiki/Great_Fire_of_London"
+      }
     },
     {
       "id": "05-st-pauls",
       "role": "step",
       "text": "On Tuesday night, Saint Paul's caught fire. Within half an hour, its lead roof was melting.",
-      "pad": [0.2, 0.8],
-      "stage": { "type": "media", "src": "media/hollar-old-st-pauls-burning-1666.jpg", "fit": "cover", "focus": [0.56, 0.6] },
+      "pad": [
+        0.2,
+        0.8
+      ],
+      "stage": {
+        "type": "media",
+        "src": "media/hollar-old-st-pauls-burning-1666.jpg",
+        "fit": "cover",
+        "focus": [
+          0.56,
+          0.6
+        ]
+      },
       "devices": [],
       "dominant": "stage",
-      "camera": { "reason": "approach", "amplitude": 0.5 },
-      "sources": { "text": "https://en.wikipedia.org/wiki/Great_Fire_of_London" }
+      "camera": {
+        "reason": "approach",
+        "amplitude": 0.5
+      },
+      "sources": {
+        "text": "https://en.wikipedia.org/wiki/Great_Fire_of_London"
+      }
     },
     {
       "id": "06-gone",
       "role": "consequence",
       "text": "In four days, at least [13,200|thirteen thousand two hundred] houses were gone.",
-      "pad": [0.2, 1.0],
+      "pad": [
+        0.2,
+        1.0
+      ],
       "intent": "compare",
-      "target": { "x": 50, "y": 23 },
+      "target": {
+        "x": 50,
+        "y": 23
+      },
       "at": "four",
       "data": {
         "value": 13200,
@@ -137,19 +252,38 @@
       },
       "stage": {
         "type": "split",
-        "a": { "src": "media/hollar-london-before-1666.jpg", "fit": "contain" },
-        "b": { "src": "media/hollar-london-after-1666.jpg", "fit": "contain" },
-        "labels": ["", ""]
+        "a": {
+          "src": "media/hollar-london-before-1666.jpg",
+          "fit": "contain"
+        },
+        "b": {
+          "src": "media/hollar-london-after-1666.jpg",
+          "fit": "contain"
+        },
+        "labels": [
+          "",
+          ""
+        ]
       },
-      "sources": { "text": "https://en.wikipedia.org/wiki/Great_Fire_of_London" }
+      "sources": {
+        "text": "https://en.wikipedia.org/wiki/Great_Fire_of_London"
+      }
     },
     {
       "id": "07-monument",
       "role": "ending",
       "text": "The fire's monument stands [202|two hundred and two] feet from the bakery, and it is just as tall.",
-      "pad": [0.3, 2.0],
+      "pad": [
+        0.3,
+        2.0
+      ],
       "intent": "show-scale",
-      "target": { "x": 67, "y": 1.5, "w": 0, "h": 69.5 },
+      "target": {
+        "x": 67,
+        "y": 1.5,
+        "w": 0,
+        "h": 69.5
+      },
       "at": "tall",
       "data": {
         "src": "media/monument-fish-street-hill.jpg",
@@ -157,18 +291,43 @@
         "explains": "the column is as tall as its distance from the bakery where the fire began",
         "source": "https://en.wikipedia.org/wiki/Monument_to_the_Great_Fire_of_London"
       },
-      "sources": { "text": "https://en.wikipedia.org/wiki/Monument_to_the_Great_Fire_of_London" }
+      "sources": {
+        "text": "https://en.wikipedia.org/wiki/Monument_to_the_Great_Fire_of_London"
+      }
     }
   ],
   "transitions": [],
   "sound": {
-    "drone": { "peak": "05-st-pauls:melting", "cut": "07-monument:start", "volume": 0.42, "carve": 0.65 },
+    "drone": {
+      "peak": "05-st-pauls:melting",
+      "cut": "07-monument:start",
+      "volume": 0.42,
+      "carve": 0.65
+    },
     "hits": [
-      { "at": "02-timber:start", "volume": 0.45 },
-      { "at": "04-bridge:start", "volume": 0.5, "carve": 0.75 },
-      { "at": "05-st-pauls:fire", "heavy": true, "volume": 0.6, "carve": 0.75 },
-      { "at": "06-gone:start", "volume": 0.5 },
-      { "at": "07-monument:start", "volume": 0.42 }
+      {
+        "at": "02-timber:start",
+        "volume": 0.45
+      },
+      {
+        "at": "04-bridge:start",
+        "volume": 0.5,
+        "carve": 0.75
+      },
+      {
+        "at": "05-st-pauls:fire",
+        "heavy": true,
+        "volume": 0.6,
+        "carve": 0.75
+      },
+      {
+        "at": "06-gone:start",
+        "volume": 0.5
+      },
+      {
+        "at": "07-monument:start",
+        "volume": 0.42
+      }
     ]
   },
   "publish": {

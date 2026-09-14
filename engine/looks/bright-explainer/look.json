@@ -1,0 +1,41 @@
+{
+  "id": "bright-explainer",
+  "name": "Светлый объясняющий",
+  "about": {
+    "mood": "Светлый лист, чистые яркие цвета и уверенный ритм: ролик объясняет, а не пугает. Текст — главный герой кадра, субтитры в плашке с маркером по звучащему слову.",
+    "topics": "Объясняющие ролики и развлекательные факты: наука вокруг нас, «почему так», списки фактов, как устроены вещи.",
+    "avoid": "Катастрофы, трагедии и архивное горе; тёмная документальная подача, тяжёлые текстуры."
+  },
+  "palette": {
+    "accent": "#2F6BFF",
+    "secondary": "#FF6B3D",
+    "groundTint": null,
+    "temperature": "cold",
+    "textColor": "#15171C",
+    "colors": {
+      "night": "#F6F3EC",
+      "plane": "#FFFFFF",
+      "ground": "#ECE7DC",
+      "ashDeep": "#E3DDD1",
+      "ash3": "#D5CFC2",
+      "ashMid": "#A39D92",
+      "dim": "#6E6960",
+      "ashLight": "#8A857C",
+      "muted": "#4B4740",
+      "mutedLight": "#5C5850"
+    }
+  },
+  "textures": [],
+  "motion": {
+    "camera": { "preset": "none", "amplitude": 0.4, "shake": 0 },
+    "parallax": { "enabled": false },
+    "type": { "number": "pop", "title": "stagger", "label": "slide" },
+    "post": []
+  },
+  "transitions": { "default": "hard-cut", "hit": "whip" },
+  "grain": 0.25,
+  "vignette": { "alpha": 0.1, "clear": 70 },
+  "sound": { "hit": "thud", "whoosh": "air" },
+  "captions": { "family": "explainer", "preset": "pill-karaoke", "activeWord": "highlight-sweep", "group": "phrase", "size": "l" },
+  "typography": { "kinetic": true }
+}

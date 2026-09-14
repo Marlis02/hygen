@@ -10,7 +10,7 @@ import { parseBeatText } from "./spec.ts";
 import type { BeatTiming } from "./timeline.ts";
 import { wordTime } from "./timeline.ts";
 import type { BeatWords } from "./words.ts";
-import { ROOT_DIR, ensureDir, fail, fileSha, lastJsonLine, log, pyScript, python, r3, run, sha } from "./lib/util.ts";
+import { ROOT_DIR, ensureDir, fail, fileSha, hyperframesBin, lastJsonLine, log, pyScript, python, r3, run, sha } from "./lib/util.ts";
 
 // Stage of a beat v2 (engine/scenes/CONTRACT.md, «Бит v2», «Stage»): the base of the frame — media | split | map | color —
 // written by the build as a sub-composition with fixed z-layers (stage → focus → data → annotate → text) and played by
@@ -123,6 +123,15 @@ export function checkStageBeat(beat: BeatSpec, style: StyleDef, videoDir: string
   devices.forEach((dev, i) => {
     const def = checkDeviceSpec(dev, i, beat.id, regions, spoken, style);
     if (def.type === "edit.hold" && type !== "media") fail(`${beat.id}: devices[${i}] edit.hold — только на stage media`);
+    if (def.type === "edit.pip") {
+      const where = `${beat.id}: devices[${i}] edit.pip`;
+      const src = String(dev.params?.src ?? "");
+      if (!src) fail(`${where}: params.src — картинка от папки ролика`);
+      const file = mediaPath(src, videoDir);
+      if (!existsSync(file)) fail(`${where}: нет файла ${file}`);
+      if (!IMAGE_RE.test(file)) fail(`${where}: только картинка — jpg, png или webp`);
+      checkLicense(file, where);
+    }
   });
   if (beat.dominant === undefined) fail(`${beat.id}: dominant обязателен — "stage" или индекс устройства, которое главное в кадре`);
   if (beat.dominant !== "stage" && !(Number.isInteger(beat.dominant) && (beat.dominant as number) >= 0 && (beat.dominant as number) < devices.length)) fail(`${beat.id}: dominant — "stage" или индекс 0–${devices.length - 1}`);
@@ -179,7 +188,21 @@ interface MediaBuild {
   cfg: MediaCfg;
   html: (copy: string) => string;
   videos: number;
+  /** The treated picture in the cache (image stages): what text.kinetic behind-subject cuts the figure from. */
+  still: string | null;
 }
+
+/** The subject of a picture on a transparent ground (`hyperframes remove-background`, a local model on CPU), once per picture. */
+function cutoutOf(file: string, videoDir: string): string {
+  const out = join(ensureDir(join(videoDir, ".cache", "stage")), `${fileSha(file).slice(0, 16)}-cut.png`);
+  if (!existsSync(out)) {
+    run(hyperframesBin(), ["remove-background", file, "-o", out, "--json"]);
+    log.info(`вырезка фигуры ${basename(file)} → кэш`);
+  }
+  return out;
+}
+
+const ARCHIVO_FACE = '@font-face{font-family:"Archivo Variable";font-weight:100 900;font-stretch:62% 125%;font-style:normal;font-display:block;src:url("assets/fonts/Archivo-Variable.ttf") format("truetype");}';
 
 interface Ctx {
   beat: BeatSpec;
@@ -273,10 +296,12 @@ function prepareMedia(m: Record<string, unknown>, key: string, ctx: Ctx, extraHo
   const clips: { tag: "img" | "video"; src: string; start: number; dur: number; mediaStart?: number; rate?: number }[] = [];
   let backdrop: string | null = null;
   let videos = 0;
+  let still: string | null = null;
   if (!video) {
     const k = sha({ v: 1, f: fileSha(file), treatment, inks });
     const out = join(cacheDir, `${k}.jpg`);
     if (!existsSync(out)) py(["image", file, out, "--treatment", treatment, "--inks", ...inks]);
+    still = out;
     const src = copyTo(out, `st-${beat.id}-${key}-${k.slice(0, 8)}.jpg`);
     clips.push({ tag: "img", src, start: 0, dur: D });
     if (fit === "contain") {
@@ -334,7 +359,7 @@ function prepareMedia(m: Record<string, unknown>, key: string, ctx: Ctx, extraHo
     });
     return `<div id="${id}-zoom" data-hy-zoom="${P}-${key}" style="position: absolute; left: 0px; top: 0px; width: 1080px; height: 1920px"><div id="${id}-inner" data-hy-inner="${P}-${key}" style="position: absolute; left: 0px; top: 0px; width: 1080px; height: 1920px">${parts.join("")}</div></div>`;
   };
-  return { cfg, html, videos };
+  return { cfg, html, videos, still };
 }
 
 function catmull(points: { x: number; y: number }[]): string {
@@ -374,8 +399,9 @@ export interface StageFrame {
   videoAtSettle: boolean;
 }
 
-export function clockOf(timing: BeatTiming, words: BeatWords): Clock {
-  return { duration: timing.duration, speechStart: timing.speechStart, speechEnd: timing.speechEnd, spoken: words.spoken.map((w) => w.word), word: (ref: string) => wordTime(words, ref) };
+export function clockOf(timing: BeatTiming, words: BeatWords, grid?: { beats: number[]; strong: number[] } | null): Clock {
+  const local = (ts: number[]): number[] => ts.map((t) => r3(t - timing.start)).filter((t) => t >= 0 && t <= timing.duration);
+  return { duration: timing.duration, speechStart: timing.speechStart, speechEnd: timing.speechEnd, spoken: words.spoken.map((w) => w.word), word: (ref: string) => wordTime(words, ref), grid: grid ? { beats: local(grid.beats), strong: local(grid.strong) } : null };
 }
 
 export function writeStageFrame(input: StageFrameInput): StageFrame {
@@ -387,7 +413,7 @@ export function writeStageFrame(input: StageFrameInput): StageFrame {
   const colors = toneColors(style, beat.tone ?? "accent");
   const rgbOf = (hex: string): string => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)).join(",");
   const regions = (st.regions ?? {}) as Record<string, unknown>;
-  const devices = resolveDevices(beat.devices ?? [], beat.dominant, regions, clock, style, beat.id);
+  const devices = resolveDevices(beat.devices ?? [], beat.dominant, regions, clock, style, beat.id, beat.sync);
   const ctx: Ctx = { beat, style, videoDir: input.videoDir, dir: input.dir, clock, fps: input.fps, prefix, track: { n: 1 } };
   const events: { t: number; label: string }[] = deviceEvents(devices);
   let stageHtml = "";
@@ -403,6 +429,15 @@ export function writeStageFrame(input: StageFrameInput): StageFrame {
 
   if (st.type === "media") {
     const m = prepareMedia(st, "m", ctx, holdDevices.map((h) => ({ at: h.at, until: h.until })));
+    // text.kinetic behind-subject: the figure cut from the same treated picture lies over the word, pixel on pixel
+    const behind = devices.filter((d) => d.type === "text.kinetic" && d.params.mode === "behind-subject");
+    if (behind.length) {
+      if (!m.still || st.crop !== undefined || st.pan !== undefined || st.zoom !== undefined) fail(`${beat.id}: text.kinetic behind-subject — нужен stage media с картинкой без crop, pan и zoom (вырезка ложится точно на фото)`);
+      const cut = cutoutOf(m.still as string, input.videoDir);
+      const cutName = `st-${beat.id}-cut-${basename(cut).slice(0, 8)}.png`;
+      copyFileSync(cut, join(ensureDir(join(input.dir, "assets", "media")), cutName));
+      for (const d of behind) Object.assign(d.params, { cutout: `assets/media/${cutName}`, fit: (st.fit as string | undefined) ?? "cover", focus: (st.focus as number[] | undefined) ?? [0.5, 0.5] });
+    }
     stageHtml = m.html("") + tone("m") + (m.cfg.holds.length ? flash : "");
     videos = m.videos;
     stageCfg.media = m.cfg;
@@ -476,15 +511,25 @@ export function writeStageFrame(input: StageFrameInput): StageFrame {
     stage: stageCfg,
     devices,
   };
+  // edit.pip pictures are static <img> in the data layer: the renderer preloads them like the stage's own (the device moves them into a window)
+  const pipHtml = devices
+    .filter((d) => d.type === "edit.pip")
+    .map((d) => {
+      const file = mediaPath(String(d.params.src), input.videoDir);
+      const name = `pip-${beat.id}-${d.index}-${fileSha(file).slice(0, 8)}${extname(file).toLowerCase()}`;
+      copyFileSync(file, join(ensureDir(join(input.dir, "assets", "media")), name));
+      return `<img id="${prefix}-d${d.index}-pip" src="assets/media/${name}" alt="" style="position: absolute; left: 0px; top: 0px; width: 16px; height: 16px; opacity: 0" />`;
+    })
+    .join("");
   const layers = ["focus", "data", "annotate", "text"]
-    .map((name) => `  <div id="${prefix}-L-${name}" style="position: absolute; left: 0px; top: 0px; width: 1080px; height: 1920px; overflow: hidden; z-index: ${LAYER_Z[name]}; pointer-events: none"></div>`)
+    .map((name) => `  <div id="${prefix}-L-${name}" style="position: absolute; left: 0px; top: 0px; width: 1080px; height: 1920px; overflow: hidden; z-index: ${LAYER_Z[name]}; pointer-events: none">${name === "data" ? pipHtml : ""}</div>`)
     .join("\n");
   const html = `<!-- hygen stage beat ${beat.id} (engine/src/stage.ts): ${String(st.type)} + ${devices.map((d) => d.type).join(", ") || "без устройств"} — generated on every build, do not edit -->
 <template id="${prefix}-template">
 <script src="assets/vendor/gsap.min.js"></script>
 <script src="assets/hygen/devices.js"></script>
 <style>
-${fontFaces(style)}
+${fontFaces(style)}${devices.some((d) => d.type === "text.kinetic" && d.params.mode === "weight-morph") ? `\n${ARCHIVO_FACE}` : ""}
 #root { position: relative; width: 1080px; height: 1920px; overflow: hidden; }
 </style>
 <div id="root" data-composition-id="${cid}" data-start="0" data-duration="${D}" data-width="1080" data-height="1920">
@@ -512,7 +557,9 @@ ${layers}
   const last = inside.length ? (inside[inside.length - 1] as { t: number }).t : 0;
   const settle = r3(Math.max(0.3, Math.min(D - 0.25, Math.max(last + 0.9, clock.speechEnd - 0.2))));
   const holdSpans = (stageCfg.media as { holds?: { at: number; dur: number }[] } | undefined)?.holds ?? [];
-  const videoAtSettle = videos > 0 && !holdSpans.some((h) => settle >= h.at - 0.05 && settle <= h.at + h.dur + 0.05);
+  // kinetic type that never stops (marquee rows, the weight-morph wave) is a moving frame at settle, like playing video (TRAPS.md)
+  const movingType = devices.some((d) => d.type === "text.kinetic" && ["marquee", "weight-morph"].includes(String(d.params.mode)));
+  const videoAtSettle = (videos > 0 && !holdSpans.some((h) => settle >= h.at - 0.05 && settle <= h.at + h.dur + 0.05)) || movingType;
   return { src, events: inside, settle, devices, videos, videoAtSettle };
 }
 

@@ -6,6 +6,8 @@ dist/
 **/renders/*
 !videos/*/renders/
 !videos/*/renders/*.contact.jpg
+!videos/*/renders/blind/
+!videos/*/renders/blind/*.contact.jpg
 !videos/_proof/*/renders/
 !videos/_proof/*/renders/*.contact.jpg
 snapshots/
@@ -33,3 +35,6 @@ videos/_proof/*/build/
 videos/_proof/_*/
 .cache/
 .preview/
+
+# Старые версии роликов (history/): video.json, research.md, листы и publish коммитим, MP4 — нет
+videos/*/history/**/*.mp4

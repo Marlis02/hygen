@@ -45,12 +45,12 @@ export function sceneEvents(scene: SceneDef, params: Record<string, unknown>): S
 }
 
 /** Library scenes → build/compositions/frames: params, style tokens, real duration, time warp onto this voice. */
-export function writeScenes(spec: VideoSpec, style: StyleDef, videoDir: string, buildDir: string, timings: BeatTiming[], words: BeatWords[], look: LookDef, hits: number[]): SceneBuild[] {
+export function writeScenes(spec: VideoSpec, style: StyleDef, videoDir: string, buildDir: string, timings: BeatTiming[], words: BeatWords[], look: LookDef, hits: number[], grid?: { beats: number[]; strong: number[] } | null): SceneBuild[] {
   ensureDir(join(buildDir, "compositions", "frames"));
   return spec.beats.map((beat, i) => {
     const timing = timings[i] as BeatTiming;
     if (beat.scene === undefined) {
-      return writeStageBeat({ beat, style, videoDir, dir: buildDir, compositionId: beat.id, clock: clockOf(timing, words[i] as BeatWords), fps: spec.fps, seed: beat.seed ?? i + 1 });
+      return writeStageBeat({ beat, style, videoDir, dir: buildDir, compositionId: beat.id, clock: clockOf(timing, words[i] as BeatWords, grid), fps: spec.fps, seed: beat.seed ?? i + 1 });
     }
     const scene = loadScene(beat.scene);
     const params = resolveParams(beat, scene, { style, videoDir, buildDir });

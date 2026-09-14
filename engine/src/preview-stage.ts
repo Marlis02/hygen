@@ -1,6 +1,12 @@
 import { rmSync, writeFileSync } from "node:fs";
 import { isAbsolute, join, resolve } from "node:path";
+import type { StyleDef } from "./contract.ts";
 import { loadStyle, toneColors } from "./contract.ts";
+import { checkCaptionFields, installCaptions, planCaptions, writeCaptions } from "./captions.ts";
+import type { LookDef } from "./look.ts";
+import { trackBeats } from "./music.ts";
+import { checkCaptionPreset } from "./text.ts";
+import type { BeatWords } from "./words.ts";
 import type { Clock, DeviceSpec } from "./devices.ts";
 import { installDevices, loadDevice } from "./devices.ts";
 import { expandBeat, loadRecipe } from "./intents.ts";
@@ -29,6 +35,14 @@ export interface StagePreviewOptions {
   dur?: number;
   tone?: string;
   at?: string;
+  /** text.caption: the preset to preview. */
+  preset?: string;
+}
+
+/** In a preview sync: music | both snaps to the test track (engine/assets/music/test-beat-100.wav) from 0 s. */
+function previewGrid(duration: number): { beats: number[]; strong: number[] } {
+  const g = trackBeats(join(ENGINE_DIR, "assets", "music", "test-beat-100.wav"));
+  return { beats: g.beats.filter((t) => t <= duration), strong: g.downbeats.filter((t) => t <= duration) };
 }
 
 function fakeClock(text: string, duration: number): Clock {
@@ -40,6 +54,7 @@ function fakeClock(text: string, duration: number): Clock {
     duration,
     speechStart: t0,
     speechEnd: at(spoken.length),
+    grid: previewGrid(duration),
     spoken,
     word: (ref: string) => {
       const m = /^([a-z0-9']+)(?:#(\d+))?(\.end)?$/i.exec(ref) as RegExpExecArray;
@@ -64,6 +79,7 @@ export function previewStage(opts: StagePreviewOptions): boolean {
   const look = loadLook(lookRef, "--look");
   const style = applyLook(loadStyle("documentary-dark"), look);
   const extra = opts.beat ? parse<Record<string, unknown>>("--beat", opts.beat) : {};
+  if (opts.device === "text.caption") return previewCaption(opts, look, style, extra);
   let beat: BeatSpec;
   let name: string;
   if (opts.device) {
@@ -137,6 +153,96 @@ export function previewStage(opts: StagePreviewOptions): boolean {
   for (const line of stripAnsi(lint.stdout + lint.stderr).trim().split("\n").filter((l) => l.trim()).slice(-12)) log.info(line);
   const times = opts.at ?? [...new Set([...frame.events.map((e) => r3(Math.min(D - 0.05, e.t + 0.5))), frame.settle, r3(D - 0.1)])].sort((a, b) => a - b).join(",");
   console.log(`\nснимки ${name} · look ${look.id} @ ${times} (события: ${frame.events.map((e) => `${e.label} ${e.t}`).join(" · ") || "нет"})`);
+  const snapDir = join(dir, "snapshots");
+  const snap = run(hyperframesBin(), ["snapshot", "--at", times, "--no-end", "--output", snapDir], { cwd: dir, allowFail: true });
+  if (snap.status !== 0) {
+    console.log(stripAnsi(snap.stdout + snap.stderr).slice(-1500));
+    return false;
+  }
+  run(python(), ["-c", SHEET_PY, snapDir, join(dir, "sheet.jpg")]);
+  console.log(`контактный лист: .preview/${name}/sheet.jpg · lint: ${lint.status === 0 ? "0 ошибок" : "ЕСТЬ ОШИБКИ"}`);
+  return lint.status === 0;
+}
+
+/**
+ * npm run scene -- --device text.caption --preset <name> [--look id] [--text "…"] [--dur 6] [--beat '{"caption":{…},"stage":{…}}']
+ * The captions layer of one beat over its stage (a neutral ground by default); words of --text spread evenly, groups — phrase
+ * unless the beat's caption says otherwise. Snapshots inside up to 7 groups → .preview/caption-<preset>/sheet.jpg.
+ */
+function previewCaption(opts: StagePreviewOptions, look: LookDef, style: StyleDef, extra: Record<string, unknown>): boolean {
+  const def = loadDevice("text.caption", "--device");
+  const preset = checkCaptionPreset(opts.preset ?? "plain", "--preset");
+  const text = opts.text ?? def.demo.text ?? "A neutral preview line for the captions.";
+  const D = opts.dur ?? 6;
+  const name = `caption-${preset}`;
+  const dir = join(ROOT_DIR, ".preview", name);
+  rmSync(dir, { recursive: true, force: true });
+  ensureDir(dir);
+  copyInto(join(ENGINE_DIR, "assets", "fonts"), join(dir, "assets", "fonts"));
+  copyInto(join(ENGINE_DIR, "assets", "vendor"), join(dir, "assets", "vendor"));
+  installDevices(dir);
+  const caption = { group: "phrase", ...((extra.caption as Record<string, unknown> | undefined) ?? {}), preset };
+  checkCaptionFields(caption, "--beat caption");
+  const beat = {
+    id: "pv",
+    text,
+    pad: [0, 0],
+    stage: (extra.stage as BeatSpec["stage"]) ?? { type: "color", color: "ground", glow: true },
+    devices: (extra.devices as DeviceSpec[] | undefined) ?? [],
+    dominant: (extra.dominant as BeatSpec["dominant"]) ?? "stage",
+    caption,
+  } as BeatSpec;
+  if (opts.tone === "cold") beat.tone = "cold";
+  checkStageBeat(beat, style, ROOT_DIR);
+  writeStageFrame({ beat, style, videoDir: ROOT_DIR, dir, compositionId: "pv", clock: fakeClock(text, D), fps: 30, seed: 1 });
+  const toks = parseBeatText(text).tokens;
+  const t0 = 0.35;
+  const step = Math.max(0.12, (D - 0.9 - t0) / Math.max(1, toks.length));
+  const words: BeatWords = { beatId: "pv", tokens: toks.map((tk, i) => ({ id: `w${i}`, text: tk.display, start: r3(t0 + i * step), end: r3(t0 + i * step + step * 0.82) })), spoken: [], heard: "", matched: toks.length, snapped: 0 };
+  const timing = { id: "pv", number: 1, start: 0, duration: D, end: D, speechStart: t0, speechEnd: r3(t0 + toks.length * step) };
+  const plan = planCaptions({ spec: { id: name, beats: [beat], captions: undefined }, look, style, timings: [timing], words: [words], total: D, hits: [] });
+  writeCaptions(dir, plan, style);
+  installCaptions(dir, [preset]);
+  writeFileSync(
+    join(dir, "index.html"),
+    `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="assets/vendor/gsap.min.js"></script>
+    <script src="assets/hygen/devices.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1080px; height: 1920px; overflow: hidden; background: #000; }
+      #root { position: relative; width: 1080px; height: 1920px; overflow: hidden; background: ${toneColors(style, beat.tone ?? "accent").night}; }
+      .scene { position: absolute; inset: 0; width: 100%; height: 100%; }
+      #el-captions { z-index: 35; }
+      ${paletteCss(style)}
+      ${vignetteCss(style)}
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="${D}" data-width="1080" data-height="1920">
+      <div id="el-pv" class="scene" data-composition-id="pv" data-composition-src="compositions/frames/pv.html" data-start="0" data-duration="${D}" data-track-index="0"></div>
+      <div id="hf-vignette" aria-hidden="true" data-layout-ignore></div>
+      <div id="el-captions" class="scene" data-composition-id="captions" data-composition-src="compositions/captions.html" data-start="0" data-duration="${D}" data-track-index="2"></div>
+    </div>
+    <script>
+      window.__timelines = window.__timelines || {};
+      var tl = gsap.timeline({ paused: true });
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>
+`,
+  );
+  const lint = run(hyperframesBin(), ["lint"], { cwd: dir, allowFail: true });
+  for (const line of stripAnsi(lint.stdout + lint.stderr).trim().split("\n").filter((l) => l.trim()).slice(-12)) log.info(line);
+  const groups = plan.cfg.groups;
+  const pick = groups.length <= 7 ? groups : Array.from({ length: 7 }, (_, k) => groups[Math.round((k * (groups.length - 1)) / 6)] as (typeof groups)[number]);
+  const times = opts.at ?? [...new Set(pick.map((g) => r3(Math.min(D - 0.05, g.start + Math.min(0.45, (g.end - g.start) * 0.6)))))].sort((a, b) => a - b).join(",");
+  console.log(`\nснимки ${name} · look ${look.id} · групп ${groups.length} (${caption.group}) @ ${times}`);
   const snapDir = join(dir, "snapshots");
   const snap = run(hyperframesBin(), ["snapshot", "--at", times, "--no-end", "--output", snapDir], { cwd: dir, allowFail: true });
   if (snap.status !== 0) {

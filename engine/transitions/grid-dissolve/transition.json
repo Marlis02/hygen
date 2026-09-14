@@ -1,0 +1,1 @@
+{ "id": "grid-dissolve", "name": "Сетка", "use": "Grid dissolve: the frame breaks into square cells that cover the outgoing beat in its last 0.08 s and fall away one by one in a seeded order over the next one. Data, maps, a digital or modern feel.", "duration": 0.6 }

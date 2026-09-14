@@ -29,7 +29,7 @@ HygenDevices.define("data.count", function (api, dev) {
   var labSize = api.sizes.label;
   var blockH = size * 1.02 + (P.label ? labSize * 1.6 : 0);
   var cx = Math.max(60 + estW / 2, Math.min(1020 - estW / 2, p.x));
-  var top = Math.max(140, Math.min(1420 - blockH, p.y - size * 0.51));
+  var top = Math.max(154, Math.min(1420 - blockH, p.y - size * 0.51));
 
   var wrap = api.el("div", { id: api.id("count"), style: { position: "absolute", left: (cx - 540).toFixed(0) + "px", top: top.toFixed(0) + "px", width: "1080px", textAlign: "center", whiteSpace: "nowrap" } });
   var pulse = api.el("div", { style: { display: "inline-block", transformOrigin: "50% 55%", fontFamily: api.F.display, fontWeight: "700", fontSize: size + "px", lineHeight: "1", color: col, fontVariantNumeric: "lining-nums tabular-nums", textShadow: "0 0 40px rgba(" + api.RGB.night + ",0.7)" } }, wrap);
@@ -40,10 +40,24 @@ HygenDevices.define("data.count", function (api, dev) {
 
   api.show(wrap, dev.at, 0.38, { y: 24, scale: 0.98 });
 
-  var frames = Math.max(1, Math.round(countDur * 30)), ease = gsap.parseEase("sine.inOut");
-  for (var i = 1; i <= frames; i++) {
-    var row = i === frames ? finalText : fmt(from + (to - from) * ease(i / frames));
-    tl.set(num, { textContent: row }, dev.at + countDur * i / frames);
+  var parts = P.format === "fraction" ? /^\s*([^/]+)\/(.+)$/.exec(finalText) : null;
+  if (parts) {
+    // a fraction is not counted (integer rows showed a lone «1» before «2/3» — D5 debt): numerator, slash and denominator
+    // arrive one after another over countDur, the pulse lands on the denominator
+    num.textContent = "";
+    var bits = [parts[1], "/", parts[2]].map(function (t, k) {
+      var sp = api.el("span", { text: t, style: { display: "inline-block" } }, num);
+      tl.set(sp, { opacity: 0, y: k === 1 ? 0 : 18 }, 0);
+      tl.fromTo(sp, { opacity: 0, y: k === 1 ? 0 : 18 }, { opacity: 1, y: 0, duration: 0.3, ease: "power2.out", immediateRender: false }, dev.at + (countDur * k) / 2);
+      return sp;
+    });
+    void bits;
+  } else {
+    var frames = Math.max(1, Math.round(countDur * 30)), ease = gsap.parseEase("sine.inOut");
+    for (var i = 1; i <= frames; i++) {
+      var row = i === frames ? finalText : fmt(from + (to - from) * ease(i / frames));
+      tl.set(num, { textContent: row }, dev.at + countDur * i / frames);
+    }
   }
 
   var land = dev.at + countDur;
