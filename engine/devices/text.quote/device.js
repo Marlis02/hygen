@@ -5,6 +5,7 @@ HygenDevices.define("text.quote", function (api, dev) {
   var fs = P.size === "large" ? 76 : 60;
   var wrap = api.el("div", { id: api.id("wrap"), style: { position: "absolute", left: box.x + "px", top: box.y + "px", width: box.w + "px" } });
   var mark = api.el("div", { id: api.id("mark"), text: "“", style: { fontFamily: api.F.display, fontWeight: "700", fontSize: "260px", lineHeight: "0.9", height: "150px", color: api.C.hero, textShadow: "0 0 40px rgba(" + api.RGB.hero + ",0.35)" } }, wrap);
+  mark.setAttribute("data-layout-allow-overlap", ""); // the big quote mark sits behind the first words on purpose
   api.show(mark, at, 0.5, { y: 30 });
   var body = api.el("div", { id: api.id("body"), style: { fontFamily: api.F.display, fontWeight: "600", fontSize: fs + "px", lineHeight: "1.12", color: api.C.text, textShadow: "0 0 18px rgba(" + api.RGB.night + ",0.8)" } }, wrap);
   var words = (P.text || dev.word || "").split(/\s+/).filter(Boolean);

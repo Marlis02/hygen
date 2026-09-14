@@ -12,7 +12,8 @@ stretched so the clip ends on a whole video frame, so every scene starts on a fr
 
     python3 voice_line.py raw.wav line.wav --lead 0.3 --tail 0.4 --fps 30
 
-Prints one JSON line: duration_s, speech_start_s, speech_end_s, lufs, true_peak_dbtp.
+Prints one JSON line: duration_s, speech_start_s, speech_end_s, lufs, true_peak_dbtp, trim_start_s (where the kept
+speech starts in the raw take — word times of a provider shift by speech_start_s − trim_start_s).
 """
 import argparse
 import json
@@ -97,7 +98,8 @@ def main():
         audio = resample_poly(audio, SR // g, sr // g)
     thr = 10 ** (-45 / 20) * np.max(np.abs(audio))
     idx = np.where(np.abs(audio) > thr)[0]
-    speech = audio[max(0, idx[0] - int(0.005 * SR)): idx[-1] + int(0.02 * SR)].copy()
+    trim_start = max(0, idx[0] - int(0.005 * SR))
+    speech = audio[trim_start: idx[-1] + int(0.02 * SR)].copy()
     fade = int(0.004 * SR)
     speech[:fade] *= np.linspace(0, 1, fade)
     speech[-fade:] *= np.linspace(1, 0, fade)
@@ -119,6 +121,7 @@ def main():
         "speech_end_s": round((lead + len(speech)) / SR, 3),
         "lufs": round(integrated_lufs(speech), 2),
         "true_peak_dbtp": round(float(true_peak(speech)), 2),
+        "trim_start_s": round(trim_start / SR, 4),
     }))
 
 

@@ -1,0 +1,348 @@
+{
+  "id": "halifax-en",
+  "title": "Halifax, 1917: twenty minutes to watch a burning ship",
+  "format": "1080x1920",
+  "fps": 30,
+  "language": "en",
+  "style": "documentary-dark",
+  "look": {
+    "extends": "abyss",
+    "id": "harbour-frost",
+    "name": "Морозная гавань",
+    "about": {
+      "mood": "A grey December morning in a wartime harbour: slow and cold, then one white flash and silence.",
+      "topics": "Harbour and shipping disasters, northern cities, winter wartime stories told through black-and-white photographs.",
+      "avoid": "Warm fire palettes, tropical colour, fast handheld shake."
+    },
+    "palette": {
+      "accent": "#9CC3F0",
+      "secondary": "#E8A04A",
+      "groundTint": "#0B1016",
+      "temperature": "cold",
+      "textColor": "#E8EEF4"
+    },
+    "textures": [
+      {
+        "id": "smoke",
+        "density": 0.35,
+        "speed": 0.35,
+        "opacity": 0.3,
+        "depth": "bg"
+      },
+      {
+        "id": "fog",
+        "density": 0.3,
+        "speed": 0.3,
+        "color": "ashLight",
+        "opacity": 0.22,
+        "depth": "fg"
+      }
+    ],
+    "motion": {
+      "camera": {
+        "preset": "none"
+      },
+      "parallax": {
+        "enabled": false
+      },
+      "type": {
+        "number": "count-roll",
+        "title": "typewriter",
+        "label": "typewriter"
+      },
+      "post": [
+        {
+          "id": "bloom",
+          "strength": 0.25
+        }
+      ]
+    },
+    "transitions": {
+      "default": "hard-cut",
+      "hit": "flash"
+    },
+    "grain": 1.0,
+    "vignette": {
+      "alpha": 0.66,
+      "clear": 52
+    },
+    "sound": {
+      "hit": "deep-boom",
+      "whoosh": "smoke"
+    }
+  },
+  "captions": "word-by-word",
+  "voice": {
+    "provider": "elevenlabs"
+  },
+  "arc": {
+    "structure": "story",
+    "hook": "stakes-consequence",
+    "protagonist": "place",
+    "ending": "what-remains",
+    "why": "Halifax is the protagonist: for twenty minutes the city watched a burning munitions ship and paid with its windows, its North End and 1,782 lives; what remains is a thank-you tree that crosses to Boston every winter."
+  },
+  "beats": [
+    {
+      "id": "01-watch",
+      "role": "hook",
+      "text": "For [20|twenty] minutes, a burning ship drifted through Halifax harbour, and thousands stopped at their windows to watch.",
+      "pad": [
+        0.2,
+        0.6
+      ],
+      "stage": {
+        "type": "media",
+        "src": "media/north-end-1900.jpg",
+        "fit": "cover",
+        "focus": [
+          0.483,
+          0.5
+        ]
+      },
+      "devices": [
+        {
+          "type": "data.count",
+          "target": {
+            "x": 50,
+            "y": 15
+          },
+          "at": "for",
+          "params": {
+            "from": 0,
+            "to": 20,
+            "label": "MINUTES",
+            "size": "hero",
+            "countDur": 1.0,
+            "color": "night",
+            "labelColor": "night"
+          },
+          "source": "https://en.wikipedia.org/wiki/Halifax_Explosion"
+        }
+      ],
+      "dominant": 0,
+      "sources": {
+        "text": "https://en.wikipedia.org/wiki/Halifax_Explosion"
+      },
+      "camera": {
+        "reason": "approach",
+        "amplitude": 0.3
+      }
+    },
+    {
+      "id": "02-cargo",
+      "role": "setup",
+      "text": "The French ship Mont-Blanc was full of TNT, picric acid and benzol, and had just collided with the Imo.",
+      "pad": [
+        0.2,
+        0.6
+      ],
+      "stage": {
+        "type": "media",
+        "src": "media/mont-blanc.png",
+        "fit": "contain"
+      },
+      "devices": [
+        {
+          "type": "focus.spotlight",
+          "target": {
+            "x": 24,
+            "y": 43,
+            "w": 72,
+            "h": 17.5
+          },
+          "at": "mont",
+          "params": {
+            "shape": "rect",
+            "mode": "dim",
+            "strength": 0.5
+          }
+        },
+        {
+          "type": "annotate.label",
+          "target": {
+            "x": 24,
+            "y": 43,
+            "w": 72,
+            "h": 17.5
+          },
+          "at": "mont+0.35",
+          "params": {
+            "text": "SS MONT-BLANC",
+            "sub": "TNT · PICRIC ACID · BENZOL",
+            "side": "top"
+          },
+          "explains": "this is the munitions ship Mont-Blanc and what she carried",
+          "source": "https://en.wikipedia.org/wiki/Halifax_Explosion"
+        }
+      ],
+      "dominant": 1,
+      "sources": {
+        "text": "https://en.wikipedia.org/wiki/Halifax_Explosion"
+      }
+    },
+    {
+      "id": "03-telegraph",
+      "role": "turn",
+      "text": "Dispatcher Vince Coleman stayed at his telegraph to stop the trains. He died at his post.",
+      "pad": [
+        0.2,
+        0.9
+      ],
+      "scene": "quote-card",
+      "at": "telegraph.end",
+      "data": {
+        "text": "Ammunition ship afire in harbor making for Pier 6 and will explode.",
+        "author": "Vince Coleman, train dispatcher",
+        "year": "1917",
+        "source": "https://en.wikipedia.org/wiki/Halifax_Explosion"
+      },
+      "sources": {
+        "text": "https://en.wikipedia.org/wiki/Halifax_Explosion"
+      }
+    },
+    {
+      "id": "04-blast",
+      "role": "peak",
+      "text": "At [9:04|nine oh four], Mont-Blanc exploded: the largest man-made blast the world had ever seen.",
+      "pad": [
+        0.9,
+        1.0
+      ],
+      "intent": "reveal",
+      "data": {
+        "src": "media/blast-cloud.jpg"
+      },
+      "stage": {
+        "type": "media",
+        "fit": "cover"
+      },
+      "sources": {
+        "text": "https://en.wikipedia.org/wiki/Halifax_Explosion"
+      }
+    },
+    {
+      "id": "05-richmond",
+      "role": "aftermath",
+      "text": "Nearly everything within [800|eight hundred] metres was flattened. At least [1,782|seventeen hundred and eighty-two] people died.",
+      "pad": [
+        0.2,
+        1.3
+      ],
+      "stage": {
+        "type": "media",
+        "src": "media/richmond-ruins.jpg",
+        "fit": "cover",
+        "focus": [
+          0.6225,
+          0.5
+        ]
+      },
+      "devices": [
+        {
+          "type": "data.count",
+          "target": {
+            "x": 50,
+            "y": 16
+          },
+          "at": "least",
+          "params": {
+            "from": 0,
+            "to": 1782,
+            "format": "thousands",
+            "label": "KILLED",
+            "size": "hero",
+            "countDur": 1.4,
+            "color": "night",
+            "labelColor": "night"
+          },
+          "source": "https://en.wikipedia.org/wiki/Halifax_Explosion"
+        }
+      ],
+      "dominant": 0,
+      "camera": {
+        "reason": "tension",
+        "amplitude": 0.4
+      },
+      "sources": {
+        "text": "https://en.wikipedia.org/wiki/Halifax_Explosion"
+      }
+    },
+    {
+      "id": "06-tree",
+      "role": "ending",
+      "text": "Every year since [1971|nineteen seventy-one], Nova Scotia has sent Boston a Christmas tree. It still says thank you.",
+      "pad": [
+        0.3,
+        2.6
+      ],
+      "intent": "quiet-ending",
+      "data": {
+        "src": "media/boston-tree.jpg"
+      },
+      "stage": {
+        "type": "media",
+        "fit": "cover"
+      },
+      "dominant": "stage",
+      "sources": {
+        "text": "https://en.wikipedia.org/wiki/Halifax_Explosion"
+      }
+    }
+  ],
+  "transitions": [],
+  "sound": {
+    "drone": {
+      "peak": "04-blast:exploded",
+      "cut": "06-tree:start",
+      "volume": 0.4,
+      "carve": 0.65
+    },
+    "hits": [
+      {
+        "at": "02-cargo:start",
+        "volume": 0.45
+      },
+      {
+        "at": "03-telegraph:start",
+        "volume": 0.4
+      },
+      {
+        "at": "04-blast:start",
+        "heavy": true,
+        "volume": 0.62,
+        "carve": 0.75
+      },
+      {
+        "at": "05-richmond:start",
+        "volume": 0.5
+      },
+      {
+        "at": "06-tree:start",
+        "volume": 0.35
+      }
+    ]
+  },
+  "publish": {
+    "titles": [
+      "Halifax, 1917: 20 minutes to watch a burning ship, then the biggest blast yet",
+      "Why does Nova Scotia send Boston a Christmas tree every year?",
+      "A burning ship, 20 minutes and 1,782 lives: the Halifax Explosion"
+    ],
+    "description": "On 6 December 1917 the munitions ship Mont-Blanc caught fire in Halifax harbour and drifted for twenty minutes while the city watched. Train dispatcher Vince Coleman telegraphed a warning and died at his post; at 9:04 the ship exploded, flattening nearly everything within 800 metres and killing at least 1,782 people. Every year since 1971 Nova Scotia has sent Boston a Christmas tree in thanks.",
+    "tags": [
+      "halifax explosion",
+      "1917",
+      "halifax",
+      "nova scotia",
+      "canada history",
+      "mont-blanc",
+      "vince coleman",
+      "world war i",
+      "disaster",
+      "boston christmas tree",
+      "history shorts",
+      "documentary"
+    ]
+  }
+}

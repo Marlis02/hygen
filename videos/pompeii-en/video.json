@@ -80,9 +80,9 @@
     {
       "id": "05-return",
       "scene": "year-odometer",
-      "text": "Pompeii wasn't found again until [1748.|seventeen forty-eight.] A century later, archaeologists began pouring plaster into the voids left by the bodies.",
+      "text": "Pompeii wasn't found again until [1748.|seventeen forty-eight.] More than a century later, archaeologists began pouring plaster into the voids left by the bodies.",
       "pad": [0.2, 0.4],
-      "params": { "year": 1748, "delta": 100, "deltaSign": "+", "deltaUnit": "YEARS", "section": true, "voids": true, "voidLabel": "PLASTER" },
+      "params": { "year": 1748, "delta": 115, "deltaSign": "+", "deltaUnit": "YEARS", "section": true, "voids": true, "voidLabel": "PLASTER" },
       "anchors": {
         "year": "seventeen", "yearLand": "eight.end", "delta": "century", "section": "archaeologists",
         "voids": "began", "fill": "pouring", "leader": "plaster"
@@ -109,7 +109,9 @@
   "transitions": [
     { "from": "03-eruption", "to": "04-collapse", "type": ["flash", "ash-burst"], "duration": 0.6 }
   ],
+  "music": false,
   "sound": {
+    "events": false,
     "drone": { "peak": "03-eruption:vesuvius+0.3", "cut": "06-finale:start", "volume": 0.42, "carve": 0.65 },
     "ash": { "at": "03-eruption:start", "until": "04-collapse:end", "swell": "03-eruption:then", "debris": "03-eruption:roofs", "volume": 0.5, "carve": 0.6 },
     "hits": [
@@ -118,6 +120,28 @@
       { "at": "04-collapse:start+0.3", "heavy": true, "volume": 0.62, "carve": 0.75 },
       { "at": "05-return:start", "volume": 0.55, "carve": 0.75 },
       { "at": "06-finale:start", "volume": 0.42 }
+    ]
+  },
+  "publish": {
+    "titles": [
+      "Pompeii: 18 hours that erased a Roman city",
+      "The city that vanished in 18 hours: Pompeii, 79 AD",
+      "Why a third of Pompeii is still buried"
+    ],
+    "description": "In 79 AD Vesuvius buried the Roman port of Pompeii: a 30-kilometre column of ash, a burning avalanche and four to six metres of ash. The city was found again in 1748, its victims were cast in plaster more than a century later, and a third of it is still underground.",
+    "tags": [
+      "pompeii",
+      "vesuvius",
+      "79 ad",
+      "roman history",
+      "ancient rome",
+      "volcano",
+      "archaeology",
+      "plaster casts",
+      "natural disaster",
+      "italy",
+      "history shorts",
+      "documentary"
     ]
   }
 }

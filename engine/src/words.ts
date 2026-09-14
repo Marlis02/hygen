@@ -111,6 +111,12 @@ function expandAsr(asr: AsrWord[], script: string): Unit[] {
   return units;
 }
 
+/** Rough English syllable count: vowel groups, a silent final «e» dropped («nine» 1, «seventeen» 3, «eight» 1). */
+function syllables(word: string): number {
+  const groups = (word.match(/[aeiouy]+/g) ?? []).length;
+  return Math.max(1, groups - (word.length > 3 && /[^aeiou]e$/.test(word) ? 1 : 0));
+}
+
 function similarity(a: string, b: string): number {
   if (a === b) return 1;
   if (!a.length || !b.length) return 0;
@@ -240,18 +246,24 @@ export async function alignWords(spec: VideoSpec, voices: VoiceLine[], videoDir:
   return pool(voices, 2, async (voice, i) => {
     const beat = spec.beats[i];
     if (!beat) fail(`нет бита для голоса ${voice.beatId}`);
-    const cachePath = join(cacheDir, `${fileSha(voice.abs)}-${ASR_MODEL}.json`);
-    if (!existsSync(cachePath)) {
-      const tmp = mkdtempSync(join(tmpdir(), "hygen-asr-"));
-      try {
-        await runAsync(bin, ["transcribe", voice.abs, "--dir", tmp, "--model", ASR_MODEL, "--language", spec.language, "--json"]);
-        writeJson(cachePath, readJson<unknown>(join(tmp, "transcript.json")));
-      } finally {
-        rmSync(tmp, { recursive: true, force: true });
+    // ElevenLabs gives word times with the take: whisper is not run for it
+    let asr: AsrWord[];
+    if (voice.alignment?.length) {
+      asr = voice.alignment;
+    } else {
+      const cachePath = join(cacheDir, `${fileSha(voice.abs)}-${ASR_MODEL}.json`);
+      if (!existsSync(cachePath)) {
+        const tmp = mkdtempSync(join(tmpdir(), "hygen-asr-"));
+        try {
+          await runAsync(bin, ["transcribe", voice.abs, "--dir", tmp, "--model", ASR_MODEL, "--language", spec.language, "--json"]);
+          writeJson(cachePath, readJson<unknown>(join(tmp, "transcript.json")));
+        } finally {
+          rmSync(tmp, { recursive: true, force: true });
+        }
       }
+      const rawAsr = readJson<AsrWord[] | { words: AsrWord[] }>(cachePath);
+      asr = Array.isArray(rawAsr) ? rawAsr : rawAsr.words;
     }
-    const rawAsr = readJson<AsrWord[] | { words: AsrWord[] }>(cachePath);
-    const asr = Array.isArray(rawAsr) ? rawAsr : rawAsr.words;
 
     const { tokens } = parseBeatText(beat.text);
     const script: { word: string; token: number }[] = [];
@@ -284,6 +296,25 @@ export async function alignWords(spec: VideoSpec, voices: VoiceLine[], videoDir:
 
     const spoken: SpokenWord[] = script.map((s, q) => ({ word: s.word, token: s.token, ...(spans[q] as { start: number; end: number }) }));
     const gaps = pauses(voice.abs, voice.speechStart, voice.speechEnd);
+    // The words of one token («[1748.|seventeen forty-eight.]») are one run of speech. Whisper stretches a number
+    // over the pause after it, and the last words fell into that pause (TRAPS.md): the tail pause is cut off
+    // and the words share the spoken part by syllables.
+    tokens.forEach((_, ti) => {
+      const ws = spoken.filter((s) => s.token === ti);
+      if (ws.length < 2) return;
+      const from = (ws[0] as SpokenWord).start;
+      const tail = gaps.find(([a, b]) => a > from + 0.2 && a < (ws[ws.length - 1] as SpokenWord).end && b >= (ws[ws.length - 1] as SpokenWord).end - 0.05);
+      if (!tail) return;
+      const weights = ws.map((w) => syllables(w.word));
+      const total = weights.reduce((x, y) => x + y, 0);
+      let t = from;
+      ws.forEach((w, q) => {
+        const d = ((tail[0] - from) * (weights[q] as number)) / total;
+        w.start = t;
+        w.end = t + d;
+        t += d;
+      });
+    });
     let snapped = 0;
     for (const w of spoken) {
       const gap = gaps.find(([a, b]) => w.start > a + 0.02 && w.start < b - 0.01);
@@ -302,6 +333,15 @@ export async function alignWords(spec: VideoSpec, voices: VoiceLine[], videoDir:
       w.end = r3(Math.max(w.start + 0.05, Math.min(w.end, limit)));
       w.start = r3(w.start);
     });
+    // whisper may give the word after a pause 0.05 s and its neighbour the rest («More than»): the short one borrows
+    spoken.forEach((w, q) => {
+      const next = spoken[q + 1];
+      if (!next || w.end - w.start >= 0.1 || next.end - next.start <= 0.22 || next.start > w.end + 0.001) return;
+      const give = r3(Math.min(0.12 - (w.end - w.start), next.end - next.start - 0.12));
+      if (give <= 0) return;
+      w.end = r3(w.end + give);
+      next.start = r3(next.start + give);
+    });
 
     const timed: TimedWord[] = [];
     tokens.forEach((t, ti) => {
@@ -310,7 +350,7 @@ export async function alignWords(spec: VideoSpec, voices: VoiceLine[], videoDir:
       timed.push({ id: `w${timed.length}`, text: t.display, start: (ws[0] as SpokenWord).start, end: (ws[ws.length - 1] as SpokenWord).end });
     });
     const heard = asr.map((a) => a.text).join(" ");
-    log.info(`${beat.id}: совпало слов ${matched}/${script.length}, сдвинуто к паузам ${snapped} · whisper: «${heard}»`);
+    log.info(`${beat.id}: совпало слов ${matched}/${script.length}, сдвинуто к паузам ${snapped} · ${voice.alignment?.length ? "ElevenLabs" : "whisper"}: «${heard}»`);
     if (matched < script.length * 0.8) log.warn(`${beat.id}: whisper расслышал мало слов — проверьте голос`);
     return { beatId: beat.id, tokens: timed, spoken, heard, matched, snapped };
   });

@@ -102,6 +102,16 @@ export interface ArcSpec {
   why?: string;
 }
 
+/** Voice of the video: {provider: kokoro | elevenlabs, voiceId, model}; the old form {engine: "kokoro", voice, speed} still works. */
+export interface VoiceSpec {
+  provider?: string;
+  voiceId?: string;
+  model?: string;
+  engine?: string;
+  voice?: string;
+  speed?: number;
+}
+
 export interface VideoSpec {
   id: string;
   title: string;
@@ -115,10 +125,13 @@ export interface VideoSpec {
   /** Look: id from engine/looks or an inline object {extends, palette, textures, motion, …}; none — ember. */
   look?: unknown;
   captions: string;
-  voice: { engine: "kokoro"; voice: string; speed: number };
+  voice?: VoiceSpec;
   beats: BeatSpec[];
   transitions: TransitionSpec[];
-  sound: { drone: DroneSpec; ash?: AshSpec; hits: HitSpec[] };
+  /** events: false — only the hand-set hits of this file (Pompeii, the reference); default — sounds from device, scene and transition events too. */
+  sound: { drone: DroneSpec; ash?: AshSpec; hits: HitSpec[]; events?: boolean };
+  /** Music bed: false — none (Pompeii); absent — the style's first track; or {track, volume, duck, fadeIn, fadeOut, in, out} (engine/assets/music/MUSIC.md). */
+  music?: false | { track?: string; volume?: number; duck?: number; fadeIn?: number; fadeOut?: number; in?: string; out?: string };
 }
 
 export interface Token {
@@ -166,7 +179,7 @@ export function loadSpec(videoDir: string): VideoSpec {
   need(typeof spec.id === "string" && /^[a-z0-9-]+$/.test(spec.id), "id — строчная латиница, цифры и дефис");
   need(/^\d+x\d+$/.test(spec.format ?? ""), "format вида 1080x1920");
   need(Number.isInteger(spec.fps) && spec.fps > 0, "fps — целое число");
-  need(spec.voice?.engine === "kokoro", "voice.engine: пока поддерживается только kokoro");
+  need(spec.voice === undefined || (typeof spec.voice === "object" && [undefined, "kokoro", "elevenlabs"].includes(spec.voice.provider ?? spec.voice.engine)), "voice: {provider: kokoro | elevenlabs, voiceId, model} (старая форма {engine: kokoro, voice, speed} тоже работает)");
   need(Array.isArray(spec.beats) && spec.beats.length > 0, "нет битов");
   spec.language = spec.language ?? "en";
   spec.style = spec.style ?? "documentary-dark";

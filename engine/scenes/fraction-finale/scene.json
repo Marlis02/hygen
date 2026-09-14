@@ -13,8 +13,8 @@
     "label": {"el": "label", "kind": "label", "at": "label"}
   },
   "params": {
-    "numerator": { "type": "integer", "default": 1, "min": 0, "max": 9, "figure": true, "description": "Числитель, одна цифра." },
-    "denominator": { "type": "integer", "default": 3, "min": 1, "max": 9, "figure": true, "description": "Знаменатель, одна цифра; столько же сегментов в шкале." },
+    "numerator": { "type": "integer", "default": 1, "min": 0, "max": 99, "figure": true, "description": "Числитель, 0–99; две цифры — ячейка вдвое шире в масштабе 0,6." },
+    "denominator": { "type": "integer", "default": 3, "min": 1, "max": 99, "figure": true, "description": "Знаменатель, 1–99; столько же сегментов в шкале (шкала рисуется до 24 сегментов)." },
     "label": { "type": "string", "default": "STILL BURIED", "maxLength": 18, "description": "Подпись под выделенными сегментами, ЗАГЛАВНЫМИ; правый край на x 940." },
     "segments": { "type": "boolean", "default": true, "description": "Шкала x 140–940 из denominator сегментов: первые denominator − numerator заливаются, последние numerator — контур цветом героя." },
     "spark": { "type": "boolean", "default": true, "description": "Тлеющая искра в тишине до числителя." },
@@ -30,7 +30,7 @@
   },
   "events": [
     { "anchor": "numerator", "label": "fraction counts" },
-    { "anchor": "fill", "label": "scale fills", "if": "segments" },
+    { "anchor": "fill", "label": "scale fills", "if": "segments&&numerator<denominator&&denominator<=24" },
     { "anchor": "fade", "label": "fade out", "if": "fade" }
   ],
   "seed": { "default": 0, "affects": null },

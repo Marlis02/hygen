@@ -25,6 +25,8 @@ export interface SceneBuild {
   scene: SceneDef | null;
   params: Record<string, unknown>;
   settle: number;
+  /** A playing video at settle (stage beats): verify does not compare that frame with a snapshot. */
+  video?: boolean;
   events: SceneEvent[];
   /** Type presets or text parallax were injected (the root must load the motion runtime). */
   injected: boolean;

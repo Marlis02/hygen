@@ -25,12 +25,40 @@
     "black": "#000000"
   },
   "tones": {
-    "accent": { "hero": "accent", "heroDeep": "accentDeep", "heroHot": "accentHot", "heroLight": "accentLight" },
-    "cold": { "hero": "cold", "heroDeep": "coldDeep", "heroHot": "coldHot", "heroLight": "coldLight" }
+    "accent": {
+      "hero": "accent",
+      "heroDeep": "accentDeep",
+      "heroHot": "accentHot",
+      "heroLight": "accentLight"
+    },
+    "cold": {
+      "hero": "cold",
+      "heroDeep": "coldDeep",
+      "heroHot": "coldHot",
+      "heroLight": "coldLight"
+    }
   },
   "fonts": {
-    "display": { "family": "Cormorant Garamond", "fallback": "serif", "files": { "500": "CormorantGaramond-500.woff2", "600": "CormorantGaramond-600.woff2", "700": "CormorantGaramond-700.woff2" } },
-    "body": { "family": "Inter", "fallback": "sans-serif", "files": { "400": "Inter-400.woff2", "500": "Inter-500.woff2", "600": "Inter-600.woff2", "700": "Inter-700.woff2", "800": "Inter-800.woff2" } }
+    "display": {
+      "family": "Cormorant Garamond",
+      "fallback": "serif",
+      "files": {
+        "500": "CormorantGaramond-500.woff2",
+        "600": "CormorantGaramond-600.woff2",
+        "700": "CormorantGaramond-700.woff2"
+      }
+    },
+    "body": {
+      "family": "Inter",
+      "fallback": "sans-serif",
+      "files": {
+        "400": "Inter-400.woff2",
+        "500": "Inter-500.woff2",
+        "600": "Inter-600.woff2",
+        "700": "Inter-700.woff2",
+        "800": "Inter-800.woff2"
+      }
+    }
   },
   "sizes": {
     "display": 560,
@@ -56,15 +84,72 @@
     "active": "text",
     "spokenAlpha": 0.92
   },
-  "grain": { "dark": 0.16, "light": 0.12 },
-  "vignette": { "color": "night", "clear": 55, "alpha": 0.6 },
+  "grain": {
+    "dark": 0.16,
+    "light": 0.12
+  },
+  "vignette": {
+    "color": "night",
+    "clear": 55,
+    "alpha": 0.6
+  },
   "safeZone": {
     "width": 1080,
     "height": 1920,
     "padX": 90,
     "safeTop": 140,
     "contentMaxY": 1420,
-    "captionBand": [1450, 1670],
-    "rightRail": { "x": 960, "yFrom": 1000, "yTo": 1700 }
+    "captionBand": [
+      1450,
+      1670
+    ],
+    "rightRail": {
+      "x": 960,
+      "yFrom": 1000,
+      "yTo": 1700
+    }
+  },
+  "sound": {
+    "events": {
+      "draw": "scribble",
+      "land": "tap",
+      "count": "ticks",
+      "focus": "swell",
+      "freeze": "shutter",
+      "hold": "shutter",
+      "wipe": "whoosh",
+      "in": "tap",
+      "marker": "tap",
+      "item": "tap",
+      "word": "tap",
+      "rise": "riser",
+      "fill": "riser",
+      "uncovered": "swell",
+      "strata": "swell",
+      "collapse": "impact",
+      "transition": "whoosh"
+    },
+    "volume": {
+      "scribble": 0.34,
+      "tap": 0.4,
+      "ticks": 0.32,
+      "swell": 0.34,
+      "riser": 0.34,
+      "whoosh": 0.36,
+      "shutter": 0.45,
+      "impact": 0.5
+    },
+    "carve": 0.6,
+    "gap": 0.2,
+    "perBeat": 4
+  },
+  "music": {
+    "tracks": [
+      "documentary-dark-01"
+    ],
+    "volume": -4,
+    "duck": -12,
+    "fadeIn": 1.5,
+    "fadeOut": 2.0
   }
 }

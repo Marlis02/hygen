@@ -185,7 +185,7 @@
   <div id="__p__-ground" class="clip" data-start="0" data-duration="{{hygen:duration}}" data-track-index="0"></div>
 
   <div id="__p__-scene" class="clip" data-start="0" data-duration="{{hygen:duration}}" data-track-index="1">
-    <div id="__p__-camera">
+    <div id="__p__-camera" data-layout-allow-overflow="">
       <svg id="__p__-map" viewBox="0 0 1080 1920" width="1080" height="1920" aria-hidden="true">
         <defs>
           <clippath id="__p__-map-clip">
@@ -236,7 +236,7 @@
 
       <div id="__p__-prefix"></div>
       <div id="__p__-count-box"><div id="__p__-count" data-layout-allow-overlap="">0</div></div>
-      <div id="__p__-counter-label"></div>
+      <div id="__p__-counter-label" data-layout-allow-overlap=""></div>
 
       <div id="__p__-row"></div>
     </div>
@@ -410,6 +410,27 @@
     }
     if (!P.peakNote) hide(peakNoteEl);
     if (!P.peakGlow) hide(glow);
+    // peakAt (D5): the crater point moves the cone, its glow, the leader and both labels together; right of x 640
+    // the leader and the labels go to the left of the cone
+    var PEAK = P.peakAt || { x: 503, y: 262 };
+    var pdx = PEAK.x - 503, pdy = PEAK.y - 262;
+    if (pdx || pdy) {
+      byId("__p__-peak").setAttribute("transform", "translate(" + pdx + " " + pdy + ")");
+      glow.setAttribute("transform", "translate(" + pdx + " " + pdy + ")");
+      var leftSide = PEAK.x > 640;
+      leader.setAttribute("d", leftSide ? "M" + (468 + pdx) + " " + (266 + pdy) + " H" + (322 + pdx) : "M" + (538 + pdx) + " " + (266 + pdy) + " H" + (684 + pdx));
+      [[peakLabelEl, 251], [peakNoteEl, 291]].forEach(function (pair) {
+        var node = pair[0];
+        node.style.top = pair[1] + pdy + "px";
+        if (leftSide) {
+          node.style.left = "auto";
+          node.style.right = 1080 - (318 + pdx) + "px";
+          node.style.textAlign = "right";
+        } else {
+          node.style.left = 700 + pdx + "px";
+        }
+      });
+    }
 
     // ── setup: measure every drawn stroke once (getTotalLength), hide it behind its own dash gap ──
     function prepDraw(el, fallback) {

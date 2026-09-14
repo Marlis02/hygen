@@ -5,6 +5,7 @@ import { checkGrammar } from "./grammar.ts";
 import { loadLook } from "./look.ts";
 import { allMissingSources } from "./stage.ts";
 import { checkUniqueness } from "./uniqueness.ts";
+import { checkPublish } from "./publish.ts";
 import type { VideoSpec } from "./spec.ts";
 import { fail, hyperframesBin, log, pyScript, python, readJson, run, writeJson } from "./lib/util.ts";
 
@@ -68,7 +69,11 @@ export function verifyVideo(videoDir: string, spec: VideoSpec, opts: VerifyOptio
   log.info(`${uniq.ok ? "✓" : "✗"} uniqueness ${uniq.detail}`);
   for (const w of uniq.warnings) log.warn(w);
   rep.checks.push({ check: "uniqueness", ok: uniq.ok, detail: uniq.detail + (uniq.warnings.length ? ` · предупреждения: ${uniq.warnings.join("; ")}` : "") });
-  rep.ok = rep.ok && sourcesOk && uniq.ok && grammarOk && exp.ok;
+  // publish/ is complete: titles, description with every source and media credit, tags, SRT, cover (ROADMAP D5)
+  const pub = checkPublish(videoDir, spec);
+  log.info(`${pub.ok ? "✓" : "✗"} publish   ${pub.detail}`);
+  rep.checks.push({ check: "publish", ok: pub.ok, detail: pub.detail });
+  rep.ok = rep.ok && sourcesOk && uniq.ok && grammarOk && exp.ok && pub.ok;
   writeJson(report, rep);
-  return { ok: r.status === 0 && sourcesOk && uniq.ok && grammarOk && exp.ok, report, sheet };
+  return { ok: r.status === 0 && sourcesOk && uniq.ok && grammarOk && exp.ok && pub.ok, report, sheet };
 }

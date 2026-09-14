@@ -230,6 +230,17 @@
         oneValue.style.transformOrigin = inkN[1] + "px " + inkN[2] + "px";
         threeBox.style.left = 790 - 160 - inkD[0] + "px";
         threeValue.style.transformOrigin = inkD[1] + "px " + inkD[2] + "px";
+        // two-digit figures (D5): a double-width box scaled down around its centre, centres pushed away from the slash
+        function widen(box, value, centre) {
+          box.style.width = "640px";
+          value.style.width = "640px";
+          box.style.left = centre - 320 + "px";
+          box.style.transform = "scale(0.6)";
+          box.style.transformOrigin = "320px 223.5px";
+          value.style.transformOrigin = "320px 224px";
+        }
+        if (NUM >= 10) widen(oneBox, oneValue, 262);
+        if (DEN >= 10) widen(threeBox, threeValue, 828);
 
         label.textContent = P.label;
 
@@ -242,7 +253,7 @@
         var nFill = DEN - nOutline;
         var fills = [];
         var outlines = [];
-        if (P.segments) {
+        if (P.segments && DEN <= 24) {
           for (var i = 0; i < DEN; i++) {
             var a = SEG_X0 + i * (segW + SEG_GAP);
             var b = a + segW;

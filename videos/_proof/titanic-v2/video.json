@@ -22,7 +22,7 @@
       "role": "hook",
       "text": "This is the only film of the Titanic itself, shot weeks before she was gone.",
       "pad": [0.3, 1.2],
-      "stage": { "type": "media", "src": "media/titanic-pathe-1912-belfast.webm", "in": 0, "out": 11, "rate": 0.8, "fit": "contain" },
+      "stage": { "type": "media", "src": "media/titanic-pathe-1912-belfast.webm", "in": 0, "out": 11, "rate": 0.8, "fit": "contain", "crop": { "x": 0, "y": 7.5, "w": 85, "h": 85 } },
       "devices": [
         { "type": "text.title", "at": "only", "params": { "text": "APRIL 2, 1912", "kicker": "BELFAST", "mode": "typewriter", "size": "title" }, "source": "https://commons.wikimedia.org/wiki/File:Titanic_Disaster_-_Genuine_Footage_(1911-1912).webm" },
         { "type": "edit.hold", "at": "gone", "params": { "dur": 2.0 } }

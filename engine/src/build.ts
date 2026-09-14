@@ -10,12 +10,15 @@ import { applyLook, loadLook } from "./look.ts";
 import { checkProject, lintProject, masterAudio, renderProject } from "./render.ts";
 import type { MasterResult } from "./render.ts";
 import { writeScenes } from "./scenes.ts";
-import { makeGrain, makeSound, planSound } from "./sound.ts";
+import { makeEventSounds, makeGrain, makeSound, planEventSounds, planSound } from "./sound.ts";
+import { planTransitions } from "./layers.ts";
+import { makeMusic } from "./music.ts";
 import { loadSpec } from "./spec.ts";
 import { beatTimings } from "./timeline.ts";
 import { verifyVideo } from "./verify.ts";
 import type { VerifyResult } from "./verify.ts";
-import { makeVoices } from "./voice.ts";
+import { makeVoices, resolveVoice } from "./voice.ts";
+import { writePublish } from "./publish.ts";
 import { alignWords } from "./words.ts";
 import { ROOT_DIR, Timer, ensureDir, fail, log, writeJson } from "./lib/util.ts";
 
@@ -24,6 +27,8 @@ export interface BuildOptions {
   check: boolean;
   quality: string;
   snapshots: boolean;
+  /** kokoro | elevenlabs — over video.json `voice` and `.env` VOICE_PROVIDER. */
+  voice?: string;
 }
 
 /** video.json → voice → word timings → sound → scenes → index.html → lint/check → render → master → autocheck. */
@@ -47,8 +52,12 @@ export async function build(videoDir: string, opts: BuildOptions): Promise<boole
   ensureDir(buildDir);
   writeJson(join(buildDir, "beats.expanded.json"), expanded);
 
-  const voices = await timer.step("голос: Kokoro, громкость, паузы", () => makeVoices(spec, videoDir, buildDir));
-  const words = await timer.step("тайминги слов: whisper + выравнивание по сценарию", () => alignWords(spec, voices, videoDir));
+  const wanted = resolveVoice(spec, opts.voice);
+  console.log(`голос: ${wanted.provider} · ${wanted.voiceId} · ${wanted.model} (${wanted.from})`);
+  const voice = await timer.step(`голос: ${wanted.provider === "elevenlabs" ? "ElevenLabs" : "Kokoro"}, громкость, паузы`, () => makeVoices(spec, videoDir, buildDir, wanted));
+  const voices = voice.lines;
+  const asrName = voice.choice.provider === "elevenlabs" ? "тайминги слов: ElevenLabs + выравнивание по сценарию" : "тайминги слов: whisper + выравнивание по сценарию";
+  const words = await timer.step(asrName, () => alignWords(spec, voices, videoDir));
   const timings = beatTimings(voices);
   const sound = await timer.step("звук: гул, удары, пепел; зерно", () => {
     const plan = planSound(spec, timings, words);
@@ -56,9 +65,22 @@ export async function build(videoDir: string, opts: BuildOptions): Promise<boole
     makeGrain(videoDir, buildDir);
     return plan;
   });
-  const scenes = await timer.step("сцены по таймингам голоса", () => writeScenes(spec, style, videoDir, buildDir, timings, words, look, sound.sfx.filter((c) => c.kind !== "ash-fall").map((c) => c.at)));
+  const scenes = await timer.step("сцены по таймингам голоса", () => writeScenes(spec, style, videoDir, buildDir, timings, words, look, sound.sfx.filter((c) => c.kind === "thud" || c.kind === "thud-heavy").map((c) => c.at)));
+  if (spec.sound.events !== false) {
+    await timer.step("звук по событиям: устройства, сцены, переходы", () => {
+      const hits = sound.sfx.filter((c) => c.kind === "thud" || c.kind === "thud-heavy").map((c) => c.at);
+      const heavy = sound.sfx.filter((c) => c.kind === "thud-heavy").map((c) => c.at);
+      const ev = planEventSounds({ spec, style, look, timings, scenes, transitions: planTransitions(spec, look, timings, heavy), hits });
+      makeEventSounds(ev.files, look, videoDir, buildDir);
+      sound.sfx.push(...ev.cues);
+      sound.sfx.sort((a, b) => a.at - b.at);
+      const byFamily = ev.cues.reduce<Record<string, number>>((acc, c) => ({ ...acc, [c.kind.slice(3)]: (acc[c.kind.slice(3)] ?? 0) + 1 }), {});
+      log.info(`звуков событий ${ev.cues.length}: ${Object.entries(byFamily).map(([k, v]) => `${k} ${v}`).join(", ") || "нет"}`);
+    });
+  }
+  const music = await timer.step("музыка: подложка, приглушение под голос", () => makeMusic(spec, style, videoDir, buildDir, voices, timings, words));
   const total = await timer.step("index.html: субтитры, шины, переход, приглушение", () =>
-    assembleProject({ spec, style, look, buildDir, voices, words, timings, sound, scenes }),
+    assembleProject({ spec, style, look, buildDir, voices, words, timings, sound, scenes, music }),
   );
   await timer.step("hyperframes lint", () => lintProject(buildDir));
   const checkOk = opts.check ? await timer.step("hyperframes check", () => checkProject(buildDir)) : null;
@@ -71,6 +93,8 @@ export async function build(videoDir: string, opts: BuildOptions): Promise<boole
     await timer.step(`рендер (${opts.quality})`, () => renderProject(buildDir, raw, opts.quality, spec.fps));
     master = await timer.step("мастеринг: −14 LUFS, пики ≤ −1,5 dBTP; H.264 crf 18", () => masterAudio(raw, finalMp4));
     rmSync(raw, { force: true });
+    const pub = await timer.step("публикация: названия, описание, теги, SRT, обложка", () => writePublish(videoDir, spec));
+    log.info(`publish/: источников ${pub.sources.length}, кредитов ${pub.credits.length}, обложка — ${pub.thumbnailAt.beat} @${pub.thumbnailAt.t.toFixed(2)} с`);
     verify = await timer.step("автопроверка MP4", () => verifyVideo(videoDir, spec, { snapshots: opts.snapshots }));
   }
 
@@ -79,6 +103,7 @@ export async function build(videoDir: string, opts: BuildOptions): Promise<boole
   writeJson(join(rendersDir, `${spec.id}.build.json`), {
     id: spec.id,
     look: look.id,
+    voice: { provider: voice.choice.provider, voiceId: voice.choice.voiceId, model: voice.choice.model, from: voice.choice.from, elevenlabs_chars: voice.chars },
     duration_s: total,
     build_seconds: seconds,
     steps: timer.steps,
@@ -90,6 +115,7 @@ export async function build(videoDir: string, opts: BuildOptions): Promise<boole
   console.log(`\n${"─".repeat(60)}`);
   console.log(`ролик ${spec.id}: ${total.toFixed(2)} с · сборка ${Math.floor(seconds / 60)} мин ${Math.round(seconds % 60)} с`);
   for (const s of timer.steps) console.log(`  ${s.seconds.toFixed(1).padStart(6)} с  ${s.name}`);
+  console.log(`голос: ${voice.choice.provider} · ${voice.choice.voiceId}${voice.choice.provider === "elevenlabs" ? ` · ElevenLabs: потрачено ${voice.chars} символов` : ""}`);
   if (opts.render && verify) {
     const mb = statSync(finalMp4).size / 1e6;
     console.log(`MP4: ${rel(finalMp4)} (${mb.toFixed(0)} МБ)`);

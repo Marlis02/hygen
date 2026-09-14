@@ -195,9 +195,15 @@ def ash_fall(duration_s, swell_s, debris_s, rng):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--timeline", required=True)
+    ap.add_argument("--timeline", help="drone, thuds and ash from the voice timeline")
+    ap.add_argument("--events", help="event sounds: {files: [{name, family, duration}]} (engine/src/sound.ts)")
+    ap.add_argument("--whoosh", default="air", help="look hint for whoosh and swell colour: air, water, smoke, ash")
     ap.add_argument("--out", required=True, help="assets directory: writes music/ and sfx/ under it")
     args = ap.parse_args()
+    if args.events:
+        event_sounds(args.events, args.out, args.whoosh)
+        print("✓ event sounds done")
+        return
     global OUT
     OUT = args.out
     tl = json.load(open(args.timeline, encoding="utf-8"))
@@ -208,6 +214,131 @@ def main():
     write("sfx/ash-fall.wav",
           ash_fall(tl["ash_duration_s"], tl["ash_swell_s"], tl["ash_debris_s"], np.random.default_rng(1748)))
     print("✓ sound design done")
+
+
+
+# ── event sounds (D5): devices, scene events and transitions ────────────────────
+# Families are short, dry and quiet by design: they sit under the voice (carve) and mark what the eye
+# sees — a pen stroke when a mark draws, a tap when a label lands, ticks while a number counts.
+
+def env_adsr(n, a, d, sustain, r):
+    t = np.arange(n) / SR
+    e = np.minimum(1.0, t / max(a, 1e-4))
+    e = np.where(t > a, sustain + (1 - sustain) * np.exp(-(t - a) / max(d, 1e-4)), e)
+    tail = int(r * SR)
+    if tail > 0:
+        e[-tail:] *= np.linspace(1, 0, tail) ** 1.5
+    return e
+
+
+def ev_scribble(rng, dur=0.42):
+    n = int(dur * SR)
+    t = np.arange(n) / SR
+    grit = bandpass(rng.standard_normal(n), 1400, 6500)
+    # stroke texture: paper tooth at ~28 Hz with a little jitter
+    tooth = 0.55 + 0.45 * np.abs(np.sin(2 * np.pi * (26 + 6 * rng.random()) * t + rng.random()))
+    mono = grit * tooth * env_adsr(n, 0.025, 0.2, 0.55, 0.12)
+    return normalize(np.stack([mono, 0.92 * np.roll(mono, 37)]), -9.0)
+
+
+def ev_tap(rng, dur=0.16):
+    n = int(dur * SR)
+    t = np.arange(n) / SR
+    click = highpass(rng.standard_normal(n), 1800) * np.exp(-t / 0.0025)
+    body = np.sin(2 * np.pi * 920 * t) * np.exp(-t / 0.035) * 0.5
+    thump = np.sin(2 * np.pi * 130 * t) * np.exp(-t / 0.05) * 0.6
+    mono = lowpass(click * 0.7 + body + thump, 6000)
+    return normalize(np.stack([mono, mono]), -7.0)
+
+
+def ev_ticks(rng, dur):
+    n = int((dur + 0.08) * SR)
+    out = np.zeros(n)
+    count = int(np.clip(round(dur * 14), 6, 26))
+    # a counter decelerates into its figure: ticks dense at the start, sparse at the end (ease-out)
+    for i in range(count):
+        u = i / max(count - 1, 1)
+        at = int((1 - (1 - u) ** 2) * dur * SR)
+        m = int(0.012 * SR)
+        tt = np.arange(m) / SR
+        tick = (highpass(rng.standard_normal(m), 2500) * np.exp(-tt / 0.0018) + 0.35 * np.sin(2 * np.pi * 4200 * tt) * np.exp(-tt / 0.004))
+        gain = 0.75 + 0.25 * u + (0.35 if i == count - 1 else 0)
+        end = min(n, at + m)
+        out[at:end] += tick[: end - at] * gain
+    return normalize(np.stack([out, out]), -10.0)
+
+
+def ev_swell(rng, dur=0.9, color="air"):
+    n = int(dur * SR)
+    t = np.arange(n) / SR
+    lo, hi = {"water": (180, 1100), "smoke": (260, 1800), "ash": (400, 3200)}.get(color, (300, 2000))
+    noise = bandpass(pink(n, rng), lo, hi)
+    e = (t / dur) ** 1.8 * np.clip((dur - t) / 0.12, 0, 1)
+    mono = noise * e
+    return normalize(np.stack([mono, np.roll(mono, 71)]), -12.0)
+
+
+def ev_riser(rng, dur=1.2):
+    n = int(dur * SR)
+    t = np.arange(n) / SR
+    f = 180 * (5.0 ** (t / dur))
+    tone = np.sin(2 * np.pi * np.cumsum(f) / SR) * 0.35
+    noise = bandpass(pink(n, rng), 500, 5000) * 0.8
+    e = (t / dur) ** 2.2 * np.clip((dur - t) / 0.05, 0, 1)
+    mono = (tone + noise) * e
+    return normalize(np.stack([mono, np.roll(mono, 53)]), -10.0)
+
+
+def ev_whoosh(rng, dur=0.6, color="air"):
+    n = int(dur * SR)
+    t = np.arange(n) / SR
+    base = {"water": (220, 1400), "smoke": (350, 2600), "ash": (500, 4200)}.get(color, (400, 3000))
+    noise = pink(n, rng)
+    # the band centre sweeps up and back down: a pass in front of the lens
+    u = t / dur
+    centre = base[0] + (base[1] - base[0]) * np.sin(np.pi * np.clip(u, 0, 1)) ** 1.5
+    out = np.zeros(n)
+    hop = int(0.02 * SR)
+    for k in range(0, n, hop):
+        c = float(centre[min(k, n - 1)])
+        seg = bandpass(noise[max(0, k - hop): k + 2 * hop], max(60, c * 0.6), min(12000, c * 1.6))
+        out[k: k + hop] += seg[hop if k >= hop else 0: (hop if k >= hop else 0) + len(out[k: k + hop])]
+    if color == "ash":
+        crack = (rng.random(n) < 90 / SR).astype(float)
+        out += 0.6 * bandpass(np.convolve(crack, np.exp(-np.arange(200) / 40), mode="same") * rng.standard_normal(n), 2000, 8000)
+    mono = out * np.sin(np.pi * np.clip(u, 0, 1)) ** 2
+    return normalize(np.stack([mono, np.roll(mono, 90)]), -8.0)
+
+
+def ev_shutter(rng, dur=0.3):
+    n = int(dur * SR)
+    out = np.zeros(n)
+    for at, g in ((0.0, 1.0), (0.045, 0.7)):
+        k = int(at * SR)
+        m = int(0.03 * SR)
+        tt = np.arange(m) / SR
+        c = highpass(rng.standard_normal(m), 900) * np.exp(-tt / 0.004) + 0.4 * np.sin(2 * np.pi * 1700 * tt) * np.exp(-tt / 0.008)
+        out[k: k + m] += g * c
+    out = lowpass(out, 7000)
+    return normalize(np.stack([out, out]), -8.0)
+
+
+def event_sounds(spec_path, out_dir, whoosh_color):
+    spec = json.load(open(spec_path, encoding="utf-8"))
+    global OUT
+    OUT = out_dir
+    makers = {
+        "scribble": lambda rng, d: ev_scribble(rng, d),
+        "tap": lambda rng, d: ev_tap(rng, d),
+        "ticks": lambda rng, d: ev_ticks(rng, d),
+        "swell": lambda rng, d: ev_swell(rng, d, whoosh_color),
+        "riser": lambda rng, d: ev_riser(rng, d),
+        "whoosh": lambda rng, d: ev_whoosh(rng, d, whoosh_color),
+        "shutter": lambda rng, d: ev_shutter(rng, d),
+    }
+    for i, f in enumerate(spec["files"]):
+        rng = np.random.default_rng(5000 + i * 7 + int(f["duration"] * 1000))
+        write(f"sfx/{f['name']}.wav", makers[f["family"]](rng, float(f["duration"])))
 
 
 if __name__ == "__main__":

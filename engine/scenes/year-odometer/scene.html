@@ -246,7 +246,7 @@
   <div id="__p__-bg" class="clip" data-start="0" data-duration="{{hygen:duration}}" data-track-index="0"></div>
 
   <div id="__p__-scene" class="clip" data-start="0" data-duration="{{hygen:duration}}" data-track-index="1">
-    <div id="__p__-camera">
+    <div id="__p__-camera" data-layout-allow-overflow="">
 
       <canvas id="__p__-ash" width="1200" height="2040"></canvas>
 
@@ -287,7 +287,7 @@
       </div>
 
       <div id="__p__-stat">
-        <div id="__p__-count"><span id="__p__-sign">+</span><span id="__p__-num">0</span></div>
+        <div id="__p__-count"><span id="__p__-sign" data-layout-allow-overlap="">+</span><span id="__p__-num" data-layout-allow-overlap="">0</span></div>
         <div id="__p__-unit"></div>
       </div>
 
@@ -350,11 +350,15 @@
       var stack = document.createElement("div");
       stack.id = "__p__-" + prefix + (c + 1);
       stack.className = "__p__-stack";
-      for (var i = 0; i <= d; i++) {
+      stack.setAttribute("data-layout-allow-overflow", "");
+      // the drum starts on an empty cell: before the roll no «0» shows through (Krakatoa hook, D5)
+      for (var i = -1; i <= d; i++) {
         var dg = document.createElement("div");
         dg.className = "__p__-digit";
         dg.setAttribute("data-layout-allow-occlusion", "");
-        dg.textContent = String(i);
+        dg.setAttribute("data-layout-allow-overflow", "");
+        dg.setAttribute("data-layout-allow-overlap", "");
+        dg.textContent = i < 0 ? "" : String(i);
         stack.appendChild(dg);
       }
       col.appendChild(stack);
@@ -517,7 +521,7 @@
   var COLS = DIGITS.map(function (target, c) {
     return {
       stacks: ghostStacks.length ? [yearStacks[c], ghostStacks[c]] : [yearStacks[c]],
-      steps: target,
+      steps: target + 1,
       start: COL_START + c * COL_STAGGER
     };
   });
@@ -548,7 +552,7 @@
   function writeCamera(t) {
     var scale = 1
       + 0.035 * seg(t, 0.2, 2.7, E_P1_INOUT)            // phase 1→2: slow creep in on the buried year
-      - 0.035 * seg(t, 3.5, 0.9, E_P3_INOUT)            // phase 3: pull back as the section opens
+      - (SECTION ? 0.035 : 0) * seg(t, 3.5, 0.9, E_P3_INOUT) // phase 3: pull back as the section opens (no section — no pull back)
       + 0.012 * seg(t, 5.14, DUR - 5.14, E_SINE_INOUT); // phase 4: quiet push on the hold
     var p = (t / DUR) * Math.PI * 2 * 1.2;
     var dx = Math.sin(p) * 4;
@@ -594,8 +598,12 @@
     tl.fromTo(DUST ? [yeargroup, el("__p__-ghost")] : [yeargroup],
       { y: 0, scale: 1 }, { y: -390, scale: 0.62, duration: 0.7, ease: "power3.inOut" }, 3.50);
   } else {
-    // the year stays in the centre; the counter sits under it
-    stat.style.top = "900px";
+    // no section: the year and the counter under it centre on the content area (y 760) — nothing moves up
+    var LOCK_TOP = Math.round(760 - (270 + (HAS_DELTA ? 165 : 0)) / 2);
+    yeargroup.style.top = LOCK_TOP + "px";
+    el("__p__-ghost").style.top = LOCK_TOP + "px";
+    el("__p__-mask").style.top = 535 + (LOCK_TOP - 585) + "px";
+    stat.style.top = LOCK_TOP + 315 + "px";
   }
 
   if (HAS_DELTA) {

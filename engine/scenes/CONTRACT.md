@@ -353,3 +353,13 @@ npm run scene -- quote-card                                       # JSON-рец�
 ```
 
 Слова `--text` раскладываются равномерно по клипу (`--dur`, по умолчанию 5 с), поэтому `at`-слова работают как в ролике. Лист — `.preview/<device-…|stage-…|recipe-…>/sheet.jpg`.
+
+## Голос, звук, музыка и публикация (D5)
+
+**Голос.** `video.json → "voice": {"provider": "kokoro" | "elevenlabs", "voiceId", "model"}`; старая форма `{"engine": "kokoro", "voice", "speed"}` работает. Выбор: `--voice` в CLI > `video.json` > `.env VOICE_PROVIDER` (`ELEVENLABS_LIVE=1` — elevenlabs) > kokoro. ElevenLabs — `eleven_multilingual_v2`, эндпоинт with-timestamps: тайминги слов из API, whisper не запускается; дубли — `.cache/voice/elevenlabs/<хэш provider, voiceId, model, text>`, расход — `usage.jsonl`. Ошибка API или нет ключа — предупреждение и Kokoro на весь ролик. Превью голосов — `npm run voices -- "<реплика>"` → `videos/_proof/voices/`.
+
+**Звук по событиям.** События сцен (`scene.json → events`), устройств (`device.json → events`) и переходы получают звук автоматически: слово события → семейство по `style.json → sound.events` (draw → scribble, land → tap, count → ticks, focus → swell, freeze/hold → shutter, wipe/transition → whoosh, rise/fill → riser, collapse → impact); громкости и приглушение — там же; цвет свиста — `look.sound.whoosh`. Не ближе `gap` (0,2 с) друг к другу и 0,25 с к ручным `sound.hits`, не больше `perBeat` (4) на бит; тики длятся до `land` своего устройства. Синтез кодом — `engine/py/sound_design.py --events`. `sound.events: false` — только ручные удары (Помпеи).
+
+**Музыка.** `style.json → music {tracks, volume, duck, fadeIn, fadeOut}`; `video.json → "music": false | {track, volume, duck, fadeIn, fadeOut, in, out}`. Подложка (`engine/py/music_bed.py`): трек к −24 LUFS, петли с кроссфейдом, под речью `duck` дБ, клип `music-bed` на шине music. Треки и лицензии — `engine/assets/music/MUSIC.md`.
+
+**Публикация.** `video.json → "publish": {titles[3], description, tags[10–15]}`. `build` после мастеринга пишет `videos/<id>/publish/`: `title.txt`, `description.md` (+ «Sources:» — все ссылки video.json, «Media:» — кредиты из license.json всех медиа, карт и музыки), `tags.txt`, `subtitles.srt` фразами по 3–5 слов, `thumbnail.jpg` — settle-кадр самого плотного бита. Без рендера — `npm run publish -- videos/<id>`. `verify → publish`: всё на месте, в описании все источники и кредиты.

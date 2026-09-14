@@ -4,6 +4,7 @@ import { substituteStyle, toneColors } from "./contract.ts";
 import { join } from "node:path";
 import type { SceneBuild } from "./scenes.ts";
 import type { SoundPlan } from "./sound.ts";
+import type { MusicPlan } from "./music.ts";
 import type { VideoSpec } from "./spec.ts";
 import type { BeatTiming } from "./timeline.ts";
 import { warpAt, wordTime } from "./timeline.ts";
@@ -25,6 +26,8 @@ export interface AssembleInput {
   timings: BeatTiming[];
   sound: SoundPlan;
   scenes: SceneBuild[];
+  /** Music bed (engine/src/music.ts) or null. */
+  music?: MusicPlan | null;
 }
 
 // Voice chain rides on every narration clip, never on a bus: a bus with data-fx-chain fails on the
@@ -121,7 +124,7 @@ function writeAudioMeta({ buildDir, voices, words, sound }: AssembleInput): void
 }
 
 /** Finishing pass over assemble-index's output — ported from examples/pompeii-short/scripts/assemble/finalize_index.mjs. */
-function finalizeIndex({ spec, look, buildDir, timings, words, sound, scenes }: AssembleInput, style: StyleDef): number {
+function finalizeIndex({ spec, look, buildDir, timings, words, sound, scenes, music }: AssembleInput, style: StyleDef): number {
   const colors = toneColors(style, "accent");
   const indexPath = join(buildDir, "index.html");
   let html = readFileSync(indexPath, "utf8");
@@ -137,7 +140,7 @@ function finalizeIndex({ spec, look, buildDir, timings, words, sound, scenes }: 
   // 1. hosts: the outgoing scene of a shader transition is held under the blend; solid grounds for the shader pair
   const shaderTr = spec.transitions.filter((tr) => tr.type === "shader");
   // look layers: transitions over the cuts (video.json, beat, look hit/default), media backgrounds, textures, motion runtime
-  const hits = sound.sfx.filter((c) => c.kind !== "ash-fall").map((c) => c.at);
+  const hits = sound.sfx.filter((c) => c.kind === "thud" || c.kind === "thud-heavy").map((c) => c.at);
   const heavy = sound.sfx.filter((c) => c.kind === "thud-heavy").map((c) => c.at);
   const planned = planTransitions(spec, look, timings, heavy);
   const flashTr = planned.filter((tr) => tr.list.includes("flash"));
@@ -166,7 +169,8 @@ function finalizeIndex({ spec, look, buildDir, timings, words, sound, scenes }: 
   }
   const shaderIds = new Set(shaderTr.flatMap((tr) => [tr.from, tr.to]));
   hosts.forEach((h, i) => {
-    let block = h.block.replace(/\sstyle="[^"]*"/, "").replace(/data-track-index="\d+"/, `data-track-index="${i % 2}"`);
+    // text inside a scene sits under the vignette and flash layers on purpose: check reads allow-occlusion on the text side (TRAPS.md)
+    let block = h.block.replace(/\sstyle="[^"]*"/, "").replace(/data-track-index="\d+"/, `data-track-index="${i % 2}"`).replace(/^<div/, '<div data-layout-allow-occlusion=""');
     const heldDur = held.get(h.id);
     if (heldDur) block = block.replace(/data-duration="[\d.]+"/, `data-duration="${heldDur}"`);
     if (shaderIds.has(h.id)) block = block.replace(/class="scene"/, `class="scene" style="background-color: ${colors.ground}"`);
@@ -226,10 +230,14 @@ function finalizeIndex({ spec, look, buildDir, timings, words, sound, scenes }: 
       .replace(/\s*data-fx-chain="[^"]*"/, "")
       .replace(/(\s*)>$/, `\n        data-fx-chain="${attr(VOICE_CHAIN)}"$1>`),
   );
+  const sfxIds = new Set<string>();
   html = html.replace(/<audio\s+id="el-sfx-(\d+)"\s+src="([^"]+)"\s+data-start="([\d.]+)"([^>]*)><\/audio>/g, (_tag, idx: string, src: string, start: string, rest: string) => {
     const cue = sound.sfx[Number(idx)];
     if (!cue) fail(`index.html: лишний звук el-sfx-${idx}`);
-    cue.id = `sfx-${cue.kind}-${String(cue.frame).padStart(2, "0")}`;
+    let sfxId = `sfx-${cue.kind}-${String(cue.frame).padStart(2, "0")}`;
+    for (let k = 2; sfxIds.has(sfxId); k++) sfxId = `sfx-${cue.kind}-${String(cue.frame).padStart(2, "0")}-${k}`;
+    sfxIds.add(sfxId);
+    cue.id = sfxId;
     const dur = /data-duration="([\d.]+)"/.exec(rest)?.[1];
     const laneAttr = /data-track-index="(\d+)"/.exec(rest)?.[1];
     const vol = /data-volume="([\d.]+)"/.exec(rest)?.[1];
@@ -249,13 +257,25 @@ function finalizeIndex({ spec, look, buildDir, timings, words, sound, scenes }: 
         data-track-index="11"
         data-volume="${sound.drone.volume}"
         data-audio-group="music"
-      ></audio>`;
+      ></audio>` +
+    (music
+      ? `
+      <audio
+        id="music-bed"
+        src="assets/music/bed.wav"
+        data-start="0"
+        data-duration="${total}"
+        data-track-index="13"
+        data-volume="1"
+        data-audio-group="music"
+      ></audio>`
+      : "");
   const overlays =
     backgroundHostsHtml(bgs) +
     flashTr.map((_, i) => `\n      <div id="hf-flash-${i}" class="hf-flash" aria-hidden="true" data-layout-ignore></div>`).join("") +
-    (burstTr.length ? `\n      <canvas id="hf-burst" width="540" height="960" aria-hidden="true" data-layout-ignore></canvas>` : "") +
+    (burstTr.length ? `\n      <canvas id="hf-burst" width="540" height="960" aria-hidden="true" data-layout-ignore data-layout-allow-occlusion></canvas>` : "") +
     `
-      <div id="hf-vignette" aria-hidden="true" data-layout-ignore></div>` +
+      <div id="hf-vignette" aria-hidden="true" data-layout-ignore data-layout-allow-occlusion></div>` +
     post.html +
     layerHostsHtml(layers);
   const beforeRootClose = /(\n\s*<\/div>\s*\n\s*<script>)/;
@@ -332,6 +352,7 @@ function writeVerifyPlan({ spec, buildDir, timings, scenes }: AssembleInput, sty
         start: t.start,
         end: t.end,
         settle: r3(t.start + warpAt(sc.warp, sc.settle)),
+        ...(sc.video ? { video: true } : {}),
         events: sc.events.map((ev) => ({ t: r3(t.start + warpAt(sc.warp, ev.ref)), label: ev.label })),
       };
     }),

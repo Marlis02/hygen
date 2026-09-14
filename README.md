@@ -20,6 +20,9 @@ npm run scene -- --device annotate.box                               # бит v2
 npm run scene -- --stage media --src videos/_proof/titanic-v2/media/titanic-pathe-1912-belfast.webm --text "It was gone" --beat '{"stage":{"fit":"contain"},"devices":[{"type":"edit.hold","at":"gone"}],"dominant":0}'
 npm run scene -- quote-card                                          # JSON-рецепт без HTML
 npm run build -- videos/_proof/titanic-v2                            # proof бита v2: stage + devices + intent
+npm run build -- videos/halifax-en --voice kokoro                    # черновой голос без трат символов (финал — ElevenLabs из video.json)
+npm run voices -- "<реплика>"                                        # одна реплика четырьмя голосами ElevenLabs → videos/_proof/voices/
+npm run publish -- videos/great-fire-en                              # publish/ из готового MP4: названия, описание с источниками и кредитами, теги, SRT, обложка
 ```
 
 Сравнение и регрессия:
@@ -30,13 +33,26 @@ python3 engine/py/contact_montage.py videos/_compare/contact-3.jpg \
   videos/pompeii-en/renders/pompeii-en.contact.jpg:"pompeii-en · ember" …        # листы роликов один под другим
 ```
 
-Новый ролик от темы: в Claude Code `/short "Krakatoa 1883"` — исследование с источниками, концепция мира (look), арка (structure × hook × protagonist × ending), сценарий, для каждого бита «что видит зритель» → intent + target + данные (stage + устройства), медиа с ролью, грамматика до сборки, `videos/<id>/video.json` и сборка (`.claude/commands/short.md`, v3). Бит v2 — `engine/scenes/CONTRACT.md`, «Бит v2».
+Новый ролик от темы: в Claude Code `/short "Halifax Explosion 1917"` — исследование с источниками, концепция мира (look), арка (structure × hook × protagonist × ending), сценарий, для каждого бита «что видит зритель» → intent + target + данные (stage + устройства), медиа командой `npm run media` с ролью, грамматика и снимки до рендера, `videos/<id>/video.json` с блоком `publish` и сборка (`.claude/commands/short.md`, v3.1). Бит v2 — `engine/scenes/CONTRACT.md`, «Бит v2»; голос, звук, музыка и публикация — там же, раздел «D5».
 
-`build` идёт по шагам: голос Kokoro → тайминги слов whisper → звук по таймингам → сцены, растянутые под голос → `index.html` с субтитрами и шинами → `hyperframes lint` и `check` → рендер → мастеринг до −14 LUFS → автопроверка MP4.
+`build` идёт по шагам: голос (ElevenLabs с таймингами слов из API или Kokoro + whisper) → звук по таймингам (гул и ручные удары) → сцены под голос → звуки событий устройств, сцен и переходов → музыка с приглушением под голос → `index.html` с субтитрами и шинами → `hyperframes lint` и `check` → рендер → мастеринг до −14 LUFS → `publish/` → автопроверка MP4.
+
+Голос: `.env → VOICE_PROVIDER=kokoro|elevenlabs` (+ `ELEVENLABS_API_KEY`, `ELEVENLABS_VOICE_ID`), в ролике `"voice": {"provider": "elevenlabs", "voiceId": "…"}`, флаг `--voice` сильнее всего. Дубли ElevenLabs кэшируются в `.cache/voice/elevenlabs`, расход символов — `usage.jsonl` там же и строка «голос:» в конце сборки; при ошибке API сборка откатывается на Kokoro. Музыка — `engine/assets/music/MUSIC.md`.
 
 Полезные флаги: `--no-render` (остановиться перед рендером), `--quality draft|standard|high`, `--no-check`, `--no-snapshots`.
 
-Результаты ролика лежат в `videos/<ролик>/renders/`: `<id>.mp4`, контактный лист `<id>.contact.jpg`, отчёт автопроверки `<id>.verify.json`, тайминги сборки `<id>.build.json`. Рендеры, кэши голоса и ASR в git не попадают.
+Результаты ролика лежат в `videos/<ролик>/renders/`: `<id>.mp4`, контактный лист `<id>.contact.jpg`, отчёт автопроверки `<id>.verify.json`, тайминги сборки `<id>.build.json`; к выкладке — `videos/<ролик>/publish/` (`title.txt`, `description.md`, `tags.txt`, `subtitles.srt`, `thumbnail.jpg`). Рендеры, кэши голоса и ASR в git не попадают.
+
+## Поиск медиа
+
+Только то, что можно брать в ролик: Wikimedia Commons (public domain, CC0, CC BY, CC BY-SA) и Pexels, если в `.env` есть `PEXELS_API_KEY`.
+
+```bash
+npm run media -- "Halifax Explosion 1917" --n 6 --sheet .preview/media-halifax.jpg   # таблица (файл, автор, лицензия, размер, ссылка, описание) и лист миниатюр с номерами
+npm run media -- "Halifax Explosion" --video --n 4                                    # видео с длительностью
+npm run media -- --get "File:Halifax Explosion blast cloud.jpg" halifax-en --as blast-cloud             # videos/halifax-en/media/blast-cloud.jpg + .license.json
+npm run media -- --get "File:Halifax Explosion, W.G. MacLaughlan, 1917-1920, Scene 08.webm" halifax-en --in 12 --out 19   # отрезок без звука, VP9 webm
+```
 
 ## Что нужно на машине
 

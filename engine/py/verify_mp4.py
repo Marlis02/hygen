@@ -193,8 +193,13 @@ def main():
         m_p95 = float(np.percentile(m, 95)) if len(m) else 0.0
         events = []
         for ev in sc["events"]:
-            before = content[at(ev["t"] - 0.1)]
-            after = content[at(min(ev["t"] + 0.8, sc["end"] - 0.05))]
+            if ev["label"].endswith("land"):
+                # a landing ends a motion: the change leads into it, not out of it (TRAPS.md)
+                before = content[at(max(sc["start"] + 0.05, ev["t"] - 0.8))]
+                after = content[at(ev["t"] + 0.1)]
+            else:
+                before = content[at(ev["t"] - 0.1)]
+                after = content[at(min(ev["t"] + 0.8, sc["end"] - 0.05))]
             change = float(uniform_filter(np.abs(after - before), size=5).max())
             events.append({"t": ev["t"], "label": ev["label"], "change": round(change, 1), "ok": change >= EVENT_MIN})
             if change < EVENT_MIN:
@@ -220,8 +225,13 @@ def main():
         if len(shots) < len(times):
             check("settled", False, f"снимков {len(shots)} из {len(times)} — сравнить не с чем")
         else:
-            worst, bad = 0.0, []
+            worst, bad, skipped = 0.0, [], []
             for sc, t, png in zip(plan["scenes"], times, pair_snapshots(shots, times)):
+                if sc.get("video"):
+                    # a playing video at settle: the snapshot seeks the <video>, the render decodes its own frame (TRAPS.md)
+                    next(s for s in scenes if s["id"] == sc["id"])["settle"] = {"t": t, "skipped": "video"}
+                    skipped.append(sc["id"])
+                    continue
                 snap = np.asarray(Image.open(png).convert("L").resize((108, 192), Image.BOX), dtype=np.float32)
                 vid = to_gray(frame_rgb(a.mp4, t, 108, 192))
                 # scene state only: the snapshot can still hold a caption group the render has already cleared (TRAPS.md)
@@ -232,8 +242,9 @@ def main():
                 worst = max(worst, diff)
                 if diff > SETTLE_MAX:
                     bad.append(f"{sc['id']} @{t:.2f} с: {diff:.1f}")
-            check("settled", not bad, f"кадры совпадают со снимками композиции (макс. расхождение {worst:.1f})"
-                  if not bad else "кадр расходится со снимком: " + "; ".join(bad))
+            note = f" · без сравнения, в кадре играет видео: {', '.join(skipped)}" if skipped else ""
+            check("settled", not bad, (f"кадры совпадают со снимками композиции (макс. расхождение {worst:.1f})"
+                  if not bad else "кадр расходится со снимком: " + "; ".join(bad)) + note)
     else:
         checks.append({"check": "settled", "ok": True, "detail": "пропущено (--no-snapshots)"})
 

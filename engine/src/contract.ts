@@ -106,6 +106,10 @@ export interface StyleDef {
     captionBand: [number, number];
     rightRail: { x: number; yFrom: number; yTo: number };
   };
+  /** Event sounds (engine/src/sound.ts): event word → family, volumes, carve, gap, per-beat limit. */
+  sound?: { events?: Record<string, string>; volume?: Record<string, number>; carve?: number; gap?: number; perBeat?: number };
+  /** Music bed (engine/assets/music/MUSIC.md): track ids, dB volume, ducking under the voice, fades. */
+  music?: { tracks?: string[]; volume?: number; duck?: number; fadeIn?: number; fadeOut?: number };
 }
 
 const NAME_RE = /^[a-z][A-Za-z0-9]*$/;
@@ -329,11 +333,12 @@ export function evalCondition(cond: string | undefined, params: Record<string, u
   const v = truthValue(raw);
   let ok: boolean;
   if (!m[3]) ok = v !== 0;
-  else if (!/^-?\d+(\.\d+)?$/.test(m[4] as string)) {
+  else if (!/^-?\d+(\.\d+)?$/.test(m[4] as string) && typeof params[m[4] as string] !== "number") {
     if (m[3] !== "==" && m[3] !== "!=") fail(`условие «${cond}»: со словом — только == или !=`);
     ok = (String(raw) === m[4]) === (m[3] === "==");
   } else {
-    const n = Number(m[4]);
+    // a number, or the name of another numeric param («numerator<denominator»)
+    const n = /^-?\d+(\.\d+)?$/.test(m[4] as string) ? Number(m[4]) : (params[m[4] as string] as number);
     ok = m[3] === ">=" ? v >= n : m[3] === ">" ? v > n : m[3] === "==" ? v === n : m[3] === "!=" ? v !== n : m[3] === "<=" ? v <= n : v < n;
   }
   return m[1] ? !ok : ok;
@@ -354,7 +359,7 @@ export interface MapSilhouette {
   fillRule: string;
 }
 
-function licenseOf(file: string): string {
+export function licenseOf(file: string): string {
   return join(file.slice(0, file.length - extname(file).length) + ".license.json");
 }
 

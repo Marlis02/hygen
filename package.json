@@ -11,7 +11,10 @@
     "verify": "node engine/src/cli.ts verify",
     "scene": "node engine/src/cli.ts scene",
     "scenes": "node engine/src/cli.ts scenes",
-    "typecheck": "npm --workspace engine run typecheck"
+    "typecheck": "npm --workspace engine run typecheck",
+    "voices": "node engine/src/voices.ts",
+    "media": "node engine/src/media.ts",
+    "publish": "node engine/src/cli.ts publish"
   },
   "engines": {
     "node": ">=22.18"

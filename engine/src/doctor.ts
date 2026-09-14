@@ -1,7 +1,7 @@
 import { existsSync, readdirSync, statfsSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
-import { ENGINE_DIR, ROOT_DIR, VENDOR_SKILLS, python, readJson, run, stripAnsi } from "./lib/util.ts";
+import { ENGINE_DIR, ROOT_DIR, VENDOR_SKILLS, loadEnv, python, readJson, run, stripAnsi } from "./lib/util.ts";
 
 const PINNED: Record<string, string> = {
   hyperframes: "0.8.36",
@@ -57,6 +57,12 @@ export function doctor(): boolean {
 
   const py = run(python(), ["-c", "import sys, numpy, scipy, soundfile, PIL; print(sys.version.split()[0], 'numpy', numpy.__version__, 'scipy', scipy.__version__, 'soundfile', soundfile.__version__, 'Pillow', PIL.__version__)"], { allowFail: true });
   add("Python и пакеты", py.status === 0, py.status === 0 ? py.stdout.trim() : "pip install numpy scipy soundfile pillow");
+
+  // the key itself is never printed
+  const env = loadEnv();
+  const provider = env.VOICE_PROVIDER || (env.ELEVENLABS_LIVE === "1" ? "elevenlabs" : "kokoro");
+  const hasKey = Boolean(env.ELEVENLABS_API_KEY);
+  add("голос по умолчанию (.env)", provider === "kokoro" || (provider === "elevenlabs" && hasKey), `${provider} · ключ ElevenLabs: ${hasKey ? "есть" : "нет"} · ELEVENLABS_VOICE_ID: ${env.ELEVENLABS_VOICE_ID ? "задан" : "не задан"} · Pexels: ${env.PEXELS_API_KEY ? "ключ есть" : "ключа нет"}`, true);
 
   const cache = join(homedir(), ".cache", "hyperframes");
   add("модель Kokoro", existsSync(join(cache, "tts", "models", "kokoro-v1.0.onnx")), "скачается при первом голосе (~330 МБ)", true);

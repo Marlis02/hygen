@@ -121,6 +121,23 @@ export function hyperframesBin(): string {
   return bin;
 }
 
+/** `.env` in the repo root (never committed): KEY=value lines, `#` comments; the process environment wins. */
+export function loadEnv(): Record<string, string> {
+  const out: Record<string, string> = {};
+  const path = join(ROOT_DIR, ".env");
+  if (existsSync(path)) {
+    for (const line of readFileSync(path, "utf8").split("\n")) {
+      const m = /^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*?)\s*$/.exec(line);
+      if (m && !line.trimStart().startsWith("#")) out[m[1] as string] = (m[2] as string).replace(/^(["'])(.*)\1$/, "$2");
+    }
+  }
+  for (const key of Object.keys(out)) if (process.env[key] !== undefined) out[key] = process.env[key] as string;
+  for (const key of ["VOICE_PROVIDER", "ELEVENLABS_API_KEY", "ELEVENLABS_VOICE_ID", "ELEVENLABS_MODEL", "ELEVENLABS_LIVE", "PEXELS_API_KEY"]) {
+    if (out[key] === undefined && process.env[key] !== undefined) out[key] = process.env[key] as string;
+  }
+  return out;
+}
+
 export const python = (): string => process.env.HYGEN_PYTHON ?? "python3";
 
 export const pyScript = (name: string): string => join(ENGINE_DIR, "py", name);

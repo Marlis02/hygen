@@ -1,9 +1,9 @@
 ---
-description: ИИ-режиссёр Short v3 — тема → исследование с источниками → концепция (look) → арка → сценарий → «что видит зритель» на каждый бит → intent + target + данные → медиа с ролью → грамматика → сборка MP4
+description: ИИ-режиссёр Short v3.1 (D5) — тема → исследование с источниками → концепция (look) → арка → сценарий → «что видит зритель» на каждый бит → intent + target + данные → медиа с ролью → грамматика → снимки → сборка MP4
 argument-hint: "<тема, например: Krakatoa 1883>"
 ---
 
-# /short — режиссёр Short (v3: stage + devices + intent)
+# /short — режиссёр Short (v3.1: stage + devices + intent)
 
 Тема: **$ARGUMENTS**
 
@@ -11,13 +11,14 @@ argument-hint: "<тема, например: Krakatoa 1883>"
 
 Главное правило v3: **бит — это не сцена, а то, что зритель должен увидеть.** Сначала одно предложение «что видит зритель», потом intent, который это показывает. Сцены с HTML (`counter-title`, `map-marker`, `scale-gauge`, `year-odometer`, `picture-zoom`, `fraction-finale`, `pyroclastic-flow`) — рецепты на случай, когда нужен именно этот кадр.
 
-Эталоны: `videos/_proof/titanic-v2/` и `videos/_proof/krakatoa-v2/` (video.json + research.md). Контракт — `engine/scenes/CONTRACT.md`, разделы «Бит v2», «Stage», «Устройства», «Intents», «Арка», «Грамматика».
+Эталоны: `videos/_proof/titanic-v2/`, `videos/_proof/krakatoa-v2/` и `videos/great-fire-en/` (video.json + research.md). Контракт — `engine/scenes/CONTRACT.md`, разделы «Бит v2», «Stage», «Устройства», «Intents», «Арка», «Грамматика».
 
 ## 0. Подготовка (3 мин)
 
 1. Прочитай `engine/scenes/CONTRACT.md`: «Бит v2» и всё после него; «Look ролика» и «Текстуры».
-2. Что есть в движке:
+2. Что есть в движке (в неинтерактивном шелле Node стоит через nvm — сначала `. ~/.nvm/nvm.sh`):
    ```bash
+   . ~/.nvm/nvm.sh
    ls engine/intents engine/scenes/recipes engine/devices engine/arcs engine/assets/maps
    for f in engine/intents/*.json; do python3 -c "import json; d=json.load(open('$f')); print(d['id'], '·', d['stage']['types'], '·', [x['type'] for x in d['devices']], '·', d['use'])"; done
    for f in engine/devices/*/device.json; do python3 -c "import json; d=json.load(open('$f')); print(d['type'], '·', d['target'], '·', list(d['params']))"; done
@@ -27,33 +28,36 @@ argument-hint: "<тема, например: Krakatoa 1883>"
 3. Что уже занято другими роликами (новый должен отличаться миром и скелетом):
    ```bash
    for v in videos/*/video.json videos/_proof/*/video.json; do python3 -c "
-   import json; s=json.load(open('$v')); a=s.get('arc') or {}
-   print(s['id'], '·', s.get('look','ember'), '·', ' × '.join(a.get(k,'?') for k in ['structure','hook','protagonist','ending']), '·', ' → '.join(b.get('scene') or (b.get('stage') or {}).get('type') or b.get('intent','?') for b in s['beats']))"; done
+   import json; s=json.load(open('$v')); a=s.get('arc') or {}; l=s.get('look','ember')
+   print(s['id'], '·', l if isinstance(l,str) else l.get('id','inline'), '·', ' × '.join(a.get(k,'?') for k in ['structure','hook','protagonist','ending']), '·', ' → '.join(b.get('scene') or (b.get('stage') or {}).get('type') or b.get('intent','?') for b in s['beats']))"; done
    ```
 4. id ролика: латиница, цифры, дефис, суффикс `-en`. Папка `videos/<id>/`.
 
 ## 1. Исследование с источниками (10 мин)
 
-5–8 проверяемых цифр и 2–4 медиа-кандидата. Цифра — только вместе с дословной фразой.
+5–8 проверяемых цифр и 2–4 медиа-кандидата (как искать медиа — шаг 6). Цифра — только вместе с дословной фразой.
 
 ```bash
 UA="hygen-engine/0.1 (faceless channel draft tool)"
 curl -s -A "$UA" "https://en.wikipedia.org/w/api.php?action=query&prop=extracts&explaintext=1&titles=<Title>&format=json&redirects=1" \
   | python3 -c "import json,sys;print(list(json.load(sys.stdin)['query']['pages'].values())[0]['extract'])" > /tmp/<Title>.txt
-grep -o -i "[^.]*<число или слово>[^.]*\." /tmp/<Title>.txt
+wc -w /tmp/<Title>.txt
+grep -o -i -E "[^.]*\b([0-9][0-9,.]*|half|dozen|hundred|thousand|million|two|three|four|five|six|seven|eight|nine|ten)\b[^.]*\." /tmp/<Title>.txt
 ```
+
+Цифры в статьях часто написаны словами («six», «within half an hour») — grep выше ловит и их. Статья длиннее 5 тыс. слов — читай разделы о самом событии и о последствиях, не целиком.
 
 Разброс в источниках — осторожная формулировка и одна цифра с цитатой. `videos/<id>/research.md` — таблица `| # | Факт (EN) | Цифра | Цитата | Ссылка |`.
 
 ## 2. Концепция мира (3 мин)
 
-Раздел `## Concept` в research.md: настроение (2 фразы), ключевой цвет темы, look (id или объект с `extends`), текстуры, переходы. Правила look — как в CONTRACT.md «Look ролика»; акцент ≥ 30° от других роликов или другой набор текстур (кроме ролика, который ты явно пересказываешь: `"retells": "<id>"`).
+Раздел `## Concept` в research.md: настроение (2 фразы), ключевой цвет темы, look (id или объект с `extends` и своим `id`), текстуры, переходы. Правила look — как в CONTRACT.md «Look ролика»; акцент ≥ 30° от других роликов или другой набор текстур (кроме ролика, который ты явно пересказываешь: `"retells": "<id>"`). Тема «огонь» не обязана быть `ember`: `great-fire-en` — свой look `ink-fire` (тушь и золото).
 
 ## 3. Арка (3 мин) — до сценария
 
 `video.json → "arc"`: `{structure, hook, protagonist, ending, why}` — значения из `engine/arcs/arc.json`, `why` — одна фраза обоснования.
 
-- **structure** — story (завязка → поворот → пик → последствия), mystery (вопрос → улики → разгадка), mechanism (как работало шаг за шагом), comparison (две стороны и вывод), list (равноправные пункты). Роли битов — `engine/arcs/<structure>.json`; у каждого бита поле `role`, первый — `hook`, последний — `ending`.
+- **structure** — story (завязка → поворот → пик → последствия), mystery (вопрос → улики → разгадка), mechanism (как работало шаг за шагом), comparison (две стороны и вывод), list (равноправные пункты). Роли битов — `engine/arcs/<structure>.json`; у каждого бита поле `role`, первый — `hook`, последний — `ending`. Роли без `repeat` — не больше одного бита (у story ровно 6 ролей — не больше 6 битов).
 - **hook** — одна из 9 стратегий (shocking-statistic, rhetorical-question, counterintuitive-claim, pain-validation, visceral-metaphor, concept-announcement, direct-address, imagine-scenario, stakes-consequence).
 - **protagonist** — place, person, object, number, sound: вокруг кого или чего ролик.
 - **ending** — lesson, open-question, callback, what-remains, one-number-silence.
@@ -62,8 +66,8 @@ grep -o -i "[^.]*<число или слово>[^.]*\." /tmp/<Title>.txt
 ## 4. Сценарий (5 мин)
 
 - 5–8 битов, 45–60 с, 110–150 слов (Kokoro ≈ 2,6 слова/с), 6–20 слов на бит.
-- **Правило хука: цифра или ключевое слово — в первые 1,5 с реплики.** Не «In 1883, on a quiet island…», а «[4,800|Four thousand eight hundred] kilometers away…».
-- Цифры — токеном `[display|spoken]`. Английский, коротко, сдержанно, без сенсаций.
+- **Правило хука: цифра или ключевое слово — в первые 1,5 с, и в реплике, и на экране.** Не «In 1883, on a quiet island…», а «[4,800|Four thousand eight hundred] kilometers away…». Устройство хука ставь на первое слово (`"at": "<первое слово>"`): подпись садится примерно через секунду после `at`.
+- Цифры — токеном `[display|spoken]`. Английский, коротко, сдержанно, без сенсаций. «St» Kokoro читает как «street» — пиши «Saint».
 
 ## 5. Что видит зритель → intent (10 мин) — главный шаг
 
@@ -101,26 +105,39 @@ grep -o -i "[^.]*<число или слово>[^.]*\." /tmp/<Title>.txt
 - `data` — ключи, которые ждёт intent (`requires` в его JSON). Явные `stage`, `devices`, `dominant`, `camera` бита побеждают intent.
 - **Устройства явно** (`devices: [...]`) — только если intent не подходит. Каталог: `focus.spotlight`, `annotate.arrow|circle|box|label|measure`, `data.count|chart`, `text.title|quote`, `edit.hold` (параметры — `device.json`). Рецепты без HTML: `"scene": "quote-card" | "portrait" | "question-card"` с `data`.
 - `dominant` — что главное в кадре: `"stage"` или индекс устройства. Обязателен.
-- Камера движется только с причиной: `"camera": {"reason": "approach" | "reveal" | "follow" | "tension", "amplitude": 0.5}`.
+- Камера движется только с причиной: `"camera": {"reason": "approach" | "reveal" | "follow" | "tension", "amplitude": 0.5}`. Intent приносит свою камеру (show-evidence — approach 0,4): на полосе `fit: contain` она обрезает края картинки — там ставь `amplitude` ≤ 0,15.
 - Проверка кадра без голоса: `npm run scene -- --stage media --src videos/<id>/media/<файл> --beat '{"stage":{…},"devices":[…]}' --text "<реплика>"` → `.preview/stage-media/sheet.jpg` (смотри глазами).
+
+### Координаты: картинка → кадр
+Кадр 1080×1920. Точка картинки `(u, v)` — доли ширины и высоты (сетка 10 % поверх картинки: PIL, 10 строк):
+- `fit: contain` (полоса по ширине): высота полосы `Hb = 1080 · h / w` px, верх `top = (1920 − Hb) / 2`; `x% = 100·u`, `y% = (top + v·Hb) / 19,2`.
+- `fit: cover`, картинка шире 9:16: видимая доля ширины `Wv = (1080 / 1920) · h / w`, левый край `left = (1 − Wv) · focus[0]`; `x% = 100·(u − left) / Wv`, `y% = 100·v`.
+- `fit: cover`, картинка уже 9:16: видимая доля высоты `Hv = (1920 / 1080) · w / h`, верх `top = (1 − Hv) · focus[1]`; `x% = 100·u`, `y% = 100·(v − top) / Hv`.
+- Камера с amplitude увеличивает кадр до ~×1,1 — держи цели в 5 % от краёв.
 
 ### Грамматика (ошибки ломают сборку)
 - ровно один stage; ≤ 3 устройств; ≤ 1 `data.*`; `explains` у каждого `annotate.*`; `dominant` есть; ≤ 2 видео одновременно;
 - ритм (предупреждения): не два бита плотности ≥ 3 подряд (плотность = 1 + устройства); после плотного — бит ≤ 1; hero-эффект не чаще раза за ролик; один intent не дважды подряд; текст на экране ≤ 7 слов (кроме `text.quote`); камера без reason стоит.
-- безопасная зона: смысловые метки выше y 74 % (1420 px), текст не заходит за x 89 % при y 52–88 %.
+- безопасная зона: смысловые метки **строго** выше y 74 % (1420 px): у области `y + h ≤ 73,9`; текст не заходит за x 89 % при y 52–88 %.
 
 ## 6. Медиа с ролью (10 мин)
 
 У каждого файла роль: **hero** (главная картинка мира), **evidence** (документ, хроника, фото события), **place** (где это). Запиши роль в research.md рядом с файлом.
 
-- Только Wikimedia Commons (PD, CC BY, CC BY-SA), NASA, Pexels, Pixabay. Поиск в Commons, в том числе видео:
+- Только Wikimedia Commons (PD, CC0, CC BY, CC BY-SA) и Pexels (если в `.env` есть ключ). **Медиа ищется командой, не руками:**
   ```bash
-  curl -s -A "$UA" "https://commons.wikimedia.org/w/api.php?action=query&list=search&srsearch=<запрос> filetype:video&srnamespace=6&format=json&srlimit=12"
-  curl -s -A "$UA" "https://commons.wikimedia.org/w/api.php?action=query&titles=File:<Имя>&prop=imageinfo&iiprop=url|extmetadata|size&iiurlwidth=1920&format=json"
+  npm run media -- "<запрос>" --n 6 --sheet .preview/<id>-media-1.jpg     # таблица: файл, автор, лицензия, размер, описание; лист миниатюр с номерами
+  npm run media -- "<запрос>" --video --n 4                               # видео с длительностью
+  npm run media -- --get "File:<Имя>" <id> --as <имя>                     # videos/<id>/media/<имя>.<ext> + <имя>.license.json
+  npm run media -- --get "File:<Имя>.webm" <id> --as <имя> --in 12 --out 19   # отрезок видео без звука
   ```
+  Неподходящие лицензии команда отбрасывает сама. HTTP 429 (Commons ограничил частоту) — повтори `--get` через минуту или возьми миниатюру: `--width <ширина оригинала или 2400>`.
+- Выбирай глазами: смотри лист миниатюр, потом сетка 10 % поверх выбранных (координаты — шаг 5). В research.md — раздел `## Media`: какие запросы, что выбрано и почему, роль каждого файла.
 - Прочитай описание файла: что на самом деле снято и когда. Подпись на экране не может утверждать больше описания (хроника «Титаника» снята в Белфасте 2 апреля, а не при отплытии 10-го).
-- Рядом `<файл>.license.json`: `title, source, author, license, url, retrieved, notes`. Производная (обрезка, половина листа) — отдельный файл со своей записью и пометкой в `notes`.
-- Видео: `in`/`out` — секунды исходника, `rate` 0.1–5, `hold` или устройство `edit.hold` — стоп-кадр на слове, `fit: contain` для 4:3 и 16:9, `treatment` film-memory | engraved | two-ink. Кадры исходника: `ffmpeg -i <видео> -t 150 -vf fps=1/5,scale=240:-2 /tmp/f%03d.jpg`.
+- `--get` сам кладёт рядом `<файл>.license.json` (`title, source, author, license, url, retrieved, notes`). Производная (обрезка, половина листа) — отдельный файл со своей записью и пометкой в `notes`.
+- Предмет в полный рост (колонна, башня, корабль) с размерной линией не должен опускаться ниже 74 % кадра: выбери фото, где он в верхних 70 %, или сделай производную — предмет вверху холста 9:16 на размытой копии самого фото (`great-fire-en/media/monument-fish-street-hill.jpg`).
+- Два вида одного места (до/после) — одинаковое окно из обоих, выровненное по горизонту: шторка `split` покажет перемену, а не сдвиг.
+- Видео: `in`/`out` — секунды исходника, `rate` 0.1–5, `hold` или устройство `edit.hold` — стоп-кадр на слове, `fit: contain` для 4:3 и 16:9, `treatment` film-memory | engraved | two-ink. Кадры исходника: `ffmpeg -i <видео> -t 150 -vf fps=1/5,scale=240:-2 /tmp/f%03d.jpg`. Хронику с водяным знаком (British Pathé и т. п.) не брать или кадрировать `crop` так, чтобы знак ушёл за кадр, — риск Content ID (DECISIONS).
 - Карта: силуэт `engine/assets/maps/<имя>.svg` или трассировка `engine/py/trace_map.py` (см. CONTRACT.md «Силуэты карт»); координаты меток — px/10,8 и px/19,2 в проценты.
 
 ## 7. Источники
@@ -129,32 +146,43 @@ grep -o -i "[^.]*<число или слово>[^.]*\." /tmp/<Title>.txt
 - Цифры реплики, которых нет среди цифр устройств, — `sources.text` бита.
 - Бит со сценой с HTML — как раньше: `sources.<param>`.
 
-## 8. video.json и сборка
+## 8. video.json, снимки и сборка
 
-Образец — `videos/_proof/titanic-v2/video.json`: `id, title, format, fps 30, language, style, look, captions, voice, arc, beats, transitions [], sound` (гул: `peak` на кульминации, `cut` на старте финала; удары на стартах битов, один `heavy`).
+Образец — `videos/great-fire-en/video.json`: `id, title, format, fps 30, language, style, look, captions, voice, arc, beats, transitions [], sound, publish`.
+
+- **Голос.** Финал — ElevenLabs: `"voice": {"provider": "elevenlabs"}` (голос по умолчанию — `ELEVENLABS_VOICE_ID` из `.env`, свой — `"voiceId": "…"`); тайминги слов приходят из API, дубли кэшируются — пересборка символов не тратит. Черновик без трат — `npm run build -- videos/<id> --voice kokoro` (`am_michael`; британская тема — `bm_george`). Если ElevenLabs недоступен, сборка сама откатится на Kokoro и предупредит.
+- **Звук.** Гул: `peak` на кульминации, `cut` на старте финала; ручные удары (`hits`) — только на главных стыках, один `heavy`. Штрихи пометок, тапы подписей, тики счётчиков, свист шторки, затвор стоп-кадра движок ставит сам по событиям устройств и сцен (`sound.events` по умолчанию включён). Музыка — трек стиля с приглушением под голос; свой трек или без музыки — `engine/assets/music/MUSIC.md`.
+- **Публикация.** `"publish": {"titles": [3 варианта ≤ 100 символов, в каждом крючок — цифра или вопрос], "description": "2–3 строки по фактам ролика", "tags": [10–15]}`. Источники и кредиты медиа движок допишет в `publish/description.md` сам, SRT фразами и обложку — тоже.
 
 ```bash
-npm run build -- videos/<id> --no-render   # схема, файлы, лицензии, грамматика, арка, голос и тайминги (кэш)
+npm run build -- videos/<id> --no-render   # схема, файлы, лицензии, грамматика, арка, голос и тайминги (кэш) — ошибки схемы за секунды
+# кадры всей сборки до рендера: settle каждого бита + 1,5 с хука
+npx hyperframes snapshot videos/<id>/build --no-end -o .preview/<id>-snap --at "$(python3 -c "import json;v=json.load(open('videos/<id>/build/verify_plan.json'));print(','.join(['1.5']+[str(round(s['settle'],2)) for s in v['scenes']]))")"
+# → .preview/<id>-snap/contact-sheet.jpg — смотри глазами: обрезанный текст, подписи ниже 74 %, нечитаемый контраст
 npm run build -- videos/<id>               # до MP4 и автопроверки
 ```
+
+`hyperframes check` в `--no-render` — не приговор, но `container_overflow` у подписи и контраст ниже 3:1 проверь на снимках.
 
 Упала сборка или автопроверка:
 
 | Что | Что делать |
 |---|---|
 | `грамматика бита` | убери устройство, раздели бит на два, задай `dominant`, `explains` |
+| `… ниже безопасной зоны` | подними цель: `y + h ≤ 73,9` |
 | `sources` | `source` у устройства или `sources.text` у бита |
 | `uniqueness` | другая арка или другой порядок stage; другой акцент/текстуры (если ролик не пересказ) |
 | `expanded` | резолвер недетерминирован — ошибка движка, в отчёт |
-| `frozen` | событие устройства вне клипа: перепривяжи `at` к более раннему слову или увеличь `pad[1]` |
+| `frozen`, событие после конца клипа | перепривяжи `at` к более раннему слову или увеличь `pad[1]` |
+| `frozen`, событие внутри клипа | событие устройства не меняет кадр — ошибка движка, в отчёт |
 | `settled`, `size`, `loudness` | проблема движка — в отчёт |
 
-Не больше 3 пересборок; правки — только `video.json`, `research.md`, `media/`.
+Не больше 3 пересборок с рендером (сборки `--no-render` и снимки не считаются); правки — только `video.json`, `research.md`, `media/`.
 
 ## 9. Итог
 
 По `videos/<id>/renders/<id>.contact.jpg`:
-1. MP4, длительность, размер, автопроверка (grammar, uniqueness, expanded).
+1. MP4, длительность, размер, автопроверка (grammar, uniqueness, expanded, publish); голос и сколько символов ElevenLabs потрачено (строка «голос:» в конце сборки).
 2. Арка одной строкой и последовательность stage.
 3. Для каждого бита: «что видит зритель» → intent/устройства.
 4. «Что видно» — одна фраза по контактному листу.

@@ -1,0 +1,3 @@
+Control render: reverse, two-ink and pan on video, boil of a drawn circle
+The counter runs backwards on this clip.
+Control render — A hand drawn circle stays alive after it lands, and it keeps on breathing.

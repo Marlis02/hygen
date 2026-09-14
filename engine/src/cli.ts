@@ -5,12 +5,16 @@ import { doctor } from "./doctor.ts";
 import { isRecipe } from "./intents.ts";
 import { listScenes, previewScene } from "./preview.ts";
 import { previewStage } from "./preview-stage.ts";
+import { checkPublish, writePublish } from "./publish.ts";
+import { loadSpec } from "./spec.ts";
 import { BuildError } from "./lib/util.ts";
 
 const USAGE = `hygen — движок faceless-канала
 
-  hygen build <папка ролика> [--quality draft|standard|high] [--no-render] [--no-check] [--no-snapshots]
+  hygen build <папка ролика> [--voice kokoro|elevenlabs] [--quality draft|standard|high] [--no-render] [--no-check] [--no-snapshots]
       голос → тайминги слов → звук → сцены → index.html → lint/check → рендер → мастеринг → автопроверка
+  hygen publish <папка ролика> [--mp4 <файл>]
+      publish/ из готовой сборки и MP4: 3 названия, описание с источниками и кредитами, теги, SRT фразами, обложка
   hygen verify <папка ролика> [--mp4 <файл>] [--no-snapshots]
       автопроверка готового MP4 и контактный лист
   hygen scene <id сцены> [--params '{json}'] [--tone accent|cold] [--seed n] [--at t1,t2] [--look id|'{json}'] [--textures '[{"id":"rain"}]'] [--beat '{"type":"stagger","camera":"handheld","post":[{"id":"bloom"}]}']
@@ -22,7 +26,7 @@ const USAGE = `hygen — движок faceless-канала
 
   из корня репозитория: npm run build -- videos/pompeii-en`;
 
-const VALUE_FLAGS = new Set(["--quality", "--mp4", "--params", "--tone", "--seed", "--at", "--look", "--textures", "--beat", "--stage", "--src", "--device", "--text", "--dur"]);
+const VALUE_FLAGS = new Set(["--voice", "--quality", "--mp4", "--params", "--tone", "--seed", "--at", "--look", "--textures", "--beat", "--stage", "--src", "--device", "--text", "--dur"]);
 
 async function main(argv: string[]): Promise<number> {
   const [cmd, ...rest] = argv;
@@ -36,8 +40,16 @@ async function main(argv: string[]): Promise<number> {
   if (cmd === "build" && dir) {
     const quality = value("--quality") ?? "standard";
     if (!["draft", "standard", "high"].includes(quality)) throw new BuildError(`--quality: draft, standard или high, а не ${quality}`);
-    const ok = await build(dir, { render: !flags.has("--no-render"), check: !flags.has("--no-check"), quality, snapshots: !flags.has("--no-snapshots") });
+    const ok = await build(dir, { render: !flags.has("--no-render"), check: !flags.has("--no-check"), quality, snapshots: !flags.has("--no-snapshots"), voice: value("--voice") });
     return ok ? 0 : 1;
+  }
+  if (cmd === "publish" && dir) {
+    const spec = loadSpec(dir);
+    const res = writePublish(dir, spec, value("--mp4"));
+    console.log(`publish/: ${res.files.join(", ")} · источников ${res.sources.length}, кредитов ${res.credits.length}, обложка — ${res.thumbnailAt.beat} @${res.thumbnailAt.t.toFixed(2)} с`);
+    const chk = checkPublish(dir, spec);
+    console.log(`${chk.ok ? "✓" : "✗"} publish   ${chk.detail}`);
+    return chk.ok ? 0 : 1;
   }
   if (cmd === "verify" && dir) return verifyOnly(dir, value("--mp4"), !flags.has("--no-snapshots")) ? 0 : 1;
   if (cmd === "scene" && (value("--stage") || value("--device") || (positional[0] && isRecipe(positional[0])))) {

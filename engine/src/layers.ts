@@ -463,7 +463,7 @@ export function postOverlays(needs: MotionNeeds): { css: string; html: string } 
       "#hy-tr-canvas { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; pointer-events: none; z-index: 27; }",
       "#hy-tr-veil { position: absolute; inset: 0; pointer-events: none; z-index: 27; background-color: var(--hy-heroDeep); opacity: 0; }",
     );
-    html.push('<div id="hy-tr-veil" aria-hidden="true" data-layout-ignore></div>', '<canvas id="hy-tr-canvas" width="540" height="960" aria-hidden="true" data-layout-ignore></canvas>');
+    html.push('<div id="hy-tr-veil" aria-hidden="true" data-layout-ignore data-layout-allow-occlusion></div>', '<canvas id="hy-tr-canvas" width="540" height="960" aria-hidden="true" data-layout-ignore data-layout-allow-occlusion></canvas>');
   }
   if (needs.vpulse) {
     css.push("#hy-post-vpulse { position: absolute; inset: 0; pointer-events: none; z-index: 31; opacity: 0; background: radial-gradient(ellipse 70% 56% at 50% 42%, rgba(var(--hy-rgb-night), 0) 30%, rgba(var(--hy-rgb-night), 0.9) 100%); }");

@@ -370,6 +370,8 @@ export interface StageFrame {
   settle: number;
   devices: ResolvedDevice[];
   videos: number;
+  /** A playing video is on screen at settle (no hold covers it): a snapshot cannot match the render frame-exactly. */
+  videoAtSettle: boolean;
 }
 
 export function clockOf(timing: BeatTiming, words: BeatWords): Clock {
@@ -422,7 +424,7 @@ export function writeStageFrame(input: StageFrameInput): StageFrame {
       : `<div id="${prefix}-divider" style="position: absolute; left: 0px; top: -3px; width: 1080px; height: 6px; background-color: ${colors.text}; box-shadow: 0 0 24px rgba(${rgbOf(colors.hero as string)},0.8); opacity: 0"></div>`;
     const labels = (st.labels as string[] | undefined) ?? [];
     const lab = (id: string, text: string, right: boolean): string =>
-      `<div id="${prefix}-${id}" style="position: absolute; top: 170px; ${right ? "right: 72px; text-align: right" : "left: 72px"}; padding: 10px 18px; border-radius: 6px; background-color: rgba(${rgbOf(colors.night as string)},0.78); font-family: ${fontStack(style.fonts.body as never)}; font-weight: 800; font-size: ${style.sizes.label}px; letter-spacing: 0.18em; color: ${colors.text}; opacity: 0">${text.replace(/</g, "&lt;")}</div>`;
+      `<div id="${prefix}-${id}" style="position: absolute; top: 170px; ${right ? "right: 72px; text-align: right" : "left: 72px"}; padding: 10px 18px; border-radius: 6px; background-color: rgba(${rgbOf(colors.night as string)},0.78); font-family: ${fontStack(style.fonts.body as never).replace(/"/g, "'")}; font-weight: 800; font-size: ${style.sizes.label}px; letter-spacing: 0.18em; color: ${colors.text}; opacity: 0">${text.replace(/</g, "&lt;")}</div>`;
     stageHtml =
       `<div id="${prefix}-a-wrap" style="position: absolute; left: 0px; top: 0px; width: 1080px; height: 1920px">${a.html("")}${tone("a")}</div>` +
       `<div id="${prefix}-b-wrap" style="position: absolute; left: 0px; top: 0px; width: 1080px; height: 1920px">${b.html("")}${tone("b")}</div>` +
@@ -509,7 +511,9 @@ ${layers}
   const inside = events.filter((e) => e.t < D - 0.15).sort((a, b) => a.t - b.t);
   const last = inside.length ? (inside[inside.length - 1] as { t: number }).t : 0;
   const settle = r3(Math.max(0.3, Math.min(D - 0.25, Math.max(last + 0.9, clock.speechEnd - 0.2))));
-  return { src, events: inside, settle, devices, videos };
+  const holdSpans = (stageCfg.media as { holds?: { at: number; dur: number }[] } | undefined)?.holds ?? [];
+  const videoAtSettle = videos > 0 && !holdSpans.some((h) => settle >= h.at - 0.05 && settle <= h.at + h.dur + 0.05);
+  return { src, events: inside, settle, devices, videos, videoAtSettle };
 }
 
 /** A v2 beat of a video → its frame and the SceneBuild the rest of the build expects (identity warp, times in seconds). */
@@ -524,6 +528,7 @@ export function writeStageBeat(input: StageFrameInput): SceneBuild {
     scene: null,
     params: {},
     settle: frame.settle,
+    video: frame.videoAtSettle,
     events: frame.events.map((e) => ({ ref: e.t, label: e.label })),
     injected: false,
   };

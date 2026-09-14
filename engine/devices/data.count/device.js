@@ -35,6 +35,7 @@ HygenDevices.define("data.count", function (api, dev) {
   var pulse = api.el("div", { style: { display: "inline-block", transformOrigin: "50% 55%", fontFamily: api.F.display, fontWeight: "700", fontSize: size + "px", lineHeight: "1", color: col, fontVariantNumeric: "lining-nums tabular-nums", textShadow: "0 0 40px rgba(" + api.RGB.night + ",0.7)" } }, wrap);
   if (prefix) api.el("span", { text: prefix, style: { fontSize: "0.55em", position: "relative", top: affixLift(prefix), marginRight: "0.04em" } }, pulse);
   var num = api.el("span", { text: fmt(from) }, pulse);
+  num.setAttribute("data-layout-allow-overlap", ""); // hero digits reach into the label line box
   if (suffix) api.el("span", { text: suffix, style: { fontSize: "0.55em", position: "relative", top: affixLift(suffix), marginLeft: "0.04em" } }, pulse);
 
   api.show(wrap, dev.at, 0.38, { y: 24, scale: 0.98 });
@@ -52,6 +53,7 @@ HygenDevices.define("data.count", function (api, dev) {
 
   if (P.label) {
     var lab = api.el("div", { id: api.id("label"), text: P.label, style: { position: "absolute", left: (cx - 540).toFixed(0) + "px", width: "1080px", top: (top + size * 1.02 + labSize * 0.25).toFixed(0) + "px", textAlign: "center", whiteSpace: "nowrap", fontFamily: api.F.body, fontWeight: "700", fontSize: labSize + "px", lineHeight: "1.2", letterSpacing: "0.14em", textTransform: "uppercase", color: api.color(P.labelColor, "text"), opacity: "0.88", textShadow: "0 0 16px rgba(" + (["night", "heroDeep", "ground", "plane", "ashDeep"].indexOf(P.labelColor) >= 0 ? api.RGB.text : api.RGB.night) + ",0.95)" } });
+    lab.setAttribute("data-layout-allow-overlap", "");
     api.show(lab, dev.at + 0.25, 0.4, { y: 12 });
   }
 });

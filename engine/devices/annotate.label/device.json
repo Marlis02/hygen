@@ -16,7 +16,7 @@
   },
   "events": [
     { "label": "draw", "offset": 0 },
-    { "label": "land", "offset": 0.96 }
+    { "label": "land", "offset": 0.66 }
   ],
   "demo": { "target": { "x": 38, "y": 42 }, "params": { "text": "HERCULANEUM", "sub": "BURIED 79 AD" }, "at": 0.6 }
 }

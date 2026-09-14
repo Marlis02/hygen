@@ -1,0 +1,39 @@
+1
+00:00:00,280 --> 00:00:02,010
+The counter runs backwards on
+
+2
+00:00:02,010 --> 00:00:02,830
+this clip.
+
+3
+00:00:03,780 --> 00:00:05,040
+Here the moving picture is
+
+4
+00:00:05,040 --> 00:00:06,460
+printed in two inks.
+
+5
+00:00:07,447 --> 00:00:08,967
+Now the frame travels across
+
+6
+00:00:08,967 --> 00:00:10,417
+the moving picture,
+
+7
+00:00:10,547 --> 00:00:11,917
+from corner to corner.
+
+8
+00:00:12,847 --> 00:00:14,547
+A hand drawn circle stays
+
+9
+00:00:14,547 --> 00:00:16,347
+alive after it lands,
+
+10
+00:00:16,377 --> 00:00:17,757
+and it keeps on breathing.
