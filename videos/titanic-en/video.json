@@ -32,7 +32,7 @@
     {
       "id": "02-route",
       "role": "setup",
-      "text": "On her maiden voyage from Southampton to New York, she steamed across the North Atlantic at night.",
+      "text": "Four days into her maiden voyage from Southampton to New York, she steamed across the North Atlantic on a calm night with no moon.",
       "pad": [0.2, 0.7],
       "stage": {
         "type": "map",
@@ -40,7 +40,7 @@
         "reveal": "maiden",
         "draw": true,
         "markers": [{ "x": 54.7, "y": 37.7, "label": "TITANIC", "at": "night" }],
-        "route": { "points": [{ "x": 93.5, "y": 31.8 }, { "x": 74, "y": 35.5 }, { "x": 54.7, "y": 37.7 }], "at": "steamed", "dur": 2.4, "traveler": true }
+        "route": { "points": [{ "x": 93.5, "y": 31.8 }, { "x": 74, "y": 35.5 }, { "x": 54.7, "y": 37.7 }], "at": "Southampton", "dur": 3.6, "traveler": true }
       },
       "devices": [],
       "dominant": "stage",
@@ -50,7 +50,7 @@
     {
       "id": "03-hull",
       "role": "turn",
-      "text": "She had [16|sixteen] compartments and could float with four flooded. The iceberg opened six.",
+      "text": "She had [16|sixteen] compartments and was designed to stay afloat with four flooded. The iceberg opened six.",
       "pad": [0.2, 0.8],
       "stage": {
         "type": "media",
@@ -84,7 +84,7 @@
     {
       "id": "05-sinking",
       "role": "aftermath",
-      "text": "[2 hours 40 minutes|Two hours and forty minutes] after the collision, she broke apart and sank.",
+      "text": "[2 hours 40 minutes|Two hours and forty minutes] after the collision, the largest ship afloat broke apart and sank.",
       "pad": [0.3, 1.0],
       "stage": {
         "type": "media",
@@ -103,7 +103,7 @@
     {
       "id": "06-boat",
       "role": "ending",
-      "text": "By morning, [710|seven hundred and ten] people had been pulled from the boats.",
+      "text": "By morning, the Carpathia had rescued [710|seven hundred and ten] people from the boats.",
       "pad": [0.8, 2.2],
       "intent": "quiet-ending",
       "target": { "x": 50, "y": 21 },
@@ -129,7 +129,7 @@
       "Imagine the largest ship afloat — and seats in the boats for half",
       "The only film of the Titanic, and the 710 who lived"
     ],
-    "description": "The Titanic was the largest ship afloat. On her maiden voyage from Southampton to New York she struck an iceberg: of her sixteen watertight compartments, six were opened to the sea. Her 20 lifeboats could carry 1,178 of the 2,209 people on board. Two hours and forty minutes after the collision she broke apart and sank; by morning 710 people had been pulled from the boats.",
+    "description": "The Titanic was the largest ship afloat. Four days into her maiden voyage from Southampton to New York, on a calm night with no moon, she struck an iceberg: of her sixteen compartments, six were opened to the sea. Her 20 lifeboats could carry 1,178 of the 2,209 people on board. Two hours and forty minutes after the collision she broke apart and sank; by morning the Carpathia had rescued 710 people from the boats.",
     "tags": ["titanic", "rms titanic", "1912", "shipwreck", "history", "lifeboats", "iceberg", "north atlantic", "maritime history", "history shorts", "disasters", "ocean liner"]
   }
 }

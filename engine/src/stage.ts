@@ -253,7 +253,23 @@ export function videoSegments(total: number, srcDur: number, rate: number, holds
     t = end;
   }
   if (t < total) play(total);
-  return segs.filter((g) => g.dur > 0.005);
+  const out = segs.filter((g) => g.dur > 0.005);
+  // a video clip shorter than 0.4 s next to a still (the tail after a hold) is not extracted whole — the render's
+  // coverage gate aborted titanic-en at 7 of 8 frames (TRAPS.md): the still simply lasts over it
+  for (let i = 0; i < out.length; i++) {
+    const g = out[i] as Seg;
+    if (g.kind !== "video" || g.dur >= 0.4 || out.length === 1) continue;
+    const prev = out[i - 1];
+    const next = out[i + 1];
+    if (prev && prev.kind === "still") prev.dur = r3(prev.dur + g.dur);
+    else if (next && next.kind === "still") {
+      next.start = g.start;
+      next.dur = r3(next.dur + g.dur);
+    } else continue;
+    out.splice(i, 1);
+    i--;
+  }
+  return out;
 }
 
 function prepareMedia(m: Record<string, unknown>, key: string, ctx: Ctx, extraHolds: { at?: number | string; until?: number | string; dur?: number }[]): MediaBuild {

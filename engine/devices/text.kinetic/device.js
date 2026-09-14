@@ -31,9 +31,24 @@ HygenDevices.define("text.kinetic", function (api, dev) {
     for (var i = 0; i < n; i++) out.push(beats.length ? (i < beats.length ? beats[i] : beats[beats.length - 1] + (i - beats.length + 1) * period) : at + i * step);
     return out.map(function (t) { return Math.min(t, end - 0.15); });
   }
-  var mctx = document.createElement("canvas").getContext("2d");
-  function measure(s, px, wgt, family) { mctx.font = (wgt || weight) + " " + px + "px " + (family || fam); return mctx.measureText(s).width; }
-  /** The size of the scale that keeps s inside maxW (fonts may still load at mount: 8 % reserve). */
+  // widths are estimated from character classes (em), never measured on a canvas: at mount the webfont may or may not be
+  // loaded yet, and the render and the snapshot laid the same line out at different sizes (settled 39.2 — TRAPS.md)
+  function emWidth(s, family) {
+    var disp = String(family || fam).indexOf("Cormorant") >= 0, w = 0;
+    for (var i = 0; i < s.length; i++) {
+      var ch = s.charAt(i);
+      if (ch === " ") w += 0.28;
+      else if (/[MWmw@%]/.test(ch)) w += disp ? 0.82 : 0.9;
+      else if (/[IJijl1|.,:;'!]/.test(ch)) w += disp ? 0.26 : 0.32;
+      else if (/[A-Z]/.test(ch)) w += disp ? 0.62 : 0.7;
+      else if (/[0-9]/.test(ch)) w += disp ? 0.5 : 0.64;
+      else if (/[a-z]/.test(ch)) w += disp ? 0.45 : 0.57;
+      else w += 0.6;
+    }
+    return w;
+  }
+  function measure(s, px, wgt, family) { return emWidth(s, family) * px * ((wgt || weight) >= 700 ? 1.03 : 1); }
+  /** The size of the scale that keeps s inside maxW (8 % reserve for the error of the estimate). */
   function fit(s, maxW, px, stretch) {
     var w = measure(s, px) * 1.08 * (stretch || 1);
     return w > maxW ? Math.max(36, Math.floor((px * maxW) / w)) : px;
@@ -69,6 +84,8 @@ HygenDevices.define("text.kinetic", function (api, dev) {
   if (mode === "stack") {
     var n = P.repeat, rowPx = Math.min(fit(text, area.w * 0.96, size), Math.floor(area.h / (n * 0.92)));
     var block = node("div", { position: "absolute", left: area.x + "px", top: (cy - (n * rowPx * 0.92) / 2).toFixed(0) + "px", width: area.w + "px", textAlign: "center" }, root);
+    // outline rows get their transparent fill from a class that walks between rows — `check` would call every one unpainted
+    block.setAttribute("data-layout-ignore", "");
     tl.set(block, { skewX: -Math.abs(P.angle) * 0.6 }, 0);
     // rows arrive in a quick stagger from at (the first beat under music); the filled row walks on the beats after that
     var filled = Math.floor(n / 2), rows = [], ts = [];

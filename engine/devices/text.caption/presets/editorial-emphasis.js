@@ -4,7 +4,7 @@
    left, 0.1 s power2.out), the emphasis word slides in from the left (0.2 s power2.out); cream text with a double dark
    shadow. Own: the emphasis word is picked automatically (the longest word of ≥4 letters, later on a tie) instead of a
    hand-written block list; Playfair Display 800 italic → style display font (Cormorant) 700 italic, Inter 400 → body
-   font 400; the slide starts half the text width away, not 1920 px off-frame; the emphasis shrinks to fit maxWidth. */
+   font 400; the slide starts half the text width away, not 1920 px off-frame; the emphasis shrinks to fit maxWidth; the big word is marked data-layout-allow-overlap (its font box, not its ink, meets the other line). */
 HygenCaptions.define("editorial-emphasis", {
   family: "calm",
   origin: "registry:caption-editorial-emphasis",
@@ -38,11 +38,13 @@ HygenCaptions.define("editorial-emphasis", {
     var gap = Math.round(fs * 0.24);
     var slide = -Math.round(s.maxWidth * 0.5);
 
-    lines.forEach(function (ln) {
-      var line = api.el("div", { style: { display: "flex", flexWrap: "wrap", alignItems: "baseline", columnGap: gap + "px", lineHeight: "1.1", color: s.color } }, api.box);
+    lines.forEach(function (ln, li) {
+      // the original keeps 8 px between lines at an 86 px body size
+      var line = api.el("div", { style: { display: "flex", flexWrap: "wrap", alignItems: "baseline", columnGap: gap + "px", lineHeight: "1.1", color: s.color, marginTop: li ? Math.round(fs * 0.1) + "px" : "0px" } }, api.box);
       ln.forEach(function (p) {
         var w = W[p[0]], emph = p[1];
-        var span = api.el("span", { text: w.text, style: emph
+        // tight leading is the look: the font box of the big word reaches the next line, its letters do not
+        var span = api.el("span", { text: w.text, "data-layout-allow-overlap": emph ? "" : null, style: emph
           ? { display: "inline-block", fontFamily: api.F.display, fontWeight: "700", fontStyle: "italic", fontSize: Math.round(emphSize) + "px", lineHeight: "0.9", textShadow: shadow }
           : { display: "inline-block", fontFamily: api.F.body, fontWeight: "400", fontSize: fs + "px", textShadow: shadow } }, line);
         if (emph && lines.length > 1) {

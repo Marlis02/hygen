@@ -8,11 +8,12 @@
 |---|---|---|---|---|
 | 1 | The largest ship afloat | — | «Titanic was the largest ship afloat upon entering service» | https://en.wikipedia.org/wiki/Titanic |
 | 2 | The only film of the ship, Belfast, April 1912 | 1912 | Commons: «Titanic Disaster — Genuine Footage (1911–1912)», British Pathé; снято в Белфасте 2 апреля 1912 (TRAPS: подпись не утверждает больше описания) | https://commons.wikimedia.org/wiki/File:Titanic_Disaster_-_Genuine_Footage_(1911-1912).webm |
-| 3 | Maiden voyage, Southampton to New York | — | «…sank … during her maiden voyage from Southampton, England, to New York City» | https://en.wikipedia.org/wiki/Sinking_of_the_Titanic |
-| 4 | 16 compartments, floats with 4 flooded, iceberg opened 6 | 16, 4, 6 | proof titanic-v2 (Sinking of the Titanic) | https://en.wikipedia.org/wiki/Sinking_of_the_Titanic |
+| 3 | Four days into her maiden voyage, Southampton to New York | 4 | «…Titanic was four days into her maiden voyage from Southampton, England, to New York City…» | https://en.wikipedia.org/wiki/Sinking_of_the_Titanic |
+| 3a | A calm night with no moon (озвучка) | — | «…the ocean was completely calm.» · «Although the air was clear, there was no moon…» | https://en.wikipedia.org/wiki/Sinking_of_the_Titanic |
+| 4 | 16 compartments, designed to stay afloat with 4 flooded, iceberg opened 6 | 16, 4, 6 | «…opened six of her sixteen compartments to the sea. Titanic had been designed to stay afloat with up to four of her forward compartments flooded…» | https://en.wikipedia.org/wiki/Sinking_of_the_Titanic |
 | 5 | 20 lifeboats for 1,178 people; 2,209 on board | 20, 1178, 2209 | «The ship had been supplied with 20 lifeboats that, by lifeboat capacity of that time, could accommodate 1,178 people, a little over half of the 2,209 on board the night it sank.» | https://en.wikipedia.org/wiki/Lifeboats_of_the_Titanic |
 | 6 | Sank 2 h 40 min after the collision | 2:40 | «She sank two hours and forty minutes later at 02:20 ship's time» | https://en.wikipedia.org/wiki/Sinking_of_the_Titanic |
-| 7 | 710 people pulled from the boats | 710 | proof titanic-v2 (Sinking of the Titanic) | https://en.wikipedia.org/wiki/Sinking_of_the_Titanic |
+| 7 | By morning the Carpathia had rescued 710 people from the boats | 710 | «Carpathia arrived about an hour and a half after the sinking and rescued all of the 710 survivors by 09:15 on 15 April.» | https://en.wikipedia.org/wiki/Sinking_of_the_Titanic |
 
 Точки 04-lifeboats: 1 точка = 10 человек — 221 точка (2,209), загораются 118 (1,178).
 
