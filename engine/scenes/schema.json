@@ -4,69 +4,171 @@
   "title": "hygen: контракт сцены (scene.json)",
   "description": "Описание сцены библиотеки. Правила и плейсхолдеры шаблона — engine/scenes/CONTRACT.md. $defs/beat — бит в video.json, который использует сцену. Движок проверяет то же самое кодом (engine/src/contract.ts).",
   "type": "object",
-  "required": ["id", "name", "use", "ref", "duration", "settle", "params", "anchors", "events", "seed", "safeZone"],
+  "required": [
+    "id",
+    "name",
+    "use",
+    "ref",
+    "duration",
+    "settle",
+    "params",
+    "anchors",
+    "events",
+    "seed",
+    "safeZone"
+  ],
   "additionalProperties": false,
   "properties": {
-    "$schema": { "type": "string" },
-    "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$", "description": "Совпадает с именем папки engine/scenes/<id>/." },
-    "name": { "type": "string", "description": "Короткое имя по-русски." },
-    "use": { "type": "string", "description": "Когда режиссёру брать эту сцену — по-английски, 1–2 предложения." },
-    "hero": { "type": "boolean", "default": false, "description": "Геройская сцена под одну тему: не для случайных роликов." },
+    "$schema": {
+      "type": "string"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "description": "Совпадает с именем папки engine/scenes/<id>/."
+    },
+    "name": {
+      "type": "string",
+      "description": "Короткое имя по-русски."
+    },
+    "use": {
+      "type": "string",
+      "description": "Когда режиссёру брать эту сцену — по-английски, 1–2 предложения."
+    },
+    "hero": {
+      "type": "boolean",
+      "default": false,
+      "description": "Геройская сцена под одну тему: не для случайных роликов."
+    },
     "ref": {
       "type": "object",
       "description": "Опорный голос, на котором сцена авторизована: все времена в шаблоне и в anchors — на этой шкале.",
-      "required": ["duration", "speechStart", "speechEnd"],
+      "required": [
+        "duration",
+        "speechStart",
+        "speechEnd"
+      ],
       "additionalProperties": false,
       "properties": {
-        "duration": { "type": "number", "exclusiveMinimum": 0 },
-        "speechStart": { "type": "number", "minimum": 0 },
-        "speechEnd": { "type": "number", "minimum": 0 }
+        "duration": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "speechStart": {
+          "type": "number",
+          "minimum": 0
+        },
+        "speechEnd": {
+          "type": "number",
+          "minimum": 0
+        }
       }
     },
     "duration": {
       "type": "object",
       "description": "Допустимая длительность клипа бита в секундах (реплика + паузы). Вне диапазона сборка предупреждает.",
-      "required": ["min", "max"],
+      "required": [
+        "min",
+        "max"
+      ],
       "additionalProperties": false,
       "properties": {
-        "min": { "type": "number", "exclusiveMinimum": 0 },
-        "max": { "type": "number", "exclusiveMinimum": 0 }
+        "min": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "max": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
       }
     },
-    "settle": { "type": "number", "minimum": 0, "description": "Опорное время, когда кадр сцены устоялся (сравнение со снимком в автопроверке)." },
+    "settle": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Опорное время, когда кадр сцены устоялся (сравнение со снимком в автопроверке)."
+    },
     "params": {
       "type": "object",
-      "propertyNames": { "pattern": "^[a-z][A-Za-z0-9]*$" },
-      "additionalProperties": { "$ref": "#/$defs/param" }
+      "propertyNames": {
+        "pattern": "^[a-z][A-Za-z0-9]*$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/param"
+      }
     },
     "anchors": {
       "type": "object",
       "description": "Якоря: имя события сцены → опорное время. Бит привязывает якорь к слову реплики.",
-      "propertyNames": { "pattern": "^[a-z][A-Za-z0-9]*$" },
-      "additionalProperties": { "$ref": "#/$defs/anchor" }
+      "propertyNames": {
+        "pattern": "^[a-z][A-Za-z0-9]*$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/anchor"
+      }
     },
     "events": {
       "type": "array",
       "description": "События, которые обязаны заметно менять кадр (автопроверка frozen).",
-      "items": { "$ref": "#/$defs/event" }
+      "items": {
+        "$ref": "#/$defs/event"
+      }
     },
     "seed": {
       "type": "object",
-      "required": ["default", "affects"],
+      "required": [
+        "default",
+        "affects"
+      ],
       "additionalProperties": false,
       "properties": {
-        "default": { "type": "integer", "description": "Сид по умолчанию; 0 = вид Помпей." },
-        "affects": { "type": ["string", "null"], "description": "Что меняет сид; null — сцена без случайности." }
+        "default": {
+          "type": "integer",
+          "description": "Сид по умолчанию; 0 = вид Помпей."
+        },
+        "affects": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Что меняет сид; null — сцена без случайности."
+        }
       }
     },
     "safeZone": {
       "type": "object",
       "description": "Что сцена гарантирует о безопасной зоне стиля.",
-      "required": ["contentMaxY", "rightRail"],
+      "required": [
+        "contentMaxY",
+        "rightRail"
+      ],
       "additionalProperties": false,
       "properties": {
-        "contentMaxY": { "type": "number", "description": "Смысловые элементы кончаются не ниже этого y." },
-        "rightRail": { "type": "boolean", "description": "true — текст не заходит в x > 960 на высоте 1000–1700." }
+        "contentMaxY": {
+          "type": "number",
+          "description": "Смысловые элементы кончаются не ниже этого y."
+        },
+        "rightRail": {
+          "type": "boolean",
+          "description": "true — текст не заходит в x > 960 на высоте 1000–1700."
+        }
+      }
+    },
+    "depth": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 3,
+      "default": 1,
+      "description": "Множитель параллакса сцены под камерой движка (engine/motion/parallax.json)."
+    },
+    "text": {
+      "type": "object",
+      "description": "Текстовые слоты, которые принимают пресет кинетической типографики (engine/motion/type.json).",
+      "propertyNames": {
+        "pattern": "^[a-z][A-Za-z0-9]*$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/textSlot"
       }
     }
   },
@@ -78,73 +180,289 @@
     },
     "param": {
       "type": "object",
-      "required": ["type", "default", "description"],
+      "required": [
+        "type",
+        "default",
+        "description"
+      ],
       "additionalProperties": false,
       "properties": {
         "type": {
-          "enum": ["number", "integer", "string", "boolean", "enum", "list", "point", "map", "image"],
+          "enum": [
+            "number",
+            "integer",
+            "string",
+            "boolean",
+            "enum",
+            "list",
+            "point",
+            "map",
+            "image"
+          ],
           "description": "list — массив строк; point — {x, y} в px кадра 1080×1920; map — имя силуэта из engine/assets/maps/; image — путь к файлу от папки ролика."
         },
         "default": {},
-        "description": { "type": "string" },
-        "values": { "type": "array", "items": { "type": "string" }, "description": "Для enum." },
-        "min": { "type": "number" },
-        "max": { "type": "number" },
-        "maxLength": { "type": "integer", "description": "Для string — символов; для list — длина каждого элемента." },
-        "maxItems": { "type": "integer" },
-        "figure": { "type": "boolean", "description": "Параметр — цифра на экране: бит обязан дать sources.<param> (ссылку)." },
-        "if": { "$ref": "#/$defs/condition", "description": "Параметр показывается только при условии (для figure — источник нужен только тогда)." }
+        "description": {
+          "type": "string"
+        },
+        "values": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Для enum."
+        },
+        "min": {
+          "type": "number"
+        },
+        "max": {
+          "type": "number"
+        },
+        "maxLength": {
+          "type": "integer",
+          "description": "Для string — символов; для list — длина каждого элемента."
+        },
+        "maxItems": {
+          "type": "integer"
+        },
+        "figure": {
+          "type": "boolean",
+          "description": "Параметр — цифра на экране: бит обязан дать sources.<param> (ссылку)."
+        },
+        "if": {
+          "$ref": "#/$defs/condition",
+          "description": "Параметр показывается только при условии (для figure — источник нужен только тогда)."
+        }
       }
     },
     "anchor": {
       "type": "object",
-      "required": ["at", "description"],
+      "required": [
+        "at",
+        "description"
+      ],
       "additionalProperties": false,
       "properties": {
-        "at": { "type": "number", "minimum": 0 },
-        "description": { "type": "string" },
-        "required": { "type": "boolean", "default": false }
+        "at": {
+          "type": "number",
+          "minimum": 0
+        },
+        "description": {
+          "type": "string"
+        },
+        "required": {
+          "type": "boolean",
+          "default": false
+        }
       }
     },
     "event": {
       "type": "object",
-      "required": ["label"],
+      "required": [
+        "label"
+      ],
       "additionalProperties": false,
       "properties": {
-        "anchor": { "type": "string" },
-        "at": { "type": "number", "minimum": 0 },
-        "label": { "type": "string" },
-        "if": { "$ref": "#/$defs/condition" }
+        "anchor": {
+          "type": "string"
+        },
+        "at": {
+          "type": "number",
+          "minimum": 0
+        },
+        "label": {
+          "type": "string"
+        },
+        "if": {
+          "$ref": "#/$defs/condition"
+        }
       },
-      "oneOf": [{ "required": ["anchor"] }, { "required": ["at"] }]
+      "oneOf": [
+        {
+          "required": [
+            "anchor"
+          ]
+        },
+        {
+          "required": [
+            "at"
+          ]
+        }
+      ]
     },
     "beat": {
       "title": "Бит в video.json",
       "type": "object",
-      "required": ["id", "scene", "text"],
+      "required": [
+        "id",
+        "scene",
+        "text"
+      ],
       "additionalProperties": false,
       "properties": {
-        "id": { "type": "string", "pattern": "^[0-9a-z][a-z0-9-]*$" },
-        "scene": { "type": "string", "description": "id сцены библиотеки." },
-        "text": { "type": "string", "description": "Реплика по-английски; [display|spoken] — субтитр показывает display, голос говорит spoken." },
-        "pad": { "type": "array", "items": { "type": "number", "minimum": 0 }, "minItems": 2, "maxItems": 2 },
-        "tone": { "enum": ["accent", "cold"], "default": "accent", "description": "Акцент сцены: тёплый акцент стиля или холодный." },
-        "seed": { "type": "integer" },
-        "params": { "type": "object", "description": "Только параметры из scene.json; остальное берётся из default." },
+        "id": {
+          "type": "string",
+          "pattern": "^[0-9a-z][a-z0-9-]*$"
+        },
+        "scene": {
+          "type": "string",
+          "description": "id сцены библиотеки."
+        },
+        "text": {
+          "type": "string",
+          "description": "Реплика по-английски; [display|spoken] — субтитр показывает display, голос говорит spoken."
+        },
+        "pad": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "minimum": 0
+          },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "tone": {
+          "enum": [
+            "accent",
+            "cold"
+          ],
+          "default": "accent",
+          "description": "Акцент сцены: тёплый акцент стиля или холодный."
+        },
+        "seed": {
+          "type": "integer"
+        },
+        "params": {
+          "type": "object",
+          "description": "Только параметры из scene.json; остальное берётся из default."
+        },
         "anchors": {
           "type": "object",
           "description": "Якорь сцены → слово реплики: «word», «word#2» (второе вхождение), «word.end» (конец слова).",
-          "additionalProperties": { "type": "string", "pattern": "^[a-z0-9']+(#\\d+)?(\\.end)?$" }
+          "additionalProperties": {
+            "type": "string",
+            "pattern": "^[a-z0-9']+(#\\d+)?(\\.end)?$"
+          }
         },
         "cues": {
           "type": "object",
           "description": "Низкоуровневые опорные точки: опорное время сцены → слово. Для тонкой подгонки, режиссёру не нужны.",
-          "additionalProperties": { "type": "string" }
+          "additionalProperties": {
+            "type": "string"
+          }
         },
         "sources": {
           "type": "object",
           "description": "Параметр-цифра → ссылка на источник. Ключ text — для цифр, которые есть только в реплике.",
-          "additionalProperties": { "type": "string", "pattern": "^https?://" }
+          "additionalProperties": {
+            "type": "string",
+            "pattern": "^https?://"
+          }
+        },
+        "textures": {
+          "type": "array",
+          "description": "Текстуры поверх look только на этот бит (engine/textures): [{id, …параметры, opacity, blend, depth, seed}].",
+          "items": {
+            "type": "object",
+            "required": [
+              "id"
+            ]
+          }
+        },
+        "background": {
+          "type": "object",
+          "description": "Медиафон бита: {image|video, treatment: ken-burns|parallax|blur|duotone (или список), focus: [x, y], opacity, depth, blend, zoom: [от, до]}. Лицензия рядом с файлом обязательна."
+        },
+        "type": {
+          "description": "Пресет кинетической типографики: одна строка на все текстовые слоты сцены или {слот: пресет}.",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          ]
+        },
+        "camera": {
+          "description": "Камера движка на бит: имя пресета или {preset, amplitude, shake} поверх look.",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object"
+            }
+          ]
+        },
+        "post": {
+          "type": "array",
+          "description": "Пост-эффекты бита поверх look: [{id, strength}].",
+          "items": {
+            "type": "object",
+            "required": [
+              "id"
+            ]
+          }
+        },
+        "transition": {
+          "description": "Переход в этот бит: id или список id из engine/transitions (сильнее переходов look).",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ]
+        }
+      }
+    },
+    "textSlot": {
+      "type": "object",
+      "required": [
+        "el",
+        "kind",
+        "at"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "el": {
+          "type": "string",
+          "description": "id элемента без префикса: counter → id=\"__p__-counter\"."
+        },
+        "text": {
+          "type": "string",
+          "description": "Элемент, чей текст режется на символы, если это не el."
+        },
+        "kind": {
+          "enum": [
+            "number",
+            "title",
+            "label"
+          ],
+          "description": "Вид текста: look задаёт пресет по виду."
+        },
+        "at": {
+          "type": [
+            "string",
+            "number"
+          ],
+          "description": "Якорь сцены или опорное время появления элемента."
+        },
+        "dynamic": {
+          "type": "boolean",
+          "description": "Сцена переписывает текст по ходу (счётчик): символы пересобираются на каждой записи."
+        },
+        "chars": {
+          "type": "string",
+          "description": "Селектор собственных ячеек символов сцены (.__p__-ch): пресет двигает их, а не режет текст."
         }
       }
     }

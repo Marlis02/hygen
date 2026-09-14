@@ -1,0 +1,103 @@
+<!-- hygen texture bubbles (D3.5, from the marine snow and ship bubbles of drawOcean in scale-gauge): seeded bubbles
+     rising with a wobble over drifting specks, every position a pure function of time. Contract: engine/scenes/CONTRACT.md, «Текстуры». -->
+<template id="__p__-template">
+<div id="root" data-composition-id="__cid__" data-start="0" data-duration="{{hygen:duration}}" data-width="1080" data-height="1920">
+  <style>
+    #root { position: relative; width: 1080px; height: 1920px; overflow: hidden; pointer-events: none; }
+    #__p__-c { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; }
+  </style>
+  <canvas id="__p__-c" class="clip" width="540" height="960" data-start="0" data-duration="{{hygen:duration}}" data-track-index="0"></canvas>
+</div>
+<script src="assets/vendor/gsap.min.js"></script>
+<script>
+(function () {
+  /*{{hygen:params}}*/
+  var ctx = document.getElementById("__p__-c").getContext("2d");
+  var W = 1080, H = 1920, TAU = Math.PI * 2;
+  function rand(n) { var x = Math.sin((n + SEED * 101.3) * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); }
+  function wrap(v, lo, span) { return ((((v - lo) % span) + span) % span) + lo; }
+  // bubbles: most small, a few big; bigger → faster, wobblier, brighter
+  var NB = Math.round(110 * P.density);
+  var BPAD = 24 * P.size + 30, BSY = H + 2 * BPAD;
+  var WOB = 0.4 + 0.6 * Math.min(P.speed, 1.5);
+  var BUB = [];
+  for (var i = 0; i < NB; i++) {
+    var k = Math.pow(rand(i * 2.3 + 0.7), 2.2);
+    BUB.push({
+      x: 40 + rand(i * 1.7 + 0.3) * (W - 80), y: rand(i * 4.3 + 2.2) * BSY,
+      r: (3 + 16 * k) * P.size, v: (100 + 200 * k) * (0.8 + 0.4 * rand(i * 3.1 + 1.9)) * P.speed,
+      sw: (5 + 12 * rand(i * 5.9 + 0.1)) * (0.5 + k), sp: (1.6 + 2.4 * rand(i * 6.7 + 3.3)) * WOB,
+      ph: rand(i * 7.1 + 1.4) * TAU, a: 0.4 + 0.45 * k + 0.15 * rand(i * 8.3 + 0.6)
+    });
+  }
+  // marine snow: three alpha buckets (fine, medium, soft out-of-focus), each one fill() per frame
+  var NS = Math.round(480 * P.specks);
+  var SPAD = 24, SSX = W + 2 * SPAD, SSY = H + 2 * SPAD;
+  var SA = [0.55, 0.34, 0.12];
+  var SPK = [[], [], []];
+  for (var j = 0; j < NS; j++) {
+    var q = rand(j * 3.7 + 5.1), bk = q < 0.55 ? 0 : q < 0.9 ? 1 : 2, rr = rand(j * 5.3 + 2.1);
+    SPK[bk].push({
+      x: rand(j * 2.9 + 0.4) * SSX, y: rand(j * 4.7 + 1.3) * SSY,
+      r: bk === 0 ? 1.4 + 1.2 * rr : bk === 1 ? 2.2 + 1.8 * rr : 5 + 5 * rr,
+      v: (6 + 20 * rand(j * 6.1 + 0.8)) * P.speed, cur: (3 + 8 * rand(j * 6.9 + 4.4)) * P.speed,
+      sw: 6 + 16 * rand(j * 7.9 + 3.6), sp: 0.3 + 0.6 * rand(j * 8.5 + 1.9), ph: rand(j * 9.3 + 0.2) * TAU
+    });
+  }
+  function draw(t) {
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, 540, 960);
+    ctx.setTransform(0.5, 0, 0, 0.5, 0, 0);
+    ctx.fillStyle = P.speckColor;
+    for (var b = 0; b < 3; b++) {
+      var L = SPK[b];
+      if (!L.length) continue;
+      ctx.globalAlpha = SA[b];
+      ctx.beginPath();
+      for (var i = 0; i < L.length; i++) {
+        var s = L[i];
+        var sx = wrap(s.x + s.cur * t + s.sw * Math.sin(s.ph + s.sp * t), -SPAD, SSX);
+        var sy = wrap(s.y + s.v * t, -SPAD, SSY);
+        ctx.moveTo(sx + s.r, sy);
+        ctx.arc(sx, sy, s.r, 0, TAU);
+      }
+      ctx.fill();
+    }
+    ctx.strokeStyle = P.color;
+    ctx.fillStyle = P.color;
+    ctx.lineCap = "round";
+    for (var n = 0; n < BUB.length; n++) {
+      var u = BUB[n];
+      var y = wrap(u.y - u.v * t, -BPAD, BSY);
+      var x = u.x + u.sw * Math.sin(u.ph + u.sp * t);
+      if (u.r < 5) {                                      // tiny bubbles read as bright dots
+        ctx.globalAlpha = u.a * 0.8;
+        ctx.beginPath(); ctx.arc(x, y, u.r * 0.7, 0, TAU); ctx.fill();
+        continue;
+      }
+      var sq = 0.08 * Math.sin(u.ph * 2 + u.sp * 1.7 * t);
+      var rx = u.r * (1 + sq), ry = u.r * (1 - sq);
+      ctx.beginPath(); ctx.ellipse(x, y, rx, ry, 0, 0, TAU);
+      ctx.globalAlpha = u.a * 0.1;
+      ctx.fill();
+      ctx.globalAlpha = u.a;
+      ctx.lineWidth = Math.max(2, u.r * 0.14);
+      ctx.stroke();
+      if (u.r >= 9) {                                     // crescent highlight on big bubbles
+        ctx.lineWidth = Math.max(2, u.r * 0.12);
+        ctx.beginPath(); ctx.arc(x, y, u.r * 0.66, Math.PI * 1.08, Math.PI * 1.42); ctx.stroke();
+      } else {
+        ctx.beginPath(); ctx.arc(x - rx * 0.36, y - ry * 0.38, Math.max(1.5, u.r * 0.2), 0, TAU); ctx.fill();
+      }
+    }
+    ctx.globalAlpha = 1;
+  }
+  var tl = gsap.timeline({ paused: true });
+  var clock = { t: 0 };
+  draw(0);
+  tl.fromTo(clock, { t: 0 }, { t: DUR, duration: DUR, ease: "none", onUpdate: function () { draw(clock.t); } }, 0);
+  window.__timelines = window.__timelines || {};
+  window.__timelines["__cid__"] = tl;
+})();
+</script>
+</template>

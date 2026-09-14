@@ -14,3 +14,12 @@
 | 8 | Photo: departing Southampton, 10 April 1912 | 1912 | F. G. O. Stuart, public domain | https://commons.wikimedia.org/wiki/File:RMS_Titanic_3.jpg |
 
 Карта: `engine/assets/maps/north-atlantic.svg` — Natural Earth 50m, коробка lon −66…−37, lat 36…54; место гибели 41.726 N 49.946 W → x 591, y 723.
+
+## Concept
+- Настроение: холодная тишина глубины — свет тает в толще воды, всплывают пузыри и взвесь, ничего не дёргается. Цифры проявляются, как запись в судовом журнале.
+- Ключевой цвет темы: бирюза подводного света на тёмно-синем; оранжевый Помпей здесь врёт. Контраст финала — янтарный свет спасательной шлюпки (secondary, `tone: cold`).
+- Look: `abyss` (вода, глубина, кораблекрушения) — акцент 185° против 16° у Помпей и 68° у Krakatoa, текстуры fog и bubbles.
+- Картинки: 1) RMS Titanic, F. G. O. Stuart, 1912 (Wikimedia Commons, public domain) — дуотоном фоном хука и крупно в `picture-zoom`.
+- Текстуры: весь ролик — туман (bg) и пузыри (fg); глубина — плотная взвесь и крупные пузыри.
+- Motion: камера push-in 0,6 (карта — pan, глубина — tilt вниз, фото — pull-out); типографика — число count-roll, заголовок mask-wipe, подпись typewriter; год — typewriter, финал — glow-pulse; пост — bloom 0,4 и vignette-pulse на ударах, blur-pull на глубине, light-leak на 1985.
+- Переходы: склейки; на тяжёлом ударе (погружение) — water-ripple.

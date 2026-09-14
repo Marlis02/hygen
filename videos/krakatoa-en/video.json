@@ -5,6 +5,7 @@
   "fps": 30,
   "language": "en",
   "style": "documentary-dark",
+  "look": "storm",
   "captions": "word-by-word",
   "voice": { "engine": "kokoro", "voice": "am_michael", "speed": 1.0 },
   "beats": [
@@ -16,6 +17,8 @@
       "pad": [0.3, 0.4],
       "params": { "value": 4800, "format": "thousands", "unit": "KM", "heat": "burn-cool" },
       "anchors": { "ignite": "four", "unit": "kilometers", "cool": "away" },
+      "textures": [ { "id": "lightning", "strikes": ["loudest"], "x": 0.3, "reach": 0.6 } ],
+      "post": [ { "id": "chromatic", "strength": 0.6 } ],
       "sources": { "value": "https://en.wikipedia.org/wiki/1883_eruption_of_Krakatoa" }
     },
     {
@@ -24,8 +27,11 @@
       "seed": 2,
       "text": "Its final blast came on [27 August 1883.|the twenty-seventh of August, eighteen eighty-three.]",
       "pad": [0.2, 0.8],
-      "params": { "year": 1883, "delta": 0, "dust": true, "dig": true, "section": false, "voids": false },
+      "params": { "year": 1883, "delta": 0, "dust": false, "dig": true, "section": false, "voids": false },
       "anchors": { "year": "eighteen", "yearLand": "three.end" },
+      "background": { "image": "media/krakatoa-lithograph.jpg", "treatment": ["duotone", "parallax"], "focus": [0.5, 0.4], "opacity": 0.42 },
+      "textures": [ { "id": "lightning", "strikes": ["blast"], "x": 0.72, "flash": 0.8 } ],
+      "type": { "year": "stagger" },
       "sources": {
         "year": "https://en.wikipedia.org/wiki/1883_eruption_of_Krakatoa",
         "text": "https://en.wikipedia.org/wiki/1883_eruption_of_Krakatoa"
@@ -63,6 +69,12 @@
       "pad": [0.2, 0.6],
       "params": { "direction": "up", "value": 30, "unit": "M", "scenery": "none", "dateValue": 0, "dateSuffix": "", "word": "TSUNAMI" },
       "anchors": { "rise": "waves", "value": "meters", "word": "villages" },
+      "textures": [
+        { "id": "rain", "density": 0.8, "speed": 1.4, "angle": -22, "length": 1.6, "opacity": 0.7 },
+        { "id": "wind", "density": 0.5, "direction": "right", "angle": 6, "opacity": 0.45 }
+      ],
+      "type": { "word": "split-reveal", "readout": "count-roll" },
+      "camera": { "preset": "handheld", "amplitude": 1.3, "shake": 1.2 },
       "sources": {
         "value": "https://en.wikipedia.org/wiki/1883_eruption_of_Krakatoa",
         "text": "https://en.wikipedia.org/wiki/Krakatoa"
@@ -82,12 +94,13 @@
         "zoomFrom": 1.02,
         "zoomTo": 1.14,
         "particles": "ash",
-        "tint": 0,
+        "tint": 0.45,
         "title": "KRAKATOA",
         "credit": "PARKER & COWARD, 1888",
         "creditSub": "Royal Society report · Public domain"
       },
       "anchors": { "title": "globe" },
+      "transition": "whip",
       "sources": { "credit": "https://commons.wikimedia.org/wiki/File:Krakatoa_eruption_lithograph.jpg" }
     },
     {
@@ -98,15 +111,15 @@
       "pad": [2.0, 1.6],
       "params": { "numerator": 2, "denominator": 3, "label": "GONE" },
       "anchors": { "slash": "two", "fill": "thirds", "outline": "island" },
+      "camera": { "preset": "push-in", "amplitude": 0.8, "shake": 0 },
+      "transition": "smoke-wipe",
       "sources": {
         "numerator": "https://en.wikipedia.org/wiki/Krakatoa",
         "denominator": "https://en.wikipedia.org/wiki/Krakatoa"
       }
     }
   ],
-  "transitions": [
-    { "from": "02-year", "to": "03-map", "type": "flash", "duration": 0.6 }
-  ],
+  "transitions": [],
   "sound": {
     "drone": { "peak": "03-map:thirty+0.3", "cut": "06-finale:start", "volume": 0.42, "carve": 0.65 },
     "ash": { "at": "02-year:start", "until": "04-wave:end", "swell": "03-map:thirty", "debris": "04-wave:villages", "volume": 0.5, "carve": 0.6 },

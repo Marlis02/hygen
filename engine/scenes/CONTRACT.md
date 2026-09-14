@@ -5,7 +5,7 @@
 - `scene.html` — шаблон подкомпозиции HyperFrames с одним paused-таймлайном;
 - `scene.json` — описание по [schema.json](schema.json): параметры, якоря, длительность, сид, безопасная зона.
 
-Ролик не трогает HTML сцен. Всё, что меняется от ролика к ролику, — параметры, якорные слова, оттенок и сид в `video.json`. Если для нового ролика пришлось править `scene.html`, контракт неполный: сначала чинится контракт (новый параметр в `scene.json`), потом ролик.
+Ролик не трогает HTML сцен. Всё, что меняется от ролика к ролику, — параметры, якорные слова, оттенок и сид в `video.json`, а поверх сцены — слои движка: look ролика, текстуры, медиафон, камера, типографика, пост-эффекты и переходы (разделы ниже). Сцена о слоях не знает: она только объявляет в `scene.json` свои текстовые слоты. Если для нового ролика пришлось править `scene.html`, контракт неполный: сначала чинится контракт (новый параметр в `scene.json`), потом ролик.
 
 ## Библиотека
 
@@ -44,6 +44,7 @@
 - `tone` — `accent` (тёплый акцент стиля, по умолчанию) или `cold` (холодный). Меняет цвет «героя» сцены: огня, метки, выделенного сегмента.
 - `seed` — целое; меняет раскладку частиц и шума. Без сида берётся `seed.default` сцены (0 = вид Помпей).
 - `sources` — ссылки на источники цифр, см. «Источники».
+- `textures`, `background`, `type`, `camera`, `post`, `transition` — слои движка на этот бит поверх look ролика: разделы «Текстуры», «Фон бита», «Motion», «Переходы».
 
 ## scene.json
 
@@ -59,6 +60,8 @@
 | `events` | `[{anchor | at, label, if}]`: события, которые обязаны заметно изменить кадр (проверка frozen) |
 | `seed` | `{default, affects}`; `affects: null` — случайности нет |
 | `safeZone` | `{contentMaxY, rightRail}` — что сцена гарантирует |
+| `depth` | множитель параллакса сцены под камерой движка (1) |
+| `text` | текстовые слоты для кинетической типографики: `слот → {el, kind, at, dynamic?, chars?, text?}`, см. «Motion» |
 
 ### Параметры
 
@@ -147,11 +150,71 @@
 - разрядку букв анимировать сдвигом букв по x, не `letterSpacing`;
 - id элементов — только с префиксом `__p__-`.
 
+## Look ролика
+
+`video.json → "look"`: id из `engine/looks/` (`ember` — Помпеи, `abyss`, `storm`) или объект — новый look прямо в ролике, можно от встроенного: `{"extends": "abyss", "palette": {"accent": "#E0B040"}, "textures": [...]}` (разделы сливаются по ключам, списки заменяются). Без look — `ember`.
+
+| Поле | Что |
+|---|---|
+| `id`, `name`, `about` | `about: {mood, topics, avoid}` — настроение, для каких тем, чего избегать |
+| `palette` | `accent`; `secondary` — цвет тона `cold` бита; `groundTint` — `#RRGGBB` перекрашивает ночь, пепел и приглушённый текст (светлота сохраняется) или `null`; `temperature` warm/cold; `textColor`; `colors` — явные токены стиля |
+| `textures` | текстуры на весь ролик `[{id, …параметры}]` (зерно — не здесь, а в `grain`) |
+| `motion` | `camera {preset, amplitude, shake}`, `parallax {enabled, bg, mid, scene, fg}`, `type {number, title, label}`, `post [{id, strength}]` |
+| `transitions` | `{default, hit}` — id или список id из `engine/transitions/` |
+| `grain` | множитель зерна стиля, 0 — без зерна |
+| `vignette` | `{alpha, clear}` |
+| `sound` | `{hit, whoosh}` — подсказки звуковому модулю (D4) |
+
+Неизвестное поле, текстура, пресет или переход — ошибка сборки. Палитра подменяет токены стиля при сборке сцены: `{{hygen:color.*}}` и `S.colors` уже в цветах look (цвет палитры, равный цвету стиля, не пересчитывается — ember даёт Помпеи байт в байт). Слои движка читают ту же палитру как CSS-переменные `--hy-<токен>` и `--hy-rgb-<токен>` на корне ролика.
+
+## Текстуры
+
+`engine/textures/<id>/texture.json` + `texture.html` — полнокадровый слой над сценой и под субтитрами со своим таймлайном. Библиотека: `grain` (всегда, сила — `look.grain`), `fire` (crater, horizon, glow), `embers`, `ash` (flakes, pumice), `rain`, `bubbles`, `smoke`, `fog`, `lightning`, `wind`, `snow`; параметры с дефолтами — в их `texture.json`.
+
+Ссылка (в look или бите): `{"id": "rain", "density": 0.8, "angle": -20, "opacity": 0.6, "blend": "screen", "depth": "fg", "seed": 3}`. У любой текстуры есть `opacity` 0–1, `blend` (normal, screen, lighten, overlay, soft-light, multiply, color-dodge, plus-lighter), `depth` (bg, mid, fg или множитель — слой параллакса и порядок: bg ниже fg) и `seed`.
+
+Типы параметров текстуры сверх типов сцены:
+- `color` — токен палитры (`hero`, `heroLight`, `ashLight`, `text`…) или `#RRGGBB`; в шаблон приходят `P.<имя>` (#RRGGBB) и `P.<имя>Rgb` («r,g,b»);
+- `cues` — времена внутри слоя: `hits` (удары `sound.hits`), `start`, секунды или слово реплики бита (`blast`, `died+0.2`). `texture.json → events` отмечает cues-параметр как события слоя (удар молнии → гром).
+
+Направление `angle`: у падающих (ash, snow, rain) — от вертикали, плюс сносит влево; у embers — отклонение подъёма, плюс вправо; у wind — наклон полос; у smoke — направление дрейфа.
+
+Шаблон `texture.html`: `__cid__`, `__p__`, `{{hygen:duration}}`, `/*{{hygen:params}}*/` → `var P = {…}, S = {colors, rgb}, SEED = n, DUR = с;`. Правила сцен: один драйвер на всю длину, кадр — функция времени, случайность только от `SEED`, без литеральных цветов (и без помощников с именем `rgba(`), id с `__p__-`, canvas 540×960 в координатах кадра. Внеэкранный буфер для мягких спрайтов разрешён: рисуется один раз при инициализации.
+
+## Фон бита
+
+У любого бита: `"background": {"image": "media/x.jpg", "treatment": ["duotone", "ken-burns"], "focus": [0.6, 0.5], "opacity": 0.5, "blend": "lighten", "depth": "bg", "zoom": [1, 1.1]}`.
+
+- `image` (jpg, png, webp) или `video` (webm, mp4, mov) от папки ролика; рядом обязателен `<файл>.license.json`, как у картинок сцен.
+- `treatment` (одно или списком): `duotone` — перекраска в палитру бита (ночь → hero-deep → чуть светлее), `blur` — размытие с затемнением, `ken-burns` — медленный наезд к `focus` (`zoom` [от, до]), `parallax` — медленный дрейф по вертикали. Без treatment — `ken-burns`.
+- `focus` — [x, y] доли картинки: центр обрезки и наезда.
+- Слой лежит над сценой в режиме `lighten`: картинка заменяет тёмную землю сцены, светлый текст и герой остаются сверху. Лучше всего под ночной землёй (`counter-title`, `fraction-finale`, `year-odometer` без пыли, `scale-gauge` без сценографии); на карте и под пепельной землёй картинка спорит со сценой.
+- Картинка обрабатывается при сборке (`engine/py/background.py`, кэш `videos/<id>/.cache/bg`), в рендере только движется. Видео ffmpeg зацикливает и режет до длины бита, звук убирает.
+
+## Motion
+
+Реализация — `engine/motion/runtime.js` (CSS и canvas, без WebGL: рендер остаётся в 4 потока). Всё задаётся в look и переопределяется в бите.
+
+- **Камера** (`engine/motion/camera.json`): `none`, `push-in`, `pull-out`, `pan`, `tilt`, `handheld`; `amplitude` 0–2, `shake` 0–2 — тряска на ударах `sound.hits`. Двигает хост сцены целиком свойствами `translate`, `scale`, `rotate` с запасом по краям; внутренняя камера сцены продолжает работать. Бит: `"camera": "tilt"` или `{"preset": "handheld", "amplitude": 1.3, "shake": 1.2}`.
+- **Параллакс** (`parallax.json`): при `look.motion.parallax.enabled` фон бита и текстуры повторяют камеру с множителем своего `depth`, сцена — с `scene`, текстовые слоты — с `fg`.
+- **Типографика** (`type.json`): `pop`, `stagger`, `slide`, `typewriter`, `split-reveal`, `count-roll`, `glow-pulse`, `mask-wipe`. Сцена объявляет слоты в `scene.json → text`: `"counter": {"el": "counter", "kind": "number", "at": "ignite", "dynamic": true}` — `el` id без префикса; `kind` number, title или label; `at` якорь или опорное время появления; `dynamic` — сцена переписывает текст (счётчик); `chars` — селектор своих ячеек символов (`.__p__-col`); `text` — элемент с текстом внутри `el`. Look даёт пресет по `kind`, бит — `"type": "stagger"` всем слотам или `{"year": "typewriter"}`. Пресет заменяет появление элемента (прозрачность, маску, сдвиг), цвет и счёт сцены остаются. `npm run scenes` показывает слоты.
+- **Пост-эффекты** (`post.json`), `[{id, strength 0–1}]`: `bloom` (свечение текста и ореол цвета героя), `light-leak`, `chromatic` (на ударах), `flicker`, `blur-pull` (бит начинается размытым), `vignette-pulse` (на ударах). В look — на весь ролик, в бите — поверх.
+
+## Переходы
+
+`engine/transitions/<id>/`: `transition.json` (`id`, `name`, `use`, `duration`) и `transition.js` — модуль, который сборка дописывает к runtime: `window.HygenTransitions[id] = {host(fx, role, d, tr, api), overlay(api, d, tr), frame(api), always}` — `host` сдвигает, масштабирует и размывает уходящую (`from`) или входящую (`to`) сцену, `overlay` рисует над стыком (`api.ctx` — общий canvas переходов, `api.el`, `api.C.rgb`/`api.C.hex` — палитра look), `d` — секунды от стыка. Библиотека: `hard-cut`, `flash`, `ash-burst`, `whip`, `water-ripple`, `smoke-wipe`. Каждый стык получает переход по порядку: `video.json → transitions` (`{"from", "to", "type": ["flash", "ash-burst"], "duration"}`, только соседние биты) → `"transition"` бита (переход в этот бит) → `look.transitions.hit`, если на стык падает тяжёлый удар (`heavy`) → `look.transitions.default`. Разгон перехода до стыка — не дольше 0,08 с: settle-кадр уходящей сцены остаётся чистым.
+
 ## Проверка сцены без голоса
 
 ```bash
 npm run scene -- counter-title                                   # дефолты = кадр Помпей
 npm run scene -- counter-title --params '{"value":160,"format":"clock"}' --tone cold --seed 3
+npm run scene -- counter-title --look abyss                        # сцена под look (и его текстурами, камерой, пост-эффектами)
+npm run scene -- map-marker --look storm --beat '{"type":{"count":"stagger"},"camera":{"preset":"handheld","shake":1},"post":[{"id":"chromatic","strength":0.8}]}'
+npm run scene -- fraction-finale --textures '[{"id":"rain"}]'       # текстура поверх look
+npm run scene -- counter-title --beat '{"background":{"image":"videos/titanic-en/media/rms-titanic.jpg","treatment":["duotone","ken-burns"]}}'
 ```
+
+В превью удары — это события сцены: тряска, chromatic и vignette-pulse срабатывают на них.
 
 Сцена собирается в `.preview/<id>/` на своём опорном времени, проходит `hyperframes lint` и снимается в моменты событий и `settle`; контактный лист — `.preview/<id>/sheet.jpg`. Это быстрый просмотр; приёмка — только по кадрам из MP4.

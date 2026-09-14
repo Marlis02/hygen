@@ -1,5 +1,7 @@
 import { existsSync } from "node:fs";
 import { join } from "node:path";
+import { checkTransitionRef } from "./motion.ts";
+import type { TextureRef } from "./textures.ts";
 import { ENGINE_DIR, fail, readJson } from "./lib/util.ts";
 
 /** One beat = one voice line + one library scene (engine/scenes/CONTRACT.md). */
@@ -21,16 +23,30 @@ export interface BeatSpec {
   cues?: Record<string, string>;
   /** Figure param (or "text") → source link. */
   sources?: Record<string, string>;
+  /** Textures over this beat only, on top of the look's (engine/textures). */
+  textures?: TextureRef[];
+  /** Licensed image or video under the scene: {image|video, treatment, focus, opacity, depth, blend}. */
+  background?: Record<string, unknown>;
+  /** Type preset for the scene's text slots: one name for all, or slot → preset (engine/motion/type.json). */
+  type?: string | Record<string, string>;
+  /** Engine camera for this beat: preset name or {preset, amplitude, shake} over the look's. */
+  camera?: unknown;
+  /** Post effects of this beat, on top of the look's: [{id, strength}]. */
+  post?: unknown[];
+  /** Transition into this beat: id or list of ids (overrides the look's default and hit transitions). */
+  transition?: unknown;
 }
 
 export interface TransitionSpec {
   from: string;
   to: string;
-  /** shader — WebGL HyperShader (the render drops to one worker); flash — CSS flash + ash burst over the cut. */
-  type?: "shader" | "flash";
+  /** Library transitions over the cut (engine/transitions): "flash", ["flash", "ash-burst"], "flash+ash-burst"; or "shader" — WebGL HyperShader (the render drops to one worker). */
+  type?: string | string[];
   shader?: string;
   duration: number;
   ease: string;
+  /** Normalized ids of the library transitions (empty for a shader). */
+  list: string[];
 }
 
 /** Time references: "<beat>:start|end|speechStart|speechEnd|<word>[#n][.end][±seconds]". */
@@ -64,6 +80,8 @@ export interface VideoSpec {
   fps: number;
   language: string;
   style: string;
+  /** Look: id from engine/looks or an inline object {extends, palette, textures, motion, …}; none — ember. */
+  look?: unknown;
   captions: string;
   voice: { engine: "kokoro"; voice: string; speed: number };
   beats: BeatSpec[];
@@ -132,15 +150,20 @@ export function loadSpec(videoDir: string): VideoSpec {
     need(typeof beat.text === "string" && beat.text.trim().length > 0, `${beat.id}: пустой text`);
     need(beat.tone === undefined || beat.tone === "accent" || beat.tone === "cold", `${beat.id}: tone — accent или cold`);
     need(beat.seed === undefined || Number.isInteger(beat.seed), `${beat.id}: seed — целое`);
-    const known = new Set(["id", "scene", "text", "pad", "tone", "seed", "params", "anchors", "cues", "sources"]);
+    const known = new Set(["id", "scene", "text", "pad", "tone", "seed", "params", "anchors", "cues", "sources", "textures", "background", "type", "camera", "post", "transition"]);
     for (const key of Object.keys(beat)) need(known.has(key), `${beat.id}: неизвестное поле «${key}»`);
     beat.pad = beat.pad ?? [0.2, 0.4];
   }
   spec.transitions = spec.transitions ?? [];
   for (const tr of spec.transitions) {
     need(ids.has(tr.from) && ids.has(tr.to), `переход ${tr.from} → ${tr.to}: нет таких битов`);
-    tr.type = tr.type ?? (tr.shader ? "shader" : "flash");
-    need(tr.type === "flash" || (tr.type === "shader" && typeof tr.shader === "string"), `переход ${tr.from} → ${tr.to}: type flash или shader с именем шейдера`);
+    if (tr.shader !== undefined || tr.type === "shader") {
+      need(typeof tr.shader === "string", `переход ${tr.from} → ${tr.to}: type shader с именем шейдера`);
+      tr.type = "shader";
+      tr.list = [];
+    } else {
+      tr.list = checkTransitionRef(tr.type ?? "flash", `переход ${tr.from} → ${tr.to}`);
+    }
     need(typeof tr.duration === "number" && tr.duration > 0, `переход ${tr.from} → ${tr.to}: duration > 0`);
     tr.ease = tr.ease ?? "power2.inOut";
   }

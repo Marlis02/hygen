@@ -88,6 +88,36 @@ def pair_snapshots(files, times):
     return files[: len(times)]
 
 
+def palette(mp4, plan):
+    """Accent hue of the video from its settle frames (content above the caption band): circular mean of the hue
+    weighted by chroma², so the accent counts and the tinted grounds barely do. Feeds the uniqueness check."""
+    vec = np.zeros(2)
+    wsum = 0.0
+    mean = np.zeros(3)
+    crow = max(1, int(round(plan["contentMaxY"] / plan["height"] * 192)))
+    for sc in plan["scenes"]:
+        px = frame_rgb(mp4, sc["settle"], 108, 192)[:crow].reshape(-1, 3).astype(np.float32) / 255.0
+        mx, mn = px.max(axis=1), px.min(axis=1)
+        c = mx - mn
+        r, g, b = px[:, 0], px[:, 1], px[:, 2]
+        h = np.zeros_like(mx)
+        m = c > 1e-6
+        rm = m & (mx == r)
+        gm = m & (mx == g) & ~rm
+        bm = m & ~rm & ~gm
+        h[rm] = np.mod((g - b)[rm] / c[rm], 6)
+        h[gm] = (b - r)[gm] / c[gm] + 2
+        h[bm] = (r - g)[bm] / c[bm] + 4
+        w = c ** 2
+        ang = np.radians(h * 60)
+        vec += [float(np.sum(w * np.cos(ang))), float(np.sum(w * np.sin(ang)))]
+        wsum += float(w.sum())
+        mean += px.mean(axis=0)
+    hue = float(np.degrees(np.arctan2(vec[1], vec[0])) % 360) if wsum > 1e-6 else None
+    return {"hue": None if hue is None else round(hue, 1), "strength": round(float(np.hypot(*vec) / wsum), 3) if wsum > 1e-6 else 0.0,
+            "mean_rgb": [int(round(v * 255 / max(1, len(plan["scenes"])))) for v in mean]}
+
+
 def contact_sheet(mp4, plan, out):
     tw, th, label_h = 216, 384, 24
     scenes = plan["scenes"]
@@ -207,11 +237,13 @@ def main():
     else:
         checks.append({"check": "settled", "ok": True, "detail": "пропущено (--no-snapshots)"})
 
+    pal = palette(a.mp4, plan)
+    print(f"· palette   оттенок акцента по settle-кадрам {pal['hue']}° (сила {pal['strength']}), средний цвет {pal['mean_rgb']}")
     contact_sheet(a.mp4, plan, a.sheet)
     ok = all(c["ok"] for c in checks)
     os.makedirs(os.path.dirname(os.path.abspath(a.out)), exist_ok=True)
     with open(a.out, "w", encoding="utf-8") as f:
-        json.dump({"ok": ok, "mp4": os.path.abspath(a.mp4), "checks": checks, "scenes": scenes,
+        json.dump({"ok": ok, "mp4": os.path.abspath(a.mp4), "checks": checks, "scenes": scenes, "palette": pal,
                    "thresholds": {"blank_detail": BLANK_DETAIL, "frozen_motion_p95": FROZEN_MOTION,
                                   "event_min_change": EVENT_MIN, "settle_max_block_diff": SETTLE_MAX,
                                   "max_mb_per_10s": MAX_MB_PER_10S}},

@@ -1,0 +1,14 @@
+{
+  "id": "fog",
+  "name": "Туман",
+  "use": "Low fog: up to three horizontal bands of soft noise drifting at different speeds (parallax), from the bottom edge up to the chosen height. Night seas, marshes, battlefields at dawn, graveyards, cold coasts.",
+  "layer": { "depth": "bg", "blend": "screen", "opacity": 0.5 },
+  "params": {
+    "density": { "type": "number", "default": 0.5, "min": 0, "max": 1, "description": "Плотность: до 0,5 полосы проявляются, выше — уплотняются вторым проходом; дымка у низа растёт вместе с ней; 0 — тумана нет." },
+    "speed": { "type": "number", "default": 0.5, "min": 0, "max": 2, "description": "Скорость дрейфа вправо: 1 = ближняя полоса 58 px/с, дальняя 16 px/с." },
+    "height": { "type": "number", "default": 0.5, "min": 0.05, "max": 1, "description": "Высота тумана: доля кадра снизу; 1 — весь кадр." },
+    "layers": { "type": "integer", "default": 3, "min": 1, "max": 3, "description": "Сколько полос: 1 — только ближняя у низа, 2 — ближняя и средняя, 3 — ещё дальняя сверху." },
+    "color": { "type": "color", "default": "mutedLight", "description": "Цвет тумана." }
+  },
+  "seed": { "default": 0, "affects": "рисунок полос, их фазы и покачивание" }
+}

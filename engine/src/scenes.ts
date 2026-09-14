@@ -6,6 +6,8 @@ import type { VideoSpec } from "./spec.ts";
 import type { BeatTiming, Warp } from "./timeline.ts";
 import { warpKnots } from "./timeline.ts";
 import type { BeatWords } from "./words.ts";
+import { typeInjection, videoSeed } from "./layers.ts";
+import type { LookDef } from "./look.ts";
 import { ENGINE_DIR, ensureDir, log } from "./lib/util.ts";
 
 export interface SceneEvent {
@@ -22,6 +24,8 @@ export interface SceneBuild {
   params: Record<string, unknown>;
   settle: number;
   events: SceneEvent[];
+  /** Type presets or text parallax were injected (the root must load the motion runtime). */
+  injected: boolean;
 }
 
 export function warpHelper(warp: { ref: number[]; act: number[] }): string {
@@ -37,7 +41,7 @@ export function sceneEvents(scene: SceneDef, params: Record<string, unknown>): S
 }
 
 /** Library scenes → build/compositions/frames: params, style tokens, real duration, time warp onto this voice. */
-export function writeScenes(spec: VideoSpec, style: StyleDef, videoDir: string, buildDir: string, timings: BeatTiming[], words: BeatWords[]): SceneBuild[] {
+export function writeScenes(spec: VideoSpec, style: StyleDef, videoDir: string, buildDir: string, timings: BeatTiming[], words: BeatWords[], look: LookDef, hits: number[]): SceneBuild[] {
   ensureDir(join(buildDir, "compositions", "frames"));
   return spec.beats.map((beat, i) => {
     const scene = loadScene(beat.scene);
@@ -48,6 +52,7 @@ export function writeScenes(spec: VideoSpec, style: StyleDef, videoDir: string, 
     if (timing.duration < scene.duration.min || timing.duration > scene.duration.max) {
       log.warn(`${beat.id}: клип ${timing.duration.toFixed(2)} с вне диапазона сцены ${beat.scene} (${scene.duration.min}–${scene.duration.max} с)`);
     }
+    const inject = typeInjection({ beat, scene, look, style, compositionId: beat.id, start: timing.start, duration: timing.duration, index: i, hits, seed: videoSeed(spec.id) });
     const html = renderTemplate(sceneTemplate(beat.scene), {
       sceneId: beat.scene,
       compositionId: beat.id,
@@ -57,10 +62,11 @@ export function writeScenes(spec: VideoSpec, style: StyleDef, videoDir: string, 
       tone: beat.tone ?? "accent",
       seed: beat.seed ?? scene.seed.default,
       warpJs: warpHelper(warp),
+      inject,
     });
     const src = `compositions/frames/${beat.id}.html`;
     writeFileSync(join(buildDir, src), html);
-    log.info(`${beat.id}: ${beat.scene} · ${timing.duration.toFixed(3)} с · опор варпа ${warp.ref.length}${beat.tone === "cold" ? " · cold" : ""}`);
-    return { beatId: beat.id, src, warp, scene, params, settle: scene.settle, events: sceneEvents(scene, params) };
+    log.info(`${beat.id}: ${beat.scene} · ${timing.duration.toFixed(3)} с · опор варпа ${warp.ref.length}${beat.tone === "cold" ? " · cold" : ""}${inject ? " · type/параллакс" : ""}`);
+    return { beatId: beat.id, src, warp, scene, params, settle: scene.settle, events: sceneEvents(scene, params), injected: inject.length > 0 };
   });
 }

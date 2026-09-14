@@ -6,6 +6,12 @@
   "ref": { "duration": 9.545, "speechStart": 0.2, "speechEnd": 9.145 },
   "duration": { "min": 5, "max": 13 },
   "settle": 9.4,
+  "depth": 1,
+  "text": {
+    "readout": {"el": "alt", "kind": "number", "at": "rise", "dynamic": true},
+    "date": {"el": "year", "kind": "number", "at": "date", "dynamic": true},
+    "word": {"el": "word", "kind": "title", "at": "word"}
+  },
   "params": {
     "direction": { "type": "enum", "values": ["up", "down"], "default": "up", "description": "up — высота: маркер поднимается от земли; down — глубина: маркер опускается от поверхности до линии значения." },
     "value": { "type": "number", "default": 30, "min": 0, "max": 99999, "figure": true, "description": "Значение, до которого идёт отсчёт (тысячи через запятую)." },

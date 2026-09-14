@@ -6,6 +6,11 @@
   "ref": { "duration": 5.0, "speechStart": 0.2, "speechEnd": 4.6 },
   "duration": { "min": 3, "max": 9 },
   "settle": 4.8,
+  "depth": 1,
+  "text": {
+    "title": {"el": "title", "kind": "title", "at": "title"},
+    "credit": {"el": "credit", "kind": "label", "at": "credit"}
+  },
   "params": {
     "image": { "type": "image", "default": "engine/assets/media/volaire-vesuvius.jpg", "description": "Файл картинки от папки ролика (или engine/assets/...); рядом обязателен <файл>.license.json." },
     "fit": { "type": "enum", "values": ["cover", "band"], "default": "cover", "description": "cover — картинка на весь кадр с кадрированием; band — целиком по ширине полосой, за ней размытая и затемнённая копия (для широких фото)." },

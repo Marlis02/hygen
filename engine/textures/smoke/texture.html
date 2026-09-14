@@ -1,0 +1,110 @@
+<!-- hygen texture smoke (D3.5, from the soft patches of drawFx in pyroclastic-flow): three lumpy cloud sprites drawn
+     once; every frame each puff is one drawImage (place, size, alpha — pure functions of time) into a quarter-resolution
+     buffer, blitted once onto the canvas. Contract: engine/scenes/CONTRACT.md, «Текстуры». -->
+<template id="__p__-template">
+<div id="root" data-composition-id="__cid__" data-start="0" data-duration="{{hygen:duration}}" data-width="1080" data-height="1920">
+  <style>
+    #root { position: relative; width: 1080px; height: 1920px; overflow: hidden; pointer-events: none; }
+    #__p__-c { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; }
+  </style>
+  <canvas id="__p__-c" class="clip" width="540" height="960" data-start="0" data-duration="{{hygen:duration}}" data-track-index="0"></canvas>
+</div>
+<script src="assets/vendor/gsap.min.js"></script>
+<script>
+(function () {
+  /*{{hygen:params}}*/
+  var ctx = document.getElementById("__p__-c").getContext("2d");
+  var W = 1080, H = 1920, TAU = Math.PI * 2;
+  function rand(n) { var x = Math.sin((n + SEED * 101.3) * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); }
+  function smooth(e0, e1, v) { var k = Math.min(1, Math.max(0, (v - e0) / (e1 - e0))); return k * k * (3 - 2 * k); }
+  function rgba(rgb, a) { return "rgba(" + rgb + "," + a.toFixed(3) + ")"; }
+  // three cloud sprites, drawn once: a soft body in color, lumps in color, lumps lit from above in color2
+  var SPR = 256, C = SPR / 2;
+  function lump(g, x, y, r, rgb, a) {
+    var gr = g.createRadialGradient(x, y, 0, x, y, r);
+    gr.addColorStop(0, rgba(rgb, a));
+    gr.addColorStop(0.4, rgba(rgb, a * 0.62));
+    gr.addColorStop(0.75, rgba(rgb, a * 0.18));
+    gr.addColorStop(1, rgba(rgb, 0));
+    g.fillStyle = gr;
+    g.beginPath(); g.arc(x, y, r, 0, TAU); g.fill();
+  }
+  var SPRITES = [];
+  for (var s = 0; s < 3; s++) {
+    var cv = document.createElement("canvas");
+    cv.width = SPR; cv.height = SPR;
+    var g = cv.getContext("2d");
+    lump(g, C, C, C, P.colorRgb, 0.3);
+    for (var l = 0; l < 9; l++) {
+      var lit = l >= 6;
+      var lr = 34 + 34 * rand(s * 17.1 + l * 3.3 + 0.5);
+      var ld = (C - lr - 4) * Math.sqrt(rand(s * 19.7 + l * 5.1 + 1.3)) * (lit ? 0.8 : 1);
+      var la = lit ? Math.PI * (1.15 + 0.7 * rand(s * 23.3 + l * 7.9 + 2.9)) : rand(s * 23.3 + l * 7.9 + 2.9) * TAU;
+      lump(g, C + Math.cos(la) * ld, C + Math.sin(la) * ld, lr, lit ? P.color2Rgb : P.colorRgb, lit ? 0.3 : 0.4);
+    }
+    SPRITES.push(cv);
+  }
+  // puffs: each lives a cycle (grow, fade in, fade out); a new cycle is born at a new seeded place
+  var ANG = (P.angle * Math.PI) / 180, DX = Math.cos(ANG), DY = -Math.sin(ANG);
+  var SPD = P.speed, RATE = 0.25 + 0.75 * P.speed;
+  var REG = P.region === "bottom" ? [0.6 * H, 0.5 * H] : P.region === "top" ? [-0.15 * H, 0.5 * H] : [-0.1 * H, 1.2 * H];
+  function riseAt(age) { return P.rise * SPD * (50 * age + 5 * age * age); }
+  var N = Math.round(26 * P.density);
+  var PUFFS = [];
+  for (var i = 0; i < N; i++) {
+    PUFFS.push({
+      life: (7 + 5 * rand(i * 1.9 + 0.4)) / RATE, off: rand(i * 2.7 + 1.6),
+      R: (250 + 240 * rand(i * 3.9 + 0.8)) * P.size, a: 0.6 + 0.3 * rand(i * 4.7 + 2.2), spr: i % 3,
+      asp: 0.85 + 0.35 * rand(i * 5.3 + 3.1), ph: rand(i * 7.7 + 1.2) * TAU
+    });
+  }
+  // smoke has no detail to lose: puffs go into a quarter-resolution buffer (4× fewer pixels to blend)
+  var BW = 270, BH = 480;
+  var buf = document.createElement("canvas");
+  buf.width = BW; buf.height = BH;
+  var bc = buf.getContext("2d");
+  // the haze density pulls the region toward: flat over the full frame, a gradient for bottom/top
+  var HZ = 0.14 * P.density, HAZE = rgba(P.colorRgb, HZ);
+  if (P.region !== "full") {
+    var hg = P.region === "bottom" ? bc.createLinearGradient(0, 0.45 * H, 0, H) : bc.createLinearGradient(0, 0.5 * H, 0, 0);
+    hg.addColorStop(0, rgba(P.colorRgb, 0));
+    hg.addColorStop(1, rgba(P.colorRgb, HZ));
+    HAZE = hg;
+  }
+  function draw(t) {
+    bc.setTransform(1, 0, 0, 1, 0, 0);
+    bc.clearRect(0, 0, BW, BH);
+    bc.setTransform(0.25, 0, 0, 0.25, 0, 0);
+    if (HZ > 0.002) {
+      bc.globalAlpha = 1;
+      bc.fillStyle = HAZE;
+      bc.fillRect(0, 0, W, H);
+    }
+    for (var i = 0; i < PUFFS.length; i++) {
+      var p = PUFFS[i];
+      var u = t / p.life + p.off, k = Math.floor(u), ph = u - k, age = ph * p.life, mid = 0.5 * p.life;
+      var a = p.a * smooth(0, 0.22, ph) * (1 - smooth(0.6, 1, ph));
+      if (a < 0.01) continue;
+      var bx = -0.12 * W + rand(i * 8.3 + k * 13.7 + 0.6) * 1.24 * W;      // where the puff is at mid-life
+      var by = REG[0] + rand(i * 9.1 + k * 11.3 + 1.8) * REG[1];
+      var x = bx + DX * 60 * SPD * (age - mid) + 30 * Math.sin(0.4 * t + p.ph);
+      var y = by + DY * 60 * SPD * (age - mid) - (riseAt(age) - riseAt(mid)) + 20 * Math.cos(0.33 * t + p.ph);
+      var R = p.R * (0.55 + 0.7 * (1 - (1 - ph) * (1 - ph))), RX = R * p.asp, RY = R / p.asp;
+      if (x + RX < 0 || x - RX > W || y + RY < 0 || y - RY > H) continue;
+      bc.globalAlpha = a;
+      bc.drawImage(SPRITES[p.spr], x - RX, y - RY, 2 * RX, 2 * RY);
+    }
+    bc.globalAlpha = 1;
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, 540, 960);
+    ctx.drawImage(buf, 0, 0, 540, 960);
+  }
+  var tl = gsap.timeline({ paused: true });
+  var clock = { t: 0 };
+  draw(0);
+  tl.fromTo(clock, { t: 0 }, { t: DUR, duration: DUR, ease: "none", onUpdate: function () { draw(clock.t); } }, 0);
+  window.__timelines = window.__timelines || {};
+  window.__timelines["__cid__"] = tl;
+})();
+</script>
+</template>

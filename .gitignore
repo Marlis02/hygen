@@ -2,8 +2,10 @@
 node_modules/
 dist/
 
-# Рендеры, снимки, кэши
-renders/
+# Рендеры, снимки, кэши (контактные листы роликов коммитим — приёмка по кадрам)
+**/renders/*
+!videos/*/renders/
+!videos/*/renders/*.contact.jpg
 snapshots/
 .thumbnails/
 .waveform-cache/

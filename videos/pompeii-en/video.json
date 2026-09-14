@@ -107,7 +107,7 @@
     }
   ],
   "transitions": [
-    { "from": "03-eruption", "to": "04-collapse", "type": "flash", "duration": 0.6 }
+    { "from": "03-eruption", "to": "04-collapse", "type": ["flash", "ash-burst"], "duration": 0.6 }
   ],
   "sound": {
     "drone": { "peak": "03-eruption:vesuvius+0.3", "cut": "06-finale:start", "volume": 0.42, "carve": 0.65 },

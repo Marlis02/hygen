@@ -1,0 +1,17 @@
+{
+  "id": "smoke",
+  "name": "Дым",
+  "use": "Big soft smoke clouds that slowly grow, drift and rise, overlapping into a haze without hiding the scene. Fires and burning cities, battlefields, eruptions, gas, industrial disasters.",
+  "layer": { "depth": "bg", "blend": "screen", "opacity": 0.6 },
+  "params": {
+    "density": { "type": "number", "default": 0.5, "min": 0, "max": 1, "description": "Плотность: 1 = 26 клубов и заметная дымка по всему региону." },
+    "speed": { "type": "number", "default": 0.5, "min": 0, "max": 2, "description": "Скорость дрейфа и жизни клубов: 1 = дрейф 60 px/с, клуб живёт 7–12 с; 0 — клубы стоят и медленно дышат." },
+    "angle": { "type": "number", "default": 0, "min": -180, "max": 180, "description": "Направление дрейфа, градусы: 0 — вправо, 90 — вверх, 180 — влево, −90 — вниз." },
+    "size": { "type": "number", "default": 1, "min": 0.3, "max": 3, "description": "Множитель размера клубов: 1 = радиус 250–490 px в середине жизни." },
+    "rise": { "type": "number", "default": 0.4, "min": 0, "max": 1, "description": "Подъём: насколько клубы всплывают с возрастом (горячий дым); 0 — только дрейф." },
+    "color": { "type": "color", "default": "ashMid", "description": "Цвет тела клубов." },
+    "color2": { "type": "color", "default": "ashLight", "description": "Цвет подсвеченных сверху бугров клубов." },
+    "region": { "type": "enum", "values": ["full", "bottom", "top"], "default": "full", "description": "Где рождаются клубы и лежит дымка: full — весь кадр; bottom — нижние 40 %; top — верхние 35 %." }
+  },
+  "seed": { "default": 0, "affects": "форма трёх клубов-спрайтов, раскладка и ритм клубов" }
+}

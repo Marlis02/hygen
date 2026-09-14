@@ -13,6 +13,13 @@
     "max": 11
   },
   "settle": 7.15,
+  "depth": 1,
+  "text": {
+    "year": {"el": "year", "kind": "number", "at": "year", "chars": ".__p__-col"},
+    "delta": {"el": "num", "kind": "number", "at": "delta", "dynamic": true},
+    "deltaUnit": {"el": "unit", "kind": "label", "at": 4.42},
+    "voidLabel": {"el": "label", "kind": "label", "at": 5.93}
+  },
   "params": {
     "year": {
       "type": "integer",

@@ -2,6 +2,7 @@ import { copyFileSync, existsSync, readFileSync, readdirSync } from "node:fs";
 import { basename, extname, isAbsolute, join } from "node:path";
 import type { BeatSpec, VideoSpec } from "./spec.ts";
 import { parseBeatText } from "./spec.ts";
+import { TEXT_KINDS } from "./motion.ts";
 import { ENGINE_DIR, ROOT_DIR, ensureDir, fail, readJson } from "./lib/util.ts";
 
 // The scene contract (engine/scenes/CONTRACT.md, engine/scenes/schema.json), checked in code.
@@ -47,6 +48,24 @@ export interface SceneDef {
   events: EventDef[];
   seed: { default: number; affects: string | null };
   safeZone: { contentMaxY: number; rightRail: boolean };
+  /** Parallax factor of the scene under the engine camera (default 1). */
+  depth?: number;
+  /** Text elements that accept a type preset (engine/motion/type.json). */
+  text?: Record<string, TextSlot>;
+}
+
+export interface TextSlot {
+  /** Element id without the prefix: "counter" → id="__p__-counter". */
+  el: string;
+  /** Element whose text is split into characters, when it is not el itself. */
+  text?: string;
+  kind: "number" | "title" | "label";
+  /** Anchor name or reference time of the element's entrance. */
+  at: string | number;
+  /** The scene rewrites the text while it plays (a counter): characters are rebuilt on every write. */
+  dynamic?: boolean;
+  /** Selector of the scene's own character boxes (".__p__-ch"): the preset moves them instead of splitting. */
+  chars?: string;
 }
 
 export interface FontDef {
@@ -194,7 +213,7 @@ export function sceneIds(): string[] {
     .sort();
 }
 
-function checkValue(def: ParamDef, value: unknown, where: string): void {
+export function checkValue(def: ParamDef, value: unknown, where: string): void {
   const bad = (msg: string): never => fail(`${where}: ${msg}`);
   switch (def.type) {
     case "number":
@@ -272,6 +291,18 @@ export function loadScene(id: string): SceneDef {
     need(ev.anchor === undefined || s.anchors[ev.anchor], `событие «${ev.label}»: нет якоря ${ev.anchor}`);
     need(ev.if === undefined || condOk(ev.if), `событие «${ev.label}»: условие if «${ev.if}» не разобрать`);
   }
+  need(s.depth === undefined || (typeof s.depth === "number" && s.depth >= 0 && s.depth <= 3), "depth — множитель параллакса 0–3");
+  if (s.text !== undefined) {
+    need(typeof s.text === "object" && s.text !== null, "text — {слот: {el, kind, at}}");
+    const template = readFileSync(join(dir, "scene.html"), "utf8");
+    for (const [name, slot] of Object.entries(s.text)) {
+      need(NAME_RE.test(name), `текстовый слот «${name}» — camelCase латиницей`);
+      need(typeof slot.el === "string" && template.includes(`id="__p__-${slot.el}"`), `текстовый слот ${name}: в шаблоне нет id="__p__-${slot.el}"`);
+      need(slot.text === undefined || template.includes(`id="__p__-${slot.text}"`), `текстовый слот ${name}: в шаблоне нет id="__p__-${slot.text}"`);
+      need(TEXT_KINDS.includes(slot.kind), `текстовый слот ${name}: kind — ${TEXT_KINDS.join(", ")}`);
+      need(typeof slot.at === "number" ? slot.at >= 0 && slot.at <= s.ref.duration : !!s.anchors[slot.at], `текстовый слот ${name}: at — якорь сцены или опорное время`);
+    }
+  }
   return s;
 }
 
@@ -327,7 +358,7 @@ function licenseOf(file: string): string {
   return join(file.slice(0, file.length - extname(file).length) + ".license.json");
 }
 
-function checkLicense(file: string, where: string): void {
+export function checkLicense(file: string, where: string): void {
   const lic = licenseOf(file);
   if (!existsSync(lic)) fail(`${where}: у файла ${file} нет записи о лицензии ${basename(lic)}`);
   const rec = readJson<Record<string, unknown>>(lic);
@@ -467,7 +498,7 @@ export function missingSources(spec: VideoSpec): string[] {
 
 // ── template ─────────────────────────────────────────────────────────────────────────────────────
 
-const LITERAL_COLOR_RE = /(?<![\w&$-])#(?:[0-9A-Fa-f]{3}|[0-9A-Fa-f]{4}|[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})(?![\w-])|\brgba?\(\s*\d/;
+export const LITERAL_COLOR_RE = /(?<![\w&$-])#(?:[0-9A-Fa-f]{3}|[0-9A-Fa-f]{4}|[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})(?![\w-])|\brgba?\(\s*\d/;
 
 /** Rules of engine/scenes/CONTRACT.md that can be checked on the template text. */
 export function lintTemplate(id: string, html: string): void {
@@ -505,6 +536,8 @@ export interface RenderInput {
   seed: number;
   /** The warp helper (engine/scenes/_runtime/warp.js with knots filled in). */
   warpJs: string;
+  /** Script the engine runs right before W.apply(tl): type presets and text parallax (engine/src/layers.ts). */
+  inject?: string;
 }
 
 export function renderTemplate(template: string, input: RenderInput): string {
@@ -522,6 +555,7 @@ export function renderTemplate(template: string, input: RenderInput): string {
   let html = template.replaceAll("__cid__", input.compositionId).replaceAll("__p__", prefix);
   html = html.replace("/*{{hygen:params}}*/", () => `var P = ${scriptJson(input.params)}, S = ${scriptJson(S)}, SEED = ${input.seed};`);
   html = html.replace("/*{{hygen:warp}}*/", () => input.warpJs);
+  if (input.inject) html = html.replace("W.apply(tl)", () => `${input.inject}W.apply(tl)`);
   html = html.replace(TOKEN_RE, (whole, kind: string, name: string | undefined) => {
     if (kind === "duration" && name === undefined) return String(input.duration);
     if (kind === "param" && name !== undefined) {

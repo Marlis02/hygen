@@ -1,0 +1,17 @@
+{
+  "id": "embers",
+  "name": "Угольки",
+  "use": "Glowing sparks rising and flickering out, from the bottom edge or across the frame. Fires, eruptions, forges, burning cities, the moment after an explosion.",
+  "layer": { "depth": "fg", "blend": "screen", "opacity": 1 },
+  "params": {
+    "density": { "type": "number", "default": 0.4, "min": 0, "max": 1, "description": "Плотность: 1 = 240 угольков." },
+    "speed": { "type": "number", "default": 0.7, "min": 0.1, "max": 2, "description": "Скорость подъёма: 1 = кадр за 3,5 с." },
+    "angle": { "type": "number", "default": -8, "min": -60, "max": 60, "description": "Отклонение подъёма от вертикали, градусы; плюс — вправо." },
+    "size": { "type": "number", "default": 1, "min": 0.3, "max": 3, "description": "Множитель размера." },
+    "source": { "type": "enum", "values": ["bottom", "frame"], "default": "bottom", "description": "bottom — поднимаются от нижнего края и гаснут к середине; frame — рождаются по всему кадру." },
+    "flicker": { "type": "number", "default": 1, "min": 0, "max": 2, "description": "Мерцание." },
+    "color": { "type": "color", "default": "hero", "description": "Ореол." },
+    "core": { "type": "color", "default": "heroLight", "description": "Сердцевина." }
+  },
+  "seed": { "default": 0, "affects": "раскладка и ритм угольков" }
+}

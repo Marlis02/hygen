@@ -2,6 +2,8 @@ import { rmSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { assembleProject } from "./assemble.ts";
 import { loadStyle, missingSources, validateBeats } from "./contract.ts";
+import { validateLayers } from "./layers.ts";
+import { applyLook, loadLook } from "./look.ts";
 import { checkProject, lintProject, masterAudio, renderProject } from "./render.ts";
 import type { MasterResult } from "./render.ts";
 import { writeScenes } from "./scenes.ts";
@@ -24,12 +26,14 @@ export interface BuildOptions {
 /** video.json → voice → word timings → sound → scenes → index.html → lint/check → render → master → autocheck. */
 export async function build(videoDir: string, opts: BuildOptions): Promise<boolean> {
   const spec = loadSpec(videoDir);
-  const style = loadStyle(spec.style);
+  const look = loadLook(spec.look);
+  const style = applyLook(loadStyle(spec.style), look);
   validateBeats(spec, style, videoDir);
+  validateLayers(spec, look, videoDir);
   const timer = new Timer();
   const buildDir = join(videoDir, "build");
   const rendersDir = ensureDir(join(videoDir, "renders"));
-  console.log(`hygen build ${spec.id} — «${spec.title}»`);
+  console.log(`hygen build ${spec.id} — «${spec.title}» · look ${look.id}`);
   for (const miss of missingSources(spec)) log.warn(`источник: ${miss} — автопроверка упадёт`);
   rmSync(buildDir, { recursive: true, force: true });
   ensureDir(buildDir);
@@ -43,9 +47,9 @@ export async function build(videoDir: string, opts: BuildOptions): Promise<boole
     makeGrain(videoDir, buildDir);
     return plan;
   });
-  const scenes = await timer.step("сцены по таймингам голоса", () => writeScenes(spec, style, videoDir, buildDir, timings, words));
+  const scenes = await timer.step("сцены по таймингам голоса", () => writeScenes(spec, style, videoDir, buildDir, timings, words, look, sound.sfx.filter((c) => c.kind !== "ash-fall").map((c) => c.at)));
   const total = await timer.step("index.html: субтитры, шины, переход, приглушение", () =>
-    assembleProject({ spec, style, buildDir, voices, words, timings, sound, scenes }),
+    assembleProject({ spec, style, look, buildDir, voices, words, timings, sound, scenes }),
   );
   await timer.step("hyperframes lint", () => lintProject(buildDir));
   const checkOk = opts.check ? await timer.step("hyperframes check", () => checkProject(buildDir)) : null;
@@ -65,6 +69,7 @@ export async function build(videoDir: string, opts: BuildOptions): Promise<boole
   const rel = (p: string): string => relative(ROOT_DIR, p);
   writeJson(join(rendersDir, `${spec.id}.build.json`), {
     id: spec.id,
+    look: look.id,
     duration_s: total,
     build_seconds: seconds,
     steps: timer.steps,

@@ -13,6 +13,14 @@
     "max": 12
   },
   "settle": 8.15,
+  "depth": 1,
+  "text": {
+    "label": {"el": "label", "kind": "title", "at": 0.2},
+    "region": {"el": "region", "kind": "label", "at": 0.9},
+    "count": {"el": "count", "kind": "number", "at": "counter", "dynamic": true},
+    "counterLabel": {"el": "counter-label", "kind": "label", "at": "counterLabel"},
+    "peakLabel": {"el": "peak-label", "kind": "label", "at": "peakLabel"}
+  },
   "params": {
     "map": {
       "type": "map",

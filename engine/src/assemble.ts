@@ -6,7 +6,10 @@ import type { SceneBuild } from "./scenes.ts";
 import type { SoundPlan } from "./sound.ts";
 import type { VideoSpec } from "./spec.ts";
 import type { BeatTiming } from "./timeline.ts";
-import { warpAt } from "./timeline.ts";
+import { warpAt, wordTime } from "./timeline.ts";
+import type { LookDef } from "./look.ts";
+import { paletteCss } from "./look.ts";
+import { backgroundHostsHtml, installRuntime, layerHostsHtml, motionConfig, planTransitions, postOverlays, prepareBackgrounds, vignetteCss, writeTextureLayers } from "./layers.ts";
 import type { VoiceLine } from "./voice.ts";
 import type { BeatWords } from "./words.ts";
 import { ENGINE_DIR, VENDOR_SKILLS, copyInto, ensureDir, fail, log, r3, run, stripAnsi, writeJson } from "./lib/util.ts";
@@ -14,6 +17,7 @@ import { ENGINE_DIR, VENDOR_SKILLS, copyInto, ensureDir, fail, log, r3, run, str
 export interface AssembleInput {
   spec: VideoSpec;
   style: StyleDef;
+  look: LookDef;
   buildDir: string;
   voices: VoiceLine[];
   words: BeatWords[];
@@ -116,9 +120,8 @@ function writeAudioMeta({ buildDir, voices, words, sound }: AssembleInput): void
 }
 
 /** Finishing pass over assemble-index's output — ported from examples/pompeii-short/scripts/assemble/finalize_index.mjs. */
-function finalizeIndex({ spec, buildDir, timings, sound }: AssembleInput, style: StyleDef): number {
+function finalizeIndex({ spec, look, buildDir, timings, words, sound, scenes }: AssembleInput, style: StyleDef): number {
   const colors = toneColors(style, "accent");
-  const rgb = (name: string): string => [1, 3, 5].map((i) => parseInt((colors[name] as string).slice(i, i + 2), 16)).join(", ");
   const indexPath = join(buildDir, "index.html");
   let html = readFileSync(indexPath, "utf8");
 
@@ -132,7 +135,27 @@ function finalizeIndex({ spec, buildDir, timings, sound }: AssembleInput, style:
 
   // 1. hosts: the outgoing scene of a shader transition is held under the blend; solid grounds for the shader pair
   const shaderTr = spec.transitions.filter((tr) => tr.type === "shader");
-  const flashTr = spec.transitions.filter((tr) => tr.type === "flash");
+  // look layers: transitions over the cuts (video.json, beat, look hit/default), media backgrounds, textures, motion runtime
+  const hits = sound.sfx.filter((c) => c.kind !== "ash-fall").map((c) => c.at);
+  const heavy = sound.sfx.filter((c) => c.kind === "thud-heavy").map((c) => c.at);
+  const planned = planTransitions(spec, look, timings, heavy);
+  const flashTr = planned.filter((tr) => tr.list.includes("flash"));
+  const burstTr = planned.filter((tr) => tr.list.includes("ash-burst"));
+  const spans = spec.beats.map((beat, i) => ({ beat, timing: timings[i] as BeatTiming, index: i }));
+  const bgs = prepareBackgrounds({ beats: spans.map(({ beat, timing }) => ({ beat, start: timing.start, duration: timing.duration })), look, style, videoDir: join(buildDir, ".."), dir: buildDir, fps: spec.fps });
+  const layers = writeTextureLayers({
+    look,
+    style,
+    dir: buildDir,
+    total,
+    hits,
+    spans: spans.map(({ beat, timing, index }) => ({ beatId: beat.id, start: timing.start, duration: timing.duration, textures: beat.textures, word: (ref: string) => wordTime(words[index] as BeatWords, ref) })),
+  });
+  const motion = motionConfig({ id: spec.id, look, style, beats: spans.map(({ beat, timing, index }) => ({ beat, start: timing.start, end: timing.end, index })), hits, bgs, layers, transitions: planned });
+  const runtime = motion.needs.runtime || scenes.some((s) => s.injected);
+  if (runtime) installRuntime(buildDir);
+  const post = postOverlays(motion.needs);
+  writeJson(join(buildDir, "layers.json"), { look: look.id, textures: layers, backgrounds: bgs, transitions: planned, motion: motion.config });
   const held = new Map<string, number>();
   for (const tr of shaderTr) {
     const from = timings.find((t) => t.id === tr.from) as BeatTiming;
@@ -170,24 +193,24 @@ function finalizeIndex({ spec, buildDir, timings, sound }: AssembleInput, style:
   // 2. head: GSAP and the shader runtime from the project, never a CDN; overlay styles
   html = html.replace(/<script src="https:\/\/cdn\.jsdelivr\.net\/npm\/gsap@[^"]+"[^>]*><\/script>/, () =>
     '<script src="assets/vendor/gsap.min.js"></script>' +
-    (shaderTr.length ? '\n    <script src="assets/vendor/shader-transitions.global.js"></script>' : ""),
+    (shaderTr.length ? '\n    <script src="assets/vendor/shader-transitions.global.js"></script>' : "") +
+    (runtime ? '\n    <script src="assets/hygen/runtime.js"></script>' : ""),
   );
   if (/https?:\/\/cdn\./.test(html)) fail("index.html: остались скрипты с CDN");
   const overlayCss = `
-      /* global finish (engine/src/assemble.ts) */
+      /* global finish (engine/src/assemble.ts): palette of the look as CSS variables, vignette, transition overlays */
+      ${paletteCss(style)}
       #el-captions { z-index: 35; }
-      #hf-vignette { position: absolute; inset: 0; pointer-events: none; z-index: 30;
-        background: radial-gradient(ellipse 78% 64% at 50% 42%, rgba(${rgb(style.vignette.color)}, 0) ${style.vignette.clear}%, rgba(${rgb(style.vignette.color)}, ${style.vignette.alpha}) 100%); }
-      #grain-overlay { position: absolute; inset: 0; pointer-events: none; z-index: 40; overflow: hidden; }
-      #grain-texture { position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; }
-      #grain-dark, #grain-light { position: absolute; inset: 0; background-size: 512px 512px; }
-      #grain-dark { background-image: url("assets/grain/grain-dark.png"); opacity: ${style.grain.dark}; }
-      #grain-light { background-image: url("assets/grain/grain-light.png"); opacity: ${style.grain.light}; }` +
+      ${vignetteCss(style)}` +
     (flashTr.length
       ? `
-      .hf-flash { position: absolute; inset: 0; pointer-events: none; z-index: 28; background-color: ${colors.text}; opacity: 0; }
+      .hf-flash { position: absolute; inset: 0; pointer-events: none; z-index: 28; background-color: ${colors.text}; opacity: 0; }`
+      : "") +
+    (burstTr.length
+      ? `
       #hf-burst { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; pointer-events: none; z-index: 29; }`
-      : "");
+      : "") +
+    (post.css ? `\n      ${post.css}` : "");
   html = html.replace(/(\s*)<\/style>\s*<\/head>/, () => `${overlayCss}\n    </style>\n  </head>`);
 
   // 3. body: voices on the voiceover bus (lanes 10/12 — lint duplicate_audio_track), SFX ids + bus, rounding
@@ -224,11 +247,13 @@ function finalizeIndex({ spec, buildDir, timings, sound }: AssembleInput, style:
         data-audio-group="music"
       ></audio>`;
   const overlays =
+    backgroundHostsHtml(bgs) +
     flashTr.map((_, i) => `\n      <div id="hf-flash-${i}" class="hf-flash" aria-hidden="true" data-layout-ignore></div>`).join("") +
-    (flashTr.length ? `\n      <canvas id="hf-burst" width="540" height="960" aria-hidden="true" data-layout-ignore></canvas>` : "") +
+    (burstTr.length ? `\n      <canvas id="hf-burst" width="540" height="960" aria-hidden="true" data-layout-ignore></canvas>` : "") +
     `
-      <div id="hf-vignette" aria-hidden="true" data-layout-ignore></div>
-      <div id="grain-overlay" aria-hidden="true" data-layout-ignore><div id="grain-texture"><div id="grain-dark"></div><div id="grain-light"></div></div></div>`;
+      <div id="hf-vignette" aria-hidden="true" data-layout-ignore></div>` +
+    post.html +
+    layerHostsHtml(layers);
   const beforeRootClose = /(\n\s*<\/div>\s*\n\s*<script>)/;
   if (!beforeRootClose.test(html)) fail("index.html: не найден конец корня перед скриптом");
   html = html.replace(beforeRootClose, (m) => `${buses}\n${overlays}${m}`);
@@ -241,51 +266,6 @@ function finalizeIndex({ spec, buildDir, timings, sound }: AssembleInput, style:
     duration: tr.duration,
     ease: tr.ease,
   }));
-  const flashes = flashTr.map((tr) => ({ at: (timings.find((t) => t.id === tr.to) as BeatTiming).start, dur: tr.duration }));
-  const ashColors = JSON.stringify([colors.ashMid, colors.ash3, colors.plane, colors.ashLight]);
-  // CSS flash over a cut: bone overlay ramps in over the last 0.08 s of the outgoing scene (its settle frame stays clean), holds, fades out by `dur`;
-  // an ash burst sprays from the hero line. One writer (the main driver), pure function of time.
-  const flashJs = flashes.length
-    ? `
-        var FLASHES = ${JSON.stringify(flashes)};
-        var flashEls = FLASHES.map(function (f, i) { return document.getElementById("hf-flash-" + i); });
-        var bctx = document.getElementById("hf-burst").getContext("2d");
-        var ASH_COLORS = ${ashColors};
-        function prand(n) { var x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); }
-        var ASH = [];
-        for (var i = 0; i < 180; i++) {
-          ASH.push({ a: prand(i * 1.7 + 0.3) * 6.2832, v: 700 + 1500 * prand(i * 2.9 + 1.1), r: 2 + 8 * Math.pow(prand(i * 3.3 + 2.2), 1.6),
-            c: ASH_COLORS[i % ASH_COLORS.length], life: 0.8 + 0.7 * prand(i * 4.1 + 0.7), lag: 0.06 * prand(i * 5.3 + 1.9) });
-        }
-        function flashAlpha(d, dur) {
-          if (d <= -0.08 || d >= dur) return 0;
-          if (d < 0) { var u = 1 + d / 0.08; return u * u; }
-          if (d < 0.08) return 1;
-          var p = (d - 0.08) / (dur - 0.08);
-          return (1 - p) * (1 - p);
-        }
-        function drawFlashes(t) {
-          bctx.setTransform(1, 0, 0, 1, 0, 0);
-          bctx.clearRect(0, 0, 540, 960);
-          bctx.setTransform(0.5, 0, 0, 0.5, 0, 0);
-          for (var k = 0; k < FLASHES.length; k++) {
-            var f = FLASHES[k], d = t - f.at;
-            flashEls[k].style.opacity = flashAlpha(d, f.dur).toFixed(3);
-            if (d < 0 || d > 1.6) continue;
-            for (var j = 0; j < ASH.length; j++) {
-              var q = ASH[j], age = d - q.lag;
-              if (age <= 0 || age >= q.life) continue;
-              var s = 0.3 * (1 - Math.exp(-age / 0.3));
-              var x = 540 + Math.cos(q.a) * q.v * s;
-              var y = 760 + Math.sin(q.a) * q.v * s * 0.8 + 140 * age * age;
-              bctx.globalAlpha = 0.85 * (1 - age / q.life);
-              bctx.fillStyle = q.c;
-              bctx.beginPath(); bctx.arc(x, y, q.r * (1 + 0.8 * age), 0, 6.2832); bctx.fill();
-            }
-          }
-          bctx.globalAlpha = 1;
-        }`
-    : "";
   const init = shaderTr.length
     ? `HyperShader.init({ bgColor: "${colors.ground}", accentColor: "${colors.accent}", compositionId: "main", scenes: ${JSON.stringify(shaderScenes)}, transitions: ${JSON.stringify(shaderTransitions)} })`
     : "gsap.timeline({ paused: true })";
@@ -293,17 +273,13 @@ function finalizeIndex({ spec, buildDir, timings, sound }: AssembleInput, style:
       (function () {
         var TOTAL = ${total};
         var tl = ${init};
-        var grain = document.getElementById("grain-texture");
-        var OFFS = [[0, 0], [-5, -5], [-10, 5], [5, -10], [-5, 15], [-10, 5], [15, 0], [0, 10], [-15, 0], [10, 5], [3, -7], [-12, -3], [8, 12]];
-${flashJs}
+${runtime ? `        HygenMotion.root.init(${JSON.stringify(motion.config)});` : ""}
         var drive = { t: 0 };
         tl.fromTo(drive, { t: 0 }, {
           t: TOTAL,
           duration: TOTAL,
           ease: "none",
-          onUpdate: function () {
-            var o = OFFS[Math.floor(drive.t * 24) % OFFS.length];
-            grain.style.transform = "translate(" + o[0] + "%, " + o[1] + "%)";${flashes.length ? "\n            drawFlashes(drive.t);" : ""}
+          onUpdate: function () {${runtime ? "\n            HygenMotion.root.update(drive.t);" : ""}
           },
         }, 0);
         tl.to({}, { duration: TOTAL }, 0);
@@ -315,7 +291,7 @@ ${flashJs}
   if (!scriptRe.test(html)) fail("index.html: не найден скрипт главного таймлайна");
   html = html.replace(scriptRe, () => mainScript);
   writeFileSync(indexPath, html);
-  log.info(`index.html: ${hosts.length} сцен, переходов: шейдер ${shaderTr.length}, вспышка ${flashTr.length}; звуков ${sound.sfx.length}, гул 0–${sound.drone.cut} с, всего ${total} с`);
+  log.info(`index.html: ${hosts.length} сцен, переходов: шейдер ${shaderTr.length}, вспышка ${flashTr.length}, пепел ${burstTr.length}, всего переходов ${planned.length}; look ${look.id}, текстур ${layers.length}, фонов ${bgs.length}${runtime ? ", runtime motion" : ""}; звуков ${sound.sfx.length}, гул 0–${sound.drone.cut} с, всего ${total} с`);
   return total;
 }
 

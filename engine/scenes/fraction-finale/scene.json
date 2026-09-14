@@ -6,6 +6,12 @@
   "ref": { "duration": 5.367, "speechStart": 2.0, "speechEnd": 3.767 },
   "duration": { "min": 3.5, "max": 9 },
   "settle": 4.6,
+  "depth": 1,
+  "text": {
+    "numerator": {"el": "one", "text": "one-value", "kind": "number", "at": "numerator", "dynamic": true},
+    "denominator": {"el": "three", "text": "three-value", "kind": "number", "at": 2.35, "dynamic": true},
+    "label": {"el": "label", "kind": "label", "at": "label"}
+  },
   "params": {
     "numerator": { "type": "integer", "default": 1, "min": 0, "max": 9, "figure": true, "description": "Числитель, одна цифра." },
     "denominator": { "type": "integer", "default": 3, "min": 1, "max": 9, "figure": true, "description": "Знаменатель, одна цифра; столько же сегментов в шкале." },

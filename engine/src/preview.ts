@@ -2,8 +2,12 @@ import { rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import type { Tone } from "./contract.ts";
 import { loadScene, loadStyle, renderTemplate, resolveParams, sceneIds, sceneTemplate, toneColors } from "./contract.ts";
+import { backgroundHostsHtml, installRuntime, layerHostsHtml, motionConfig, postOverlays, prepareBackgrounds, typeInjection, validateLayers, videoSeed, vignetteCss, writeTextureLayers } from "./layers.ts";
+import { applyLook, loadLook, paletteCss } from "./look.ts";
 import { sceneEvents, warpHelper } from "./scenes.ts";
-import type { BeatSpec } from "./spec.ts";
+import { makeGrain } from "./sound.ts";
+import type { BeatSpec, VideoSpec } from "./spec.ts";
+import type { TextureRef } from "./textures.ts";
 import { ENGINE_DIR, ROOT_DIR, copyInto, ensureDir, fail, hyperframesBin, log, python, r3, run, stripAnsi, writeJson } from "./lib/util.ts";
 
 export interface PreviewOptions {
@@ -12,6 +16,12 @@ export interface PreviewOptions {
   seed?: number;
   at?: string;
   style?: string;
+  /** Look id or an inline JSON object ({"extends": "abyss", …}). */
+  look?: string;
+  /** JSON list of texture references over the scene, on top of the look's. */
+  textures?: string;
+  /** JSON of the beat's layers: {textures, background, type, camera, post}. */
+  beat?: string;
 }
 
 const SHEET_PY = `
@@ -29,25 +39,37 @@ sheet.save(sys.argv[2], quality=88)
 print(len(files))
 `;
 
+function parseJson<T>(flag: string, text: string): T {
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    return fail(`${flag}: не JSON: ${text}`);
+  }
+}
+
+const BEAT_LAYER_KEYS = ["textures", "background", "type", "camera", "post"];
+
 /**
- * One scene on its own reference timing, no voice: a throwaway HyperFrames project in .preview/<id>/,
- * hyperframes lint, snapshots at the scene's events and settle time, and a contact sheet.
+ * One scene on its own reference timing, no voice: a throwaway HyperFrames project in .preview/<id>/ with the
+ * look's layers (textures, background, camera, post, type presets), hyperframes lint, snapshots at the scene's
+ * events and settle time, and a contact sheet.
  */
 export function previewScene(id: string, opts: PreviewOptions): boolean {
-  const style = loadStyle(opts.style ?? "documentary-dark");
+  const lookRef: unknown = opts.look?.trim().startsWith("{") ? parseJson<unknown>("--look", opts.look) : (opts.look ?? "ember");
+  const look = loadLook(lookRef, "--look");
+  const style = applyLook(loadStyle(opts.style ?? "documentary-dark"), look);
   const scene = loadScene(id);
-  let given: Record<string, unknown> = {};
-  if (opts.params) {
-    try {
-      given = JSON.parse(opts.params) as Record<string, unknown>;
-    } catch {
-      fail(`--params: не JSON: ${opts.params}`);
-    }
-  }
+  const given = opts.params ? parseJson<Record<string, unknown>>("--params", opts.params) : {};
   if (opts.tone !== undefined && opts.tone !== "accent" && opts.tone !== "cold") fail("--tone: accent или cold");
   const tone = (opts.tone ?? "accent") as Tone;
   const seed = opts.seed ?? scene.seed.default;
-  const beat: BeatSpec = { id, scene: id, text: "preview", pad: [0, 0], params: given, tone, seed };
+  const layerFields = opts.beat ? parseJson<Record<string, unknown>>("--beat", opts.beat) : {};
+  for (const key of Object.keys(layerFields)) if (!BEAT_LAYER_KEYS.includes(key)) fail(`--beat: поле ${key} — только ${BEAT_LAYER_KEYS.join(", ")}`);
+  if (opts.textures) layerFields.textures = [...((layerFields.textures as TextureRef[] | undefined) ?? []), ...parseJson<TextureRef[]>("--textures", opts.textures)];
+  const beat: BeatSpec = { id, scene: id, text: "preview", pad: [0, 0], params: given, tone, seed, ...layerFields };
+  const previewId = `preview-${id}`;
+  validateLayers({ id: previewId, beats: [beat], transitions: [] } as unknown as VideoSpec, look, ROOT_DIR);
+
   const dir = join(ROOT_DIR, ".preview", id);
   rmSync(dir, { recursive: true, force: true });
   ensureDir(join(dir, "compositions", "frames"));
@@ -60,9 +82,24 @@ export function previewScene(id: string, opts: PreviewOptions): boolean {
     $schema: "https://hyperframes.heygen.com/schema/hyperframes.json",
     paths: { blocks: "compositions", components: "compositions/components", assets: "assets" },
   });
-  writeJson(join(dir, "meta.json"), { id: `preview-${id}`, name: `preview-${id}` });
-  const html = renderTemplate(sceneTemplate(id), { sceneId: id, compositionId: id, duration: D, params, style, tone, seed, warpJs: warpHelper({ ref: knots, act: knots }) });
+  writeJson(join(dir, "meta.json"), { id: previewId, name: previewId });
+
+  // the scene's events stand in for the hits of a video: shake, chromatic and vignette-pulse fire on them
+  const events = sceneEvents(scene, params);
+  const hits = events.map((e) => e.ref);
+  const inject = typeInjection({ beat, scene, look, style, compositionId: id, start: 0, duration: D, index: 0, hits, seed: videoSeed(previewId) });
+  const html = renderTemplate(sceneTemplate(id), { sceneId: id, compositionId: id, duration: D, params, style, tone, seed, warpJs: warpHelper({ ref: knots, act: knots }), inject });
   writeFileSync(join(dir, "compositions", "frames", `${id}.html`), html);
+  makeGrain(ROOT_DIR, dir);
+  const layers = writeTextureLayers({ look, style, dir, total: D, hits, spans: [{ beatId: id, start: 0, duration: D, textures: beat.textures }] });
+  const bgs = prepareBackgrounds({ beats: [{ beat, start: 0, duration: D }], look, style, videoDir: ROOT_DIR, dir, fps: 30 });
+  const motion = motionConfig({ id: previewId, look, style, beats: [{ beat, start: 0, end: D, index: 0 }], hits, bgs, layers, transitions: [] });
+  const runtime = motion.needs.runtime || inject.length > 0;
+  if (runtime) installRuntime(dir);
+  const post = postOverlays(motion.needs);
+  const driver = runtime
+    ? `\n      HygenMotion.root.init(${JSON.stringify(motion.config)});\n      var drive = { t: 0 };\n      tl.fromTo(drive, { t: 0 }, { t: ${D}, duration: ${D}, ease: "none", onUpdate: function () { HygenMotion.root.update(drive.t); } }, 0);`
+    : "";
   writeFileSync(
     join(dir, "index.html"),
     `<!doctype html>
@@ -70,21 +107,25 @@ export function previewScene(id: string, opts: PreviewOptions): boolean {
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=1080, height=1920" />
-    <script src="assets/vendor/gsap.min.js"></script>
+    <script src="assets/vendor/gsap.min.js"></script>${runtime ? '\n    <script src="assets/hygen/runtime.js"></script>' : ""}
     <style>
       * { margin: 0; padding: 0; box-sizing: border-box; }
       html, body { width: 1080px; height: 1920px; overflow: hidden; background: #000; }
       #root { position: relative; width: 1080px; height: 1920px; overflow: hidden; background: ${toneColors(style, tone).ground}; }
       .scene { position: absolute; inset: 0; width: 100%; height: 100%; }
+      ${paletteCss(style)}
+      ${vignetteCss(style)}
+      ${post.css}
     </style>
   </head>
   <body>
     <div id="root" data-composition-id="main" data-start="0" data-duration="${D}" data-width="1080" data-height="1920">
-      <div id="el-${id}" class="scene" data-composition-id="${id}" data-composition-src="compositions/frames/${id}.html" data-start="0" data-duration="${D}" data-track-index="0"></div>
+      <div id="el-${id}" class="scene" data-composition-id="${id}" data-composition-src="compositions/frames/${id}.html" data-start="0" data-duration="${D}" data-track-index="0"></div>${backgroundHostsHtml(bgs)}
+      <div id="hf-vignette" aria-hidden="true" data-layout-ignore></div>${post.html}${layerHostsHtml(layers)}
     </div>
     <script>
       window.__timelines = window.__timelines || {};
-      var tl = gsap.timeline({ paused: true });
+      var tl = gsap.timeline({ paused: true });${driver}
       tl.to({}, { duration: ${D} }, 0);
       window.__timelines["main"] = tl;
     </script>
@@ -94,11 +135,11 @@ export function previewScene(id: string, opts: PreviewOptions): boolean {
   );
   const lint = run(hyperframesBin(), ["lint"], { cwd: dir, allowFail: true });
   for (const line of stripAnsi(lint.stdout + lint.stderr).trim().split("\n").filter((l) => l.trim()).slice(-12)) log.info(line);
-  const events = sceneEvents(scene, params);
   const times = opts.at
     ? opts.at
     : [...new Set([...events.map((e) => r3(Math.min(D - 0.05, e.ref + 0.7))), scene.settle])].sort((a, b) => a - b).join(",");
-  console.log(`\nснимки ${id} @ ${times} (события: ${events.map((e) => `${e.label} ${e.ref}`).join(" · ") || "нет"})`);
+  const extras = [layers.length > 1 ? `текстуры ${layers.filter((l) => l.texture !== "grain").map((l) => l.texture).join(", ")}` : "", bgs.length ? "фон" : "", runtime ? "motion" : ""].filter(Boolean);
+  console.log(`\nснимки ${id} · look ${look.id}${extras.length ? ` · ${extras.join(" · ")}` : ""} @ ${times} (события: ${events.map((e) => `${e.label} ${e.ref}`).join(" · ") || "нет"})`);
   const snapDir = join(dir, "snapshots");
   const snap = run(hyperframesBin(), ["snapshot", "--at", times, "--no-end", "--output", snapDir], { cwd: dir, allowFail: true });
   if (snap.status !== 0) {
@@ -117,6 +158,8 @@ export function listScenes(): boolean {
     console.log(`${id.padEnd(18)} ${s.duration.min}–${s.duration.max} с${s.hero ? " · геройская" : ""}\n  ${s.use}`);
     console.log(`  параметры: ${Object.keys(s.params).join(", ")}`);
     console.log(`  якоря: ${Object.entries(s.anchors).map(([k, a]) => (a.required ? `${k}*` : k)).join(", ")}`);
+    const slots = Object.entries(s.text ?? {});
+    if (slots.length) console.log(`  текстовые слоты (type): ${slots.map(([k, t]) => `${k} (${t.kind})`).join(", ")}`);
   }
   return true;
 }

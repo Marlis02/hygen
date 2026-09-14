@@ -1,0 +1,15 @@
+{
+  "id": "bubbles",
+  "name": "Пузыри и взвесь",
+  "use": "Underwater: bubbles of different sizes rising with a wobble, over slowly drifting marine snow. Shipwrecks, the deep ocean, divers, submarines, floods seen from below.",
+  "layer": { "depth": "fg", "blend": "screen", "opacity": 0.8 },
+  "params": {
+    "density": { "type": "number", "default": 0.4, "min": 0, "max": 1, "description": "Плотность пузырей: 1 = 110 пузырей в кадре." },
+    "speed": { "type": "number", "default": 0.8, "min": 0, "max": 2, "description": "Скорость: 1 = мелкий пузырь поднимается на 100 px/с, крупный на 300 px/с; взвесь дрейфует пропорционально." },
+    "size": { "type": "number", "default": 1, "min": 0.3, "max": 3, "description": "Множитель размера пузырей: 1 = радиус 3–19 px." },
+    "specks": { "type": "number", "default": 0.5, "min": 0, "max": 1, "description": "Сколько взвеси (морского снега): 1 = 480 частиц; 0 — только пузыри." },
+    "color": { "type": "color", "default": "heroLight", "description": "Цвет пузырей: обводка и блик." },
+    "speckColor": { "type": "color", "default": "ashLight", "description": "Цвет взвеси." }
+  },
+  "seed": { "default": 0, "affects": "раскладка, размеры и покачивание пузырей и взвеси" }
+}

@@ -1,0 +1,17 @@
+{
+  "id": "lightning",
+  "name": "Молния",
+  "use": "A lightning strike: the sky flashes twice and a branching bolt cracks down from the top edge. Strikes land on cues — the hits of the video or words of the beat — and each strike is an event for thunder.",
+  "layer": { "depth": "bg", "blend": "screen", "opacity": 1 },
+  "params": {
+    "strikes": { "type": "cues", "default": ["hits"], "description": "Когда бьёт: «hits» — на ударах sound.hits внутри слоя, «start», слово реплики бита («thirty», «died+0.2») или секунды от начала слоя." },
+    "flash": { "type": "number", "default": 0.6, "min": 0, "max": 1, "description": "Сила вспышки неба." },
+    "bolt": { "type": "boolean", "default": true, "description": "Рисовать ли разряд." },
+    "x": { "type": "number", "default": 0.62, "min": 0, "max": 1, "description": "Где разряд выходит из верхнего края, доля ширины (каждый следующий удар сдвигается по сиду)." },
+    "reach": { "type": "number", "default": 0.55, "min": 0.2, "max": 1, "description": "До какой высоты кадра доходит разряд, доля." },
+    "color": { "type": "color", "default": "coldLight", "description": "Цвет разряда." },
+    "glow": { "type": "color", "default": "cold", "description": "Цвет свечения и вспышки неба." }
+  },
+  "events": [ { "param": "strikes", "label": "lightning", "sound": "thunder" } ],
+  "seed": { "default": 0, "affects": "форма разрядов и их место" }
+}

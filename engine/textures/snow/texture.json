@@ -1,0 +1,15 @@
+{
+  "id": "snow",
+  "name": "Снег",
+  "use": "Soft snowflakes drifting down with a slow sway and a faint glow. Polar expeditions, winter wars, sinkings in icy water, mountain disasters, silence after an event.",
+  "layer": { "depth": "fg", "blend": "screen", "opacity": 0.85 },
+  "params": {
+    "density": { "type": "number", "default": 0.45, "min": 0, "max": 1, "description": "Плотность: 1 = 420 снежинок." },
+    "speed": { "type": "number", "default": 0.5, "min": 0, "max": 2, "description": "Скорость падения: 1 = в среднем 70 px/с." },
+    "angle": { "type": "number", "default": -6, "min": -60, "max": 60, "description": "Угол падения от вертикали, градусы; плюс — сносит влево." },
+    "size": { "type": "number", "default": 1, "min": 0.3, "max": 3, "description": "Множитель размера." },
+    "sway": { "type": "number", "default": 1, "min": 0, "max": 3, "description": "Амплитуда покачивания." },
+    "color": { "type": "color", "default": "text", "description": "Цвет снежинок." }
+  },
+  "seed": { "default": 0, "affects": "раскладка и покачивание снежинок" }
+}

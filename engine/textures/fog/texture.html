@@ -1,0 +1,117 @@
+<!-- hygen texture fog (D3.5): each band is a seamless strip of soft seeded noise drawn once into an offscreen canvas;
+     every frame it is two drawImage calls shifted by speed × time (parallax between bands), composed in a
+     quarter-resolution buffer and blitted once onto the canvas. Contract: engine/scenes/CONTRACT.md, «Текстуры». -->
+<template id="__p__-template">
+<div id="root" data-composition-id="__cid__" data-start="0" data-duration="{{hygen:duration}}" data-width="1080" data-height="1920">
+  <style>
+    #root { position: relative; width: 1080px; height: 1920px; overflow: hidden; pointer-events: none; }
+    #__p__-c { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; }
+  </style>
+  <canvas id="__p__-c" class="clip" width="540" height="960" data-start="0" data-duration="{{hygen:duration}}" data-track-index="0"></canvas>
+</div>
+<script src="assets/vendor/gsap.min.js"></script>
+<script>
+(function () {
+  /*{{hygen:params}}*/
+  var ctx = document.getElementById("__p__-c").getContext("2d");
+  var W = 1080, H = 1920, TAU = Math.PI * 2, TW = 2160;
+  function rand(n) { var x = Math.sin((n + SEED * 101.3) * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); }
+  function tint(a) { return "rgba(" + P.colorRgb + "," + a.toFixed(3) + ")"; }
+  var HPX = P.height * H, TOP = H - HPX;
+  var K1 = Math.min(1, 2 * P.density), K2 = Math.max(0, 2 * P.density - 1);   // up to 0.5 bands fade in, above — a second pass thickens them
+  // bands far → near: higher in the fog, slower, dimmer, finer
+  var DEF = [
+    { cy: 0.26, bh: 0.55, add: 260, v: 16, a: 0.6, lump: 0.75 },
+    { cy: 0.55, bh: 0.62, add: 300, v: 32, a: 0.8, lump: 0.9 },
+    { cy: 0.84, bh: 0.7, add: 360, v: 58, a: 1, lump: 1 }
+  ];
+  function blob(g, x, y, rx, ry, a) {
+    g.save();
+    g.translate(x, y);
+    g.scale(1, ry / rx);
+    var gr = g.createRadialGradient(0, 0, 0, 0, 0, rx);
+    gr.addColorStop(0, tint(a));
+    gr.addColorStop(0.5, tint(a * 0.5));
+    gr.addColorStop(1, tint(0));
+    g.fillStyle = gr;
+    g.beginPath(); g.arc(0, 0, rx, 0, TAU); g.fill();
+    g.restore();
+  }
+  var BANDS = [];
+  for (var l = 3 - P.layers; l < 3; l++) {
+    var d = DEF[l], bh = d.bh * HPX + d.add;
+    var cw = TW / 4, ch = Math.max(4, Math.round(bh / 4));  // the strip at buffer resolution → 1:1 blit
+    var cv = document.createElement("canvas");
+    cv.width = cw; cv.height = ch;
+    var g = cv.getContext("2d");
+    for (var m = 0; m < 40; m++) {
+      var big = m < 18;
+      var rx = (big ? 60 + 80 * rand(l * 31.1 + m * 1.7 + 0.3) : 20 + 30 * rand(l * 31.1 + m * 1.7 + 0.3)) * d.lump;
+      var ry = Math.min(ch * 0.32, rx * (0.35 + 0.25 * rand(l * 37.3 + m * 2.9 + 1.1)));
+      var bx = rand(l * 41.7 + m * 3.3 + 2.7) * cw;
+      var by = ch * (0.5 + (rand(l * 43.9 + m * 4.1 + 0.9) - 0.5) * 0.4);
+      var ba = big ? 0.2 + 0.2 * rand(l * 47.3 + m * 5.3 + 1.7) : 0.1 + 0.14 * rand(l * 47.3 + m * 5.3 + 1.7);
+      for (var c = -1; c <= 1; c++) {                      // wrap copies → the strip tiles seamlessly
+        var xx = bx + c * cw;
+        if (xx + rx > 0 && xx - rx < cw) blob(g, xx, by, rx, ry, ba);
+      }
+    }
+    g.globalCompositeOperation = "destination-in";         // soft top and bottom edges
+    var mg = g.createLinearGradient(0, 0, 0, ch);
+    mg.addColorStop(0, tint(0));
+    mg.addColorStop(0.28, tint(1));
+    mg.addColorStop(0.72, tint(1));
+    mg.addColorStop(1, tint(0));
+    g.fillStyle = mg;
+    g.fillRect(0, 0, cw, ch);
+    BANDS.push({
+      tile: cv, cy: TOP + d.cy * HPX, bh: bh, v: d.v * P.speed, a: d.a, off: rand(l * 53.1 + 5.5) * TW,
+      bob: 10 + 10 * rand(l * 59.3 + 0.7), bs: 0.21 + 0.2 * rand(l * 61.9 + 1.4), ph: rand(l * 67.3 + 2.2) * TAU, ph2: rand(l * 71.1 + 3.9) * TAU
+    });
+  }
+  var BW = 270, BH = 480;
+  var buf = document.createElement("canvas");
+  buf.width = BW; buf.height = BH;
+  var bc = buf.getContext("2d");
+  var HAZE = bc.createLinearGradient(0, TOP, 0, H);           // the fog floor under the bands
+  HAZE.addColorStop(0, tint(0));
+  HAZE.addColorStop(0.55, tint(0.18 * P.density));
+  HAZE.addColorStop(1, tint(0.42 * P.density));
+  function band(tile, off, y, bh) {
+    bc.drawImage(tile, off - TW, y, TW, bh);
+    if (off < W) bc.drawImage(tile, off, y, TW, bh);
+  }
+  function draw(t) {
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, 540, 960);
+    if (P.density <= 0) return;
+    bc.setTransform(1, 0, 0, 1, 0, 0);
+    bc.clearRect(0, 0, BW, BH);
+    bc.setTransform(0.25, 0, 0, 0.25, 0, 0);
+    bc.globalAlpha = 1;
+    bc.fillStyle = HAZE;
+    bc.fillRect(0, TOP, W, HPX);
+    for (var i = 0; i < BANDS.length; i++) {
+      var b = BANDS[i];
+      var off = (((b.v * t + b.off) % TW) + TW) % TW;
+      var y = b.cy - b.bh / 2 + b.bob * Math.sin(b.bs * t + b.ph);
+      var br = 0.86 + 0.14 * Math.sin(0.5 * t + b.ph2);
+      bc.globalAlpha = K1 * b.a * br;
+      band(b.tile, off, y, b.bh);
+      if (K2 > 0.01) {
+        bc.globalAlpha = K2 * b.a * br * 0.7;
+        band(b.tile, (off + TW / 2) % TW, y + 0.08 * b.bh, b.bh);
+      }
+    }
+    bc.globalAlpha = 1;
+    ctx.drawImage(buf, 0, 0, 540, 960);
+  }
+  var tl = gsap.timeline({ paused: true });
+  var clock = { t: 0 };
+  draw(0);
+  tl.fromTo(clock, { t: 0 }, { t: DUR, duration: DUR, ease: "none", onUpdate: function () { draw(clock.t); } }, 0);
+  window.__timelines = window.__timelines || {};
+  window.__timelines["__cid__"] = tl;
+})();
+</script>
+</template>

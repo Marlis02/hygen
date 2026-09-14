@@ -11,7 +11,7 @@ const USAGE = `hygen — движок faceless-канала
       голос → тайминги слов → звук → сцены → index.html → lint/check → рендер → мастеринг → автопроверка
   hygen verify <папка ролика> [--mp4 <файл>] [--no-snapshots]
       автопроверка готового MP4 и контактный лист
-  hygen scene <id сцены> [--params '{json}'] [--tone accent|cold] [--seed n] [--at t1,t2]
+  hygen scene <id сцены> [--params '{json}'] [--tone accent|cold] [--seed n] [--at t1,t2] [--look id|'{json}'] [--textures '[{"id":"rain"}]'] [--beat '{"type":"stagger","camera":"handheld","post":[{"id":"bloom"}]}']
       быстрый просмотр сцены без голоса: lint + снимки + .preview/<id>/sheet.jpg
   hygen scenes
       список сцен библиотеки
@@ -20,7 +20,7 @@ const USAGE = `hygen — движок faceless-канала
 
   из корня репозитория: npm run build -- videos/pompeii-en`;
 
-const VALUE_FLAGS = new Set(["--quality", "--mp4", "--params", "--tone", "--seed", "--at"]);
+const VALUE_FLAGS = new Set(["--quality", "--mp4", "--params", "--tone", "--seed", "--at", "--look", "--textures", "--beat"]);
 
 async function main(argv: string[]): Promise<number> {
   const [cmd, ...rest] = argv;
@@ -40,7 +40,7 @@ async function main(argv: string[]): Promise<number> {
   if (cmd === "verify" && dir) return verifyOnly(dir, value("--mp4"), !flags.has("--no-snapshots")) ? 0 : 1;
   if (cmd === "scene" && positional[0]) {
     const seed = value("--seed");
-    return previewScene(positional[0], { params: value("--params"), tone: value("--tone"), seed: seed === undefined ? undefined : Number(seed), at: value("--at") }) ? 0 : 1;
+    return previewScene(positional[0], { params: value("--params"), tone: value("--tone"), seed: seed === undefined ? undefined : Number(seed), at: value("--at"), look: value("--look"), textures: value("--textures"), beat: value("--beat") }) ? 0 : 1;
   }
   if (cmd === "scenes") return listScenes() ? 0 : 1;
   if (cmd === "doctor") return doctor() ? 0 : 1;

@@ -1,6 +1,7 @@
 import { existsSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { missingSources } from "./contract.ts";
+import { checkUniqueness } from "./uniqueness.ts";
 import type { VideoSpec } from "./spec.ts";
 import { fail, hyperframesBin, log, pyScript, python, readJson, run, writeJson } from "./lib/util.ts";
 
@@ -47,9 +48,14 @@ export function verifyVideo(videoDir: string, spec: VideoSpec, opts: VerifyOptio
   const sourcesOk = missing.length === 0;
   const detail = sourcesOk ? "у всех цифр на экране есть источник" : `нет источника: ${missing.join("; ")}`;
   log.info(`${sourcesOk ? "✓" : "✗"} sources   ${detail}`);
-  const rep = readJson<{ ok: boolean; checks: { check: string; ok: boolean; detail: string }[] }>(report);
+  const rep = readJson<{ ok: boolean; checks: { check: string; ok: boolean; detail: string }[]; palette?: { hue: number | null } }>(report);
   rep.checks.push({ check: "sources", ok: sourcesOk, detail });
-  rep.ok = rep.ok && sourcesOk;
+  // uniqueness among the videos in videos/: accent hue (look and settle frames) or texture set (ROADMAP D3.5)
+  const uniq = checkUniqueness(spec, videoDir, rep.palette?.hue ?? null);
+  log.info(`${uniq.ok ? "✓" : "✗"} uniqueness ${uniq.detail}`);
+  for (const w of uniq.warnings) log.warn(w);
+  rep.checks.push({ check: "uniqueness", ok: uniq.ok, detail: uniq.detail + (uniq.warnings.length ? ` · предупреждения: ${uniq.warnings.join("; ")}` : "") });
+  rep.ok = rep.ok && sourcesOk && uniq.ok;
   writeJson(report, rep);
-  return { ok: r.status === 0 && sourcesOk, report, sheet };
+  return { ok: r.status === 0 && sourcesOk && uniq.ok, report, sheet };
 }

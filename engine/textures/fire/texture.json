@@ -1,0 +1,17 @@
+{
+  "id": "fire",
+  "name": "Свечение огня",
+  "use": "Firelight without flames: a glowing crater with a hot rim, a burning horizon along the bottom edge, or a soft breathing glow behind the subject. Eruptions, city fires, furnaces, night battles.",
+  "layer": { "depth": "bg", "blend": "screen", "opacity": 1 },
+  "params": {
+    "mode": { "type": "enum", "values": ["crater", "horizon", "glow"], "default": "horizon", "description": "crater — жерло: радиальное свечение и раскалённый край (из 79 AD); horizon — зарево вдоль нижнего края; glow — мягкое дыхание за героем (из «18 HOURS»)." },
+    "x": { "type": "number", "default": 0.5, "min": 0, "max": 1, "description": "Центр по горизонтали, доля ширины кадра." },
+    "y": { "type": "number", "default": 0.74, "min": 0, "max": 1.2, "description": "Центр по вертикали, доля высоты кадра (horizon — линия зарева)." },
+    "size": { "type": "number", "default": 1, "min": 0.2, "max": 3, "description": "Множитель радиуса." },
+    "intensity": { "type": "number", "default": 0.6, "min": 0, "max": 1, "description": "Яркость свечения." },
+    "flicker": { "type": "number", "default": 1, "min": 0, "max": 2.5, "description": "Скорость и глубина мерцания; 0 — ровный свет." },
+    "color": { "type": "color", "default": "hero", "description": "Цвет свечения." },
+    "hot": { "type": "color", "default": "heroHot", "description": "Цвет раскалённого края (crater) и сердцевины." }
+  },
+  "seed": { "default": 0, "affects": "фазы мерцания" }
+}

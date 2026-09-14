@@ -1,0 +1,16 @@
+{
+  "id": "wind",
+  "name": "Ветер",
+  "use": "Thin drift streaks racing across the frame in gusts, like dust or spray carried by wind. Storms, hurricanes, deserts, speed, the passing of time.",
+  "layer": { "depth": "mid", "blend": "screen", "opacity": 0.55 },
+  "params": {
+    "density": { "type": "number", "default": 0.4, "min": 0, "max": 1, "description": "Плотность: 1 = 160 полос." },
+    "speed": { "type": "number", "default": 1, "min": 0.1, "max": 3, "description": "Скорость: 1 = около 900 px/с у ближних полос." },
+    "angle": { "type": "number", "default": 8, "min": -45, "max": 45, "description": "Наклон полос от горизонтали, градусы; плюс — вниз по ходу." },
+    "length": { "type": "number", "default": 1, "min": 0.2, "max": 3, "description": "Множитель длины полос." },
+    "gust": { "type": "number", "default": 0.6, "min": 0, "max": 1, "description": "Порывы: полосы густеют и редеют волнами." },
+    "direction": { "type": "enum", "values": ["left", "right"], "default": "left", "description": "Куда дует ветер." },
+    "color": { "type": "color", "default": "mutedLight", "description": "Цвет полос." }
+  },
+  "seed": { "default": 0, "affects": "раскладка полос и ритм порывов" }
+}

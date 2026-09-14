@@ -7,6 +7,12 @@
   "ref": { "duration": 9.258, "speechStart": 0.6, "speechEnd": 8.858 },
   "duration": { "min": 6, "max": 13 },
   "settle": 9.15,
+  "depth": 1,
+  "text": {
+    "speed": {"el": "speed-num", "kind": "number", "at": "speed", "chars": ".__p__-cell"},
+    "speedUnit": {"el": "speed-unit", "kind": "label", "at": "speedUnit"},
+    "depthLabel": {"el": "depth-label", "kind": "label", "at": "depthLabel"}
+  },
   "params": {
     "speedValue": { "type": "number", "default": 100, "min": 0, "max": 999, "figure": true, "description": "Скорость лавины, считает до значения (до 3 цифр)." },
     "speedPrefix": { "type": "string", "default": "≈", "maxLength": 2, "description": "Знак перед скоростью; пустая строка — без знака." },

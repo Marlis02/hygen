@@ -1,0 +1,16 @@
+{
+  "id": "rain",
+  "name": "Дождь",
+  "use": "Slanted rain streaks in three depth planes with gentle seeded gusts. Storms, night streets, sieges and battles in bad weather, ships on the surface, floods.",
+  "layer": { "depth": "fg", "blend": "screen", "opacity": 0.6 },
+  "params": {
+    "density": { "type": "number", "default": 0.5, "min": 0, "max": 1, "description": "Плотность: 1 = 760 капель в кадре (половина — дальний план)." },
+    "speed": { "type": "number", "default": 1, "min": 0, "max": 2, "description": "Скорость падения: 1 = ближние 2300 px/с, дальние 950 px/с; штрихи удлиняются со скоростью." },
+    "angle": { "type": "number", "default": 10, "min": -60, "max": 60, "description": "Угол падения от вертикали, градусы; плюс — сносит влево, минус — вправо (как у ash)." },
+    "length": { "type": "number", "default": 1, "min": 0.2, "max": 3, "description": "Множитель длины штрихов: 1 = ближние 120 px, дальние 38 px." },
+    "thickness": { "type": "number", "default": 1, "min": 0.3, "max": 3, "description": "Множитель толщины штрихов: 1 = ближние 3,2 px, дальние 1,6 px." },
+    "gusts": { "type": "number", "default": 0.5, "min": 0, "max": 1, "description": "Порывы: насколько гуляет угол по гладкому шуму (1 = ±10°); 0 — ровный дождь." },
+    "color": { "type": "color", "default": "mutedLight", "description": "Цвет капель: токен палитры или #RRGGBB." }
+  },
+  "seed": { "default": 0, "affects": "раскладка капель и ритм порывов" }
+}

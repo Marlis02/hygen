@@ -6,6 +6,11 @@
   "ref": { "duration": 3.721, "speechStart": 0.3, "speechEnd": 3.321 },
   "duration": { "min": 2.5, "max": 7 },
   "settle": 3.62,
+  "depth": 1,
+  "text": {
+    "counter": {"el": "counter", "kind": "number", "at": "ignite", "dynamic": true},
+    "unit": {"el": "unit", "kind": "label", "at": "unit", "chars": ".__p__-ch"}
+  },
   "params": {
     "value": { "type": "number", "default": 18, "min": 0, "max": 99999, "figure": true, "description": "Число, до которого идёт счёт." },
     "format": { "type": "enum", "values": ["int", "thousands", "clock"], "default": "int", "description": "int — 18; thousands — 11,000; clock — value в минутах как H:MM (160 → 2:40)." },
