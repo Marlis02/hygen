@@ -1,0 +1,25 @@
+{
+  "id": "list",
+  "about": "Список: N равноправных пунктов.",
+  "roles": [
+    {
+      "id": "hook",
+      "what": "первые 1,5 с: цифра или ключевое слово",
+      "repeat": false
+    },
+    {
+      "id": "item",
+      "what": "пункт списка (повторяется)",
+      "repeat": true
+    },
+    {
+      "id": "ending",
+      "what": "финал по arc.ending",
+      "repeat": false
+    }
+  ],
+  "required": [
+    "hook",
+    "ending"
+  ]
+}

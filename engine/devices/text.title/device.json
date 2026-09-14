@@ -1,0 +1,24 @@
+{
+  "type": "text.title",
+  "name": "Титр",
+  "use": "Put a short line of type on the frame: a calm kicker-and-headline lockup, a typewriter line with a caret, or a slammed date or name that hits hard.",
+  "origin": "registry:titlecard-calm + own typewriter/slam (after kinetic-type-swap)",
+  "layer": "text",
+  "target": "box|point|none",
+  "targetNote": "box — блок текста в области; point — центр блока; none — верхняя треть кадра по центру (y ≈ 380)",
+  "explains": false,
+  "figures": ["text", "kicker"],
+  "params": {
+    "text": { "type": "string", "default": "", "maxLength": 40, "description": "Строка титра; пусто — слово реплики, к которому привязано устройство." },
+    "kicker": { "type": "string", "default": "", "maxLength": 28, "description": "Мелкая строка над титром, ЗАГЛАВНЫМИ с разрядкой." },
+    "mode": { "type": "enum", "values": ["calm", "typewriter", "slam"], "default": "calm", "description": "calm — спокойный подъём; typewriter — по буквам с кареткой; slam — крупный быстрый удар (даты, имена)." },
+    "size": { "type": "enum", "values": ["headline", "title", "label"], "default": "headline", "description": "Размер строки из стиля." },
+    "align": { "type": "enum", "values": ["center", "left"], "default": "center", "description": "Выравнивание блока." },
+    "color": { "type": "string", "default": "text", "maxLength": 16, "description": "Цвет строки: токен палитры или #RRGGBB." }
+  },
+  "events": [
+    { "label": "in", "offset": 0 },
+    { "label": "land", "offset": 0.6 }
+  ],
+  "demo": { "target": null, "params": { "text": "April 10, 1912", "kicker": "SOUTHAMPTON", "mode": "typewriter" }, "at": 0.4 }
+}

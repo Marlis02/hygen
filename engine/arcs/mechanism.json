@@ -1,0 +1,35 @@
+{
+  "id": "mechanism",
+  "about": "Механизм: как это работало шаг за шагом.",
+  "roles": [
+    {
+      "id": "hook",
+      "what": "первые 1,5 с: цифра или ключевое слово",
+      "repeat": false
+    },
+    {
+      "id": "setup",
+      "what": "мир до события",
+      "repeat": false
+    },
+    {
+      "id": "step",
+      "what": "один шаг механизма (повторяется)",
+      "repeat": true
+    },
+    {
+      "id": "consequence",
+      "what": "к чему привёл механизм",
+      "repeat": false
+    },
+    {
+      "id": "ending",
+      "what": "финал по arc.ending",
+      "repeat": false
+    }
+  ],
+  "required": [
+    "hook",
+    "ending"
+  ]
+}

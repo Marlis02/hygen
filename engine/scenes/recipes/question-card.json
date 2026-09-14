@@ -1,0 +1,39 @@
+{
+  "id": "question-card",
+  "name": "Карточка вопроса",
+  "use": "A question typed on a dark card — the hook of a mystery or the open ending.",
+  "stage": {
+    "types": [
+      "color"
+    ],
+    "default": {
+      "type": "color",
+      "color": "night",
+      "glow": true
+    }
+  },
+  "devices": [
+    {
+      "type": "text.title",
+      "at": "$at",
+      "params": {
+        "text": "$data.text",
+        "kicker": "$data.kicker",
+        "mode": "typewriter",
+        "size": "$data.size|title"
+      },
+      "source": "$data.source"
+    }
+  ],
+  "dominant": 0,
+  "requires": [
+    "data.text"
+  ],
+  "demo": {
+    "text": "So why did nobody hear the loudest sound in history coming?",
+    "data": {
+      "text": "Why did nobody hear it coming?",
+      "kicker": "The question"
+    }
+  }
+}

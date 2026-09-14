@@ -1,0 +1,25 @@
+{
+  "type": "annotate.circle",
+  "name": "Обводка",
+  "use": "Circle an area of the picture with a hand-drawn wobbly ellipse, optional scribble fill and a label on a short connector; or grow a ring from a point to its size (a radius on a map).",
+  "origin": "registry:hw-callout-circle",
+  "layer": "annotate",
+  "target": "box|point",
+  "targetNote": "box — эллипс вокруг области (с небольшим запасом); point — центр круга, размер задаёт radius",
+  "explains": true,
+  "figures": ["label"],
+  "params": {
+    "radius": { "type": "number", "default": 140, "min": 20, "max": 900, "description": "Радиус круга в px, если цель — точка." },
+    "grow": { "type": "boolean", "default": false, "description": "Круг вырастает из центра до размера (радиус на карте), вместо прорисовки контура." },
+    "growDur": { "type": "number", "default": 1.2, "min": 0.3, "max": 4, "description": "За сколько секунд круг вырастает (grow)." },
+    "label": { "type": "string", "default": "", "maxLength": 24, "description": "Подпись на выноске, ЗАГЛАВНЫМИ; пусто — без выноски." },
+    "labelSide": { "type": "enum", "values": ["auto", "top", "bottom", "left", "right"], "default": "auto", "description": "С какой стороны подпись: auto — где хватает места." },
+    "scribble": { "type": "boolean", "default": false, "description": "Штриховка внутри круга цветом героя." },
+    "color": { "type": "string", "default": "heroLight", "maxLength": 16, "description": "Токен палитры (hero, heroLight, text, cold) или #RRGGBB." }
+  },
+  "events": [
+    { "label": "draw", "offset": 0 },
+    { "label": "land", "offset": 1.0 }
+  ],
+  "demo": { "target": { "x": 22, "y": 26, "w": 44, "h": 14 }, "params": { "label": "THE BAY", "scribble": true }, "at": 0.6 }
+}

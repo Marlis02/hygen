@@ -1,0 +1,22 @@
+{
+  "type": "annotate.measure",
+  "name": "Измерение",
+  "use": "Show a size on the picture: a dimension line between two points with end ticks and a label (height of a column, length of a hull, width of a crater).",
+  "origin": "own",
+  "layer": "annotate",
+  "target": "box",
+  "targetNote": "отрезок от (x, y) до (x + w, y + h): вертикальный — w = 0, горизонтальный — h = 0, наклонный — оба",
+  "explains": true,
+  "figures": ["label"],
+  "params": {
+    "label": { "type": "string", "default": "", "maxLength": 18, "description": "Подпись размера, ЗАГЛАВНЫМИ: «30 KM», «269 M»." },
+    "side": { "type": "enum", "values": ["auto", "left", "right"], "default": "auto", "description": "С какой стороны отрезка подпись: auto — к центру кадра." },
+    "color": { "type": "string", "default": "heroLight", "maxLength": 16, "description": "Токен палитры (hero, heroLight, text, cold) или #RRGGBB." },
+    "draw": { "type": "number", "default": 0.8, "min": 0.2, "max": 3, "description": "Сколько секунд рисуется отрезок." }
+  },
+  "events": [
+    { "label": "draw", "offset": 0 },
+    { "label": "land", "offset": 0.9 }
+  ],
+  "demo": { "target": { "x": 30, "y": 16, "w": 0, "h": 44 }, "params": { "label": "30 KM" }, "at": 0.6 }
+}

@@ -1,0 +1,48 @@
+{
+  "id": "show-evidence",
+  "use": "A document or an archival photo as proof: treated like an archive, the key part lit, a label with its source.",
+  "stage": {
+    "types": [
+      "media"
+    ],
+    "default": {
+      "type": "media",
+      "src": "$data.src",
+      "treatment": "$data.treatment|film-memory"
+    }
+  },
+  "devices": [
+    {
+      "type": "focus.spotlight",
+      "target": "$target",
+      "at": "$at",
+      "params": {
+        "mode": "dim"
+      }
+    },
+    {
+      "type": "annotate.label",
+      "target": "$target",
+      "at": "$at+0.4",
+      "params": {
+        "text": "$data.label",
+        "sub": "$data.credit"
+      },
+      "explains": "$data.explains|what the viewer should notice here",
+      "source": "$data.source"
+    }
+  ],
+  "dominant": 1,
+  "camera": {
+    "reason": "approach",
+    "amplitude": 0.4
+  },
+  "requires": [
+    "target",
+    "data.label"
+  ],
+  "rhythm": {
+    "density": 3,
+    "note": "Подпись источника мелко, одна строка."
+  }
+}

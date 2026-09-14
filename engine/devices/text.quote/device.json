@@ -1,0 +1,23 @@
+{
+  "type": "text.quote",
+  "name": "Цитата",
+  "use": "A real quote from the sources on screen: large quote mark, the words appear one by one, then the author and the year. Built on the text layer like text.title.",
+  "origin": "own",
+  "layer": "text",
+  "target": "box|none",
+  "targetNote": "область текста; без target — центр кадра x 90–990, y 520–1250",
+  "explains": false,
+  "figures": ["text", "author", "year"],
+  "params": {
+    "text": { "type": "string", "default": "", "maxLength": 140, "description": "Цитата дословно, как в источнике (по-английски)." },
+    "author": { "type": "string", "default": "", "maxLength": 32, "description": "Кто сказал: имя или роль." },
+    "year": { "type": "string", "default": "", "maxLength": 12, "description": "Год или дата, строкой." },
+    "size": { "type": "enum", "values": ["large", "medium"], "default": "large", "description": "Кегль цитаты: large 76 px, medium 60 px." },
+    "wordStep": { "type": "number", "default": 0.09, "min": 0.02, "max": 0.4, "description": "Шаг появления слов, с." }
+  },
+  "events": [
+    { "label": "in", "offset": 0 },
+    { "label": "author", "offset": 1.4 }
+  ],
+  "demo": { "params": { "text": "The ship is sinking. We are putting the women off in the boats.", "author": "Wireless from Titanic", "year": "1912" }, "at": 0.4, "stage": { "type": "color", "color": "night", "glow": true } }
+}

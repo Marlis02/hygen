@@ -24,7 +24,7 @@ export interface PreviewOptions {
   beat?: string;
 }
 
-const SHEET_PY = `
+export const SHEET_PY = `
 import glob, os, re, sys
 from PIL import Image, ImageDraw
 files = sorted(glob.glob(os.path.join(sys.argv[1], "**", "*.png"), recursive=True),

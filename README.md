@@ -16,6 +16,10 @@ npm run scene -- counter-title        # превью одной сцены бе�
 npm run scene -- counter-title --look abyss                          # сцена под look ролика
 npm run scene -- map-marker --look storm --beat '{"type":{"count":"stagger"},"camera":"handheld","post":[{"id":"flicker"}]}'
 npm run scene -- fraction-finale --textures '[{"id":"rain"}]'         # текстура поверх сцены
+npm run scene -- --device annotate.box                               # бит v2: устройство на нейтральном stage
+npm run scene -- --stage media --src videos/_proof/titanic-v2/media/titanic-pathe-1912-belfast.webm --text "It was gone" --beat '{"stage":{"fit":"contain"},"devices":[{"type":"edit.hold","at":"gone"}],"dominant":0}'
+npm run scene -- quote-card                                          # JSON-рецепт без HTML
+npm run build -- videos/_proof/titanic-v2                            # proof бита v2: stage + devices + intent
 ```
 
 Сравнение и регрессия:
@@ -26,7 +30,7 @@ python3 engine/py/contact_montage.py videos/_compare/contact-3.jpg \
   videos/pompeii-en/renders/pompeii-en.contact.jpg:"pompeii-en · ember" …        # листы роликов один под другим
 ```
 
-Новый ролик от темы: в Claude Code `/short "Krakatoa 1883"` — исследование с источниками, сценарий, визуальная концепция (look, картинки, текстуры, motion, переходы), раскадровка по контракту сцен, `videos/<id>/video.json` и сборка (`.claude/commands/short.md`).
+Новый ролик от темы: в Claude Code `/short "Krakatoa 1883"` — исследование с источниками, концепция мира (look), арка (structure × hook × protagonist × ending), сценарий, для каждого бита «что видит зритель» → intent + target + данные (stage + устройства), медиа с ролью, грамматика до сборки, `videos/<id>/video.json` и сборка (`.claude/commands/short.md`, v3). Бит v2 — `engine/scenes/CONTRACT.md`, «Бит v2».
 
 `build` идёт по шагам: голос Kokoro → тайминги слов whisper → звук по таймингам → сцены, растянутые под голос → `index.html` с субтитрами и шинами → `hyperframes lint` и `check` → рендер → мастеринг до −14 LUFS → автопроверка MP4.
 

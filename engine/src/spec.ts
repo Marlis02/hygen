@@ -1,14 +1,34 @@
 import { existsSync } from "node:fs";
 import { join } from "node:path";
+import type { DeviceSpec } from "./devices.ts";
+import { expandBeat } from "./intents.ts";
 import { checkTransitionRef } from "./motion.ts";
 import type { TextureRef } from "./textures.ts";
 import { ENGINE_DIR, fail, readJson } from "./lib/util.ts";
 
-/** One beat = one voice line + one library scene (engine/scenes/CONTRACT.md). */
+export const isHtmlScene = (id: string): boolean => existsSync(join(ENGINE_DIR, "scenes", id, "scene.json"));
+
+/** One beat = one voice line + either a library scene (HTML recipe) or a stage with devices (engine/scenes/CONTRACT.md, «Бит v2»). */
 export interface BeatSpec {
   id: string;
-  /** Library scene id: engine/scenes/<scene>/. */
-  scene: string;
+  /** Library scene id (engine/scenes/<scene>/scene.html) or a JSON recipe (engine/scenes/recipes/<scene>.json). */
+  scene?: string;
+  /** What the viewer must see — an intent from engine/intents/ that the resolver expands into stage + devices. */
+  intent?: string;
+  /** Set by the resolver: the JSON recipe this stage beat came from. */
+  recipe?: string;
+  /** The base of the frame: exactly one of media | split | map | color. */
+  stage?: { type: string; [key: string]: unknown };
+  /** 0–3 devices over the stage (engine/devices/<type>). */
+  devices?: DeviceSpec[];
+  /** What leads the frame: "stage" or the index of one device. */
+  dominant?: "stage" | number;
+  /** Shorthand for an intent or a recipe: the target region, the anchor word and the data of its devices. */
+  target?: unknown;
+  at?: number | string;
+  data?: Record<string, unknown>;
+  /** Role of the beat in the arc structure (engine/arcs/<structure>.json). */
+  role?: string;
   /** Narration. `[display|spoken]` shows `display` in captions while the voice says `spoken`. */
   text: string;
   /** Silence before and after the line, seconds — part of the scene's timing. */
@@ -73,9 +93,21 @@ export interface HitSpec {
   carve?: number;
 }
 
+/** Arc v2 (engine/arcs): structure × hook × protagonist × ending. */
+export interface ArcSpec {
+  structure: string;
+  hook: string;
+  protagonist: string;
+  ending: string;
+  why?: string;
+}
+
 export interface VideoSpec {
   id: string;
   title: string;
+  arc?: ArcSpec;
+  /** Id of the video this one re-tells in the same world (a proof or a remake): colour uniqueness is not checked against it. */
+  retells?: string;
   format: string;
   fps: number;
   language: string;
@@ -146,14 +178,16 @@ export function loadSpec(videoDir: string): VideoSpec {
     need(beat.id && !ids.has(beat.id), `пустой или повторный id бита «${beat.id}»`);
     ids.add(beat.id);
     need(/^[0-9a-z][a-z0-9-]*$/.test(beat.id ?? ""), `id бита «${beat.id}» — строчная латиница, цифры и дефис`);
-    need(existsSync(join(ENGINE_DIR, "scenes", beat.scene ?? "", "scene.json")), `${beat.id}: нет сцены engine/scenes/${beat.scene}/scene.json`);
+    need(beat.scene !== undefined || beat.stage !== undefined || beat.intent !== undefined, `${beat.id}: нужен scene (сцена или рецепт), stage или intent`);
     need(typeof beat.text === "string" && beat.text.trim().length > 0, `${beat.id}: пустой text`);
     need(beat.tone === undefined || beat.tone === "accent" || beat.tone === "cold", `${beat.id}: tone — accent или cold`);
     need(beat.seed === undefined || Number.isInteger(beat.seed), `${beat.id}: seed — целое`);
-    const known = new Set(["id", "scene", "text", "pad", "tone", "seed", "params", "anchors", "cues", "sources", "textures", "background", "type", "camera", "post", "transition"]);
+    const known = new Set(["id", "scene", "text", "pad", "tone", "seed", "params", "anchors", "cues", "sources", "textures", "background", "type", "camera", "post", "transition", "intent", "stage", "devices", "dominant", "target", "at", "data", "role"]);
     for (const key of Object.keys(beat)) need(known.has(key), `${beat.id}: неизвестное поле «${key}»`);
     beat.pad = beat.pad ?? [0.2, 0.4];
   }
+  // intents and JSON recipes → stage + devices (engine/src/intents.ts); scene beats with an HTML scene stay as they are
+  spec.beats = spec.beats.map((beat) => expandBeat(beat, isHtmlScene));
   spec.transitions = spec.transitions ?? [];
   for (const tr of spec.transitions) {
     need(ids.has(tr.from) && ids.has(tr.to), `переход ${tr.from} → ${tr.to}: нет таких битов`);

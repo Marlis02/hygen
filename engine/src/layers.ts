@@ -112,8 +112,18 @@ export function vignetteCss(style: StyleDef): string {
 
 // ── beat motion: camera, post, type ──────────────────────────────────────────────────────────────
 
-export function beatCamera(beat: Pick<BeatSpec, "id" | "camera">, look: LookDef): CameraSpec {
+/** A stage beat moves the camera only for a reason; the reason picks the preset when none is given. */
+const REASON_PRESET: Record<string, string> = { approach: "push-in", reveal: "pull-out", follow: "pan", tension: "handheld" };
+
+export function beatCamera(beat: Pick<BeatSpec, "id" | "camera" | "scene">, look: LookDef): CameraSpec {
   const base = look.motion.camera;
+  if (beat.scene === undefined) {
+    if (beat.camera === undefined) return { preset: "none", amplitude: 0, shake: 0 };
+    checkCamera(beat.camera, `${beat.id}: camera`, true);
+    const given = (typeof beat.camera === "string" ? { preset: beat.camera } : beat.camera) as Partial<CameraSpec> & { reason?: string };
+    if (!given.reason) return { preset: "none", amplitude: 0, shake: 0 };
+    return { preset: given.preset ?? (REASON_PRESET[given.reason] as string), amplitude: given.amplitude ?? base.amplitude, shake: given.shake ?? (given.reason === "tension" ? Math.max(base.shake, 0.4) : 0) };
+  }
   if (beat.camera === undefined) return base;
   checkCamera(beat.camera, `${beat.id}: camera`, true);
   const given = (typeof beat.camera === "string" ? { preset: beat.camera } : beat.camera) as Partial<CameraSpec>;
@@ -393,7 +403,7 @@ export function motionConfig(input: { id: string; look: LookDef; style: StyleDef
       post,
       hits: input.hits.filter((h) => h >= start - 0.01 && h < end),
       bg: bgMoves && bg ? { move: bg.move, zoom: bg.zoom, drift: bg.drift } : null,
-      sceneDepth: par.enabled ? r3((loadScene(beat.scene).depth ?? 1) * par.scene) : 1,
+      sceneDepth: par.enabled ? r3((beat.scene !== undefined ? (loadScene(beat.scene).depth ?? 1) : 1) * par.scene) : 1,
       active: moving || bgMoves || transitions.some((tr) => (tr.from === host || tr.to === host) && tr.list.some((id) => id === "whip" || id === "water-ripple")) || post.some((p) => p.id === "blur-pull" || p.id === "chromatic"),
     };
   });
@@ -487,9 +497,17 @@ export function validateLayers(spec: VideoSpec, look: LookDef, videoDir: string)
     if (tr.type !== "shader" && ids.indexOf(tr.to) !== ids.indexOf(tr.from) + 1) fail(`переход ${tr.from} → ${tr.to}: только между соседними битами`);
   }
   for (const beat of spec.beats) {
-    const scene = loadScene(beat.scene);
     if (beat.textures !== undefined) checkTextureRefs(beat.textures, `${beat.id}: textures`);
     if (beat.background !== undefined) checkBackground(beat, videoDir);
+    if (beat.scene === undefined) {
+      if (beat.type !== undefined) fail(`${beat.id}: type — пресеты текстовых слотов сцены; у stage-бита текст — устройства text.*`);
+      if (beat.background !== undefined) fail(`${beat.id}: background — фон сцены; у stage-бита медиа — это stage media`);
+    }
+    beatCamera(beat, look);
+    beatPost(beat, look);
+    if (beat.transition !== undefined) checkTransitionRef(beat.transition, `${beat.id}: transition`);
+    if (beat.scene === undefined) continue;
+    const scene = loadScene(beat.scene);
     if (beat.type !== undefined) {
       const slots = Object.keys(scene.text ?? {});
       if (!slots.length) fail(`${beat.id}: у сцены ${scene.id} нет текстовых слотов (scene.json → text) — type некуда применить`);

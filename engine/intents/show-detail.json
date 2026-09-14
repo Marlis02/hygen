@@ -1,0 +1,51 @@
+{
+  "id": "show-detail",
+  "use": "The line is about one part of a picture or footage: freeze it, pull the eye to the part, name it.",
+  "stage": {
+    "types": [
+      "media"
+    ],
+    "default": {
+      "type": "media",
+      "src": "$data.src"
+    }
+  },
+  "devices": [
+    {
+      "type": "focus.spotlight",
+      "target": "$target",
+      "at": "$at",
+      "params": {
+        "mode": "$data.mode|dim"
+      }
+    },
+    {
+      "type": "annotate.label",
+      "target": "$target",
+      "at": "$at+0.5",
+      "params": {
+        "text": "$data.label",
+        "sub": "$data.sub"
+      },
+      "explains": "$data.explains|what the viewer should notice here",
+      "source": "$data.source"
+    },
+    {
+      "if": "$data.hold",
+      "type": "edit.hold",
+      "at": "$at",
+      "params": {
+        "dur": "$data.hold"
+      }
+    }
+  ],
+  "dominant": 0,
+  "requires": [
+    "target",
+    "data.label"
+  ],
+  "rhythm": {
+    "density": 4,
+    "note": "Плотный бит: следующий — пауза (≤ 1 устройство)."
+  }
+}

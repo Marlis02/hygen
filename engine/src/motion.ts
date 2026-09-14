@@ -52,7 +52,8 @@ const isObj = (v: unknown): v is Record<string, unknown> => typeof v === "object
 export function checkCamera(value: unknown, where: string, partial = false): CameraSpec {
   const spec = typeof value === "string" ? { preset: value } : value;
   if (!isObj(spec)) fail(`${where}: {preset, amplitude, shake} или имя пресета`);
-  for (const key of Object.keys(spec)) if (!["preset", "amplitude", "shake"].includes(key)) fail(`${where}: неизвестное поле ${key}`);
+  for (const key of Object.keys(spec)) if (!["preset", "amplitude", "shake", "reason"].includes(key)) fail(`${where}: неизвестное поле ${key}`);
+  if (spec.reason !== undefined && !["approach", "reveal", "follow", "tension"].includes(spec.reason as string)) fail(`${where}: reason — approach, reveal, follow или tension`);
   const presets = cameraPresets();
   if (spec.preset !== undefined && !presets.includes(spec.preset as string)) fail(`${where}: preset — одно из ${presets.join(", ")}`);
   if (!partial && spec.preset === undefined) fail(`${where}: нет preset`);

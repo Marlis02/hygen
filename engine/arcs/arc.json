@@ -1,0 +1,35 @@
+{
+  "structures": {
+    "story": "Сюжет: завязка, поворот, пик, последствия.",
+    "mystery": "Загадка: вопрос, улики, разгадка.",
+    "mechanism": "Механизм: как это работало шаг за шагом.",
+    "comparison": "Сравнение: две стороны и вывод.",
+    "list": "Список: N равноправных пунктов."
+  },
+  "hooks": {
+    "shocking-statistic": "A credible number quantifies the stakes.",
+    "rhetorical-question": "Create an immediate cognitive gap.",
+    "counterintuitive-claim": "The truth contradicts common belief.",
+    "pain-validation": "The audience already feels the confusion.",
+    "visceral-metaphor": "The idea is abstract and needs to become concrete.",
+    "concept-announcement": "The term itself is the subject; make it memorable.",
+    "direct-address": "The audience is clearly defined.",
+    "imagine-scenario": "A thought experiment frames the whole piece.",
+    "stakes-consequence": "The why-care-now is a real cost or risk."
+  },
+  "protagonists": {
+    "place": "Место — город, остров, море.",
+    "person": "Человек — свидетель, капитан, учёный.",
+    "object": "Предмет — корабль, картина, прибор.",
+    "number": "Число — одна цифра, вокруг которой ролик.",
+    "sound": "Звук — взрыв, сигнал, тишина."
+  },
+  "endings": {
+    "lesson": "Урок: что это значит сейчас.",
+    "open-question": "Открытый вопрос без ответа.",
+    "callback": "Возврат к образу хука.",
+    "what-remains": "Что осталось: руины, обломки, память.",
+    "one-number-silence": "Одна цифра в тишине."
+  },
+  "source": ".agents/skills/faceless-explainer/references/story-design.md (хуки, структуры, приёмы)"
+}

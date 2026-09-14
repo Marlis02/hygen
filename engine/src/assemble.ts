@@ -10,6 +10,7 @@ import { warpAt, wordTime } from "./timeline.ts";
 import type { LookDef } from "./look.ts";
 import { paletteCss } from "./look.ts";
 import { backgroundHostsHtml, installRuntime, layerHostsHtml, motionConfig, planTransitions, postOverlays, prepareBackgrounds, vignetteCss, writeTextureLayers } from "./layers.ts";
+import { installDevices } from "./devices.ts";
 import type { VoiceLine } from "./voice.ts";
 import type { BeatWords } from "./words.ts";
 import { ENGINE_DIR, VENDOR_SKILLS, copyInto, ensureDir, fail, log, r3, run, stripAnsi, writeJson } from "./lib/util.ts";
@@ -154,6 +155,8 @@ function finalizeIndex({ spec, look, buildDir, timings, words, sound, scenes }: 
   const motion = motionConfig({ id: spec.id, look, style, beats: spans.map(({ beat, timing, index }) => ({ beat, start: timing.start, end: timing.end, index })), hits, bgs, layers, transitions: planned });
   const runtime = motion.needs.runtime || scenes.some((s) => s.injected);
   if (runtime) installRuntime(buildDir);
+  const stageBeats = spec.beats.some((b) => b.scene === undefined);
+  if (stageBeats) installDevices(buildDir);
   const post = postOverlays(motion.needs);
   writeJson(join(buildDir, "layers.json"), { look: look.id, textures: layers, backgrounds: bgs, transitions: planned, motion: motion.config });
   const held = new Map<string, number>();
@@ -194,7 +197,8 @@ function finalizeIndex({ spec, look, buildDir, timings, words, sound, scenes }: 
   html = html.replace(/<script src="https:\/\/cdn\.jsdelivr\.net\/npm\/gsap@[^"]+"[^>]*><\/script>/, () =>
     '<script src="assets/vendor/gsap.min.js"></script>' +
     (shaderTr.length ? '\n    <script src="assets/vendor/shader-transitions.global.js"></script>' : "") +
-    (runtime ? '\n    <script src="assets/hygen/runtime.js"></script>' : ""),
+    (runtime ? '\n    <script src="assets/hygen/runtime.js"></script>' : "") +
+    (stageBeats ? '\n    <script src="assets/hygen/devices.js"></script>' : ""),
   );
   if (/https?:\/\/cdn\./.test(html)) fail("index.html: остались скрипты с CDN");
   const overlayCss = `

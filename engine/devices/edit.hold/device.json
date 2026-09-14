@@ -1,0 +1,20 @@
+{
+  "type": "edit.hold",
+  "name": "Стоп-кадр",
+  "use": "Freeze the stage on a word so the other devices can point at a frame of moving footage, then let it run again on a second word. On a still image it freezes the camera and the pan.",
+  "origin": "own",
+  "layer": "focus",
+  "target": "none",
+  "targetNote": "не нужен: замирает весь stage; at — слово стоп-кадра, until — слово, на котором видео идёт дальше",
+  "explains": false,
+  "figures": ["label"],
+  "params": {
+    "dur": { "type": "number", "default": 1.5, "min": 0.3, "max": 12, "description": "Длина стоп-кадра, с, если нет until." },
+    "brackets": { "type": "boolean", "default": true, "description": "Уголки видоискателя по краям кадра на время стоп-кадра." },
+    "label": { "type": "string", "default": "", "maxLength": 18, "description": "Мелкая подпись у верхнего уголка (например, FROZEN или год)." }
+  },
+  "events": [
+    { "label": "freeze", "offset": 0 }
+  ],
+  "demo": { "at": 1.2, "until": 3.2, "params": { "label": "FROZEN" }, "stage": { "type": "color", "color": "ground", "glow": true } }
+}

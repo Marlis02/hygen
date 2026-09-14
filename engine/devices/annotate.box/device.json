@@ -1,0 +1,101 @@
+{
+  "type": "annotate.box",
+  "name": "Рамка с отсеками",
+  "use": "Frame an area with a hand-drawn rounded box and a label; optionally split it into cells that draw in one by one and fill with colour in order (flooding compartments, filled seats, used capacity).",
+  "origin": "registry:hw-box-label",
+  "layer": "annotate",
+  "target": "box",
+  "targetNote": "область рамки; ячейки делят её по горизонтали на равные части",
+  "explains": true,
+  "figures": [
+    "label"
+  ],
+  "params": {
+    "label": {
+      "type": "string",
+      "default": "",
+      "maxLength": 24,
+      "description": "Подпись над рамкой, ЗАГЛАВНЫМИ; пусто — без подписи."
+    },
+    "cells": {
+      "type": "integer",
+      "default": 1,
+      "min": 1,
+      "max": 20,
+      "description": "На сколько ячеек рамка делится по горизонтали (отсеки корпуса)."
+    },
+    "stagger": {
+      "type": "number",
+      "default": 0.08,
+      "min": 0,
+      "max": 1,
+      "description": "Секунды между прорисовкой перегородок ячеек."
+    },
+    "fill": {
+      "type": "integer",
+      "default": 0,
+      "min": 0,
+      "max": 20,
+      "description": "Сколько первых ячеек заливаются цветом."
+    },
+    "fillAt": {
+      "type": "at",
+      "default": 1.2,
+      "description": "Когда начинается заливка: слово реплики (\"six\", \"six+0.2\") или секунды от at."
+    },
+    "fillDur": {
+      "type": "number",
+      "default": 1.5,
+      "min": 0.1,
+      "max": 10,
+      "description": "За сколько секунд по очереди заливаются все fill ячеек."
+    },
+    "color": {
+      "type": "string",
+      "default": "heroLight",
+      "maxLength": 16,
+      "description": "Цвет линий: токен палитры или #RRGGBB."
+    },
+    "fillColor": {
+      "type": "string",
+      "default": "hero",
+      "maxLength": 16,
+      "description": "Цвет заливки: токен палитры или #RRGGBB."
+    },
+    "fillFrom": {
+      "type": "enum",
+      "values": [
+        "left",
+        "right"
+      ],
+      "default": "left",
+      "description": "С какой стороны заливаются ячейки: right — от носа корабля справа."
+    }
+  },
+  "events": [
+    {
+      "label": "draw",
+      "offset": 0
+    },
+    {
+      "label": "fill",
+      "offset": "fillAt"
+    }
+  ],
+  "demo": {
+    "target": {
+      "x": 8,
+      "y": 44,
+      "w": 84,
+      "h": 9
+    },
+    "params": {
+      "label": "16 COMPARTMENTS",
+      "cells": 16,
+      "fill": 5,
+      "fillAt": 1.3,
+      "fillDur": 1.5
+    },
+    "at": 0.4
+  }
+}

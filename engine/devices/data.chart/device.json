@@ -1,0 +1,117 @@
+{
+  "type": "data.chart",
+  "name": "График",
+  "use": "Build one small chart from data in reading order: bars grow from the baseline or a line draws left to right, labels fade in, the highlighted datum takes the hero colour and a value chip. A dense line doubles as a sound waveform.",
+  "origin": "registry:chart-story",
+  "layer": "data",
+  "target": "box",
+  "targetNote": "область графика вместе с подписями осей и плашкой значения",
+  "explains": false,
+  "figures": [
+    "values",
+    "labels",
+    "unit"
+  ],
+  "params": {
+    "kind": {
+      "type": "enum",
+      "values": [
+        "bars",
+        "line"
+      ],
+      "default": "bars",
+      "description": "Столбцы или линия."
+    },
+    "values": {
+      "type": "numbers",
+      "default": [
+        12,
+        28,
+        45,
+        64
+      ],
+      "maxItems": 24,
+      "description": "Значения по порядку; можно отрицательные (линия-осциллограмма)."
+    },
+    "labels": {
+      "type": "list",
+      "default": [],
+      "maxItems": 24,
+      "maxLength": 8,
+      "description": "Подписи под осью по порядку (годы, месяцы); пустая строка — без подписи."
+    },
+    "unit": {
+      "type": "string",
+      "default": "",
+      "maxLength": 8,
+      "description": "Единица к значениям: «%», « M»."
+    },
+    "max": {
+      "type": "number",
+      "default": 0,
+      "description": "Верх шкалы; 0 — по максимуму значений."
+    },
+    "drawDur": {
+      "type": "number",
+      "default": 1.6,
+      "min": 0.3,
+      "max": 6,
+      "description": "Сколько секунд строится график."
+    },
+    "color": {
+      "type": "string",
+      "default": "text",
+      "maxLength": 16,
+      "description": "Цвет ряда: токен палитры или #RRGGBB."
+    },
+    "axis": {
+      "type": "boolean",
+      "default": true,
+      "description": "Базовая линия и подписи под ней."
+    },
+    "highlight": {
+      "type": "integer",
+      "default": -1,
+      "min": -1,
+      "max": 23,
+      "description": "Индекс подсвеченного столбца или точки (цвет героя и плашка значения); −1 — без подсветки."
+    }
+  },
+  "events": [
+    {
+      "label": "draw",
+      "offset": 0
+    },
+    {
+      "label": "land",
+      "offset": 1.6
+    }
+  ],
+  "demo": {
+    "target": {
+      "x": 9,
+      "y": 30,
+      "w": 82,
+      "h": 32
+    },
+    "params": {
+      "kind": "bars",
+      "values": [
+        2208,
+        2224,
+        2435,
+        2201,
+        1317
+      ],
+      "labels": [
+        "1909",
+        "1910",
+        "1911",
+        "1912",
+        "1913"
+      ],
+      "highlight": 3
+    },
+    "at": 0.4
+  }
+}

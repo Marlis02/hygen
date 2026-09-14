@@ -1,0 +1,43 @@
+{
+  "id": "show-change",
+  "use": "Before and after: the same place changed. A wipe on the word of change, one label of what changed.",
+  "stage": {
+    "types": [
+      "split",
+      "media"
+    ],
+    "default": {
+      "type": "split",
+      "a": {
+        "src": "$data.before"
+      },
+      "b": {
+        "src": "$data.after"
+      },
+      "at": "$at",
+      "labels": [
+        "BEFORE",
+        "AFTER"
+      ]
+    }
+  },
+  "devices": [
+    {
+      "if": "$data.label",
+      "type": "annotate.label",
+      "target": "$target",
+      "at": "$at+1.2",
+      "params": {
+        "text": "$data.label"
+      },
+      "explains": "$data.explains|what the viewer should notice here",
+      "source": "$data.source"
+    }
+  ],
+  "dominant": "stage",
+  "requires": [],
+  "rhythm": {
+    "density": 2,
+    "note": "Шторка — событие бита; не ставить рядом с другим split."
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "id": "show-scale",
+  "use": "How big: a dimension line over the real picture with the figure (height of a column, length of a hull).",
+  "stage": {
+    "types": [
+      "media"
+    ],
+    "default": {
+      "type": "media",
+      "src": "$data.src"
+    }
+  },
+  "devices": [
+    {
+      "type": "annotate.measure",
+      "target": "$target",
+      "at": "$at",
+      "params": {
+        "label": "$data.label"
+      },
+      "explains": "$data.explains|what the viewer should notice here",
+      "source": "$data.source"
+    }
+  ],
+  "dominant": 0,
+  "camera": {
+    "reason": "reveal",
+    "amplitude": 0.6
+  },
+  "requires": [
+    "target",
+    "data.label"
+  ],
+  "rhythm": {
+    "density": 2,
+    "note": "Для масштаба без картинки — HTML-сцена scale-gauge."
+  }
+}

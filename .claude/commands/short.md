@@ -1,224 +1,162 @@
 ---
-description: ИИ-режиссёр Short — тема → исследование с источниками → сценарий → визуальная концепция (look, картинки, текстуры, motion) → раскадровка по контракту → video.json → сборка MP4
+description: ИИ-режиссёр Short v3 — тема → исследование с источниками → концепция (look) → арка → сценарий → «что видит зритель» на каждый бит → intent + target + данные → медиа с ролью → грамматика → сборка MP4
 argument-hint: "<тема, например: Krakatoa 1883>"
 ---
 
-# /short — режиссёр Short
+# /short — режиссёр Short (v3: stage + devices + intent)
 
 Тема: **$ARGUMENTS**
 
-Ты режиссёр ролика для англоязычного faceless-канала. Работаешь внутри этой сессии Claude Code (не через API). Результат — `videos/<id>/video.json` и черновой MP4 из `npm run build`: у каждой цифры на экране — ссылка на источник, у ролика — **свой мир**: своя палитра, свои текстуры, своё движение и переходы, свои картинки. HTML сцен не трогаешь: всё выражается параметрами сцен и слоями движка в `video.json`. Вопросы пользователю не задаёшь.
+Ты режиссёр ролика для англоязычного faceless-канала. Работаешь внутри этой сессии Claude Code. Результат — `videos/<id>/video.json` и черновой MP4 из `npm run build`: у каждой цифры на экране — источник, у ролика — **свой мир** (look) и **свой скелет** (арка и последовательность stage). HTML не пишешь и не правишь. Вопросы пользователю не задаёшь.
 
-Эталон готового результата — `videos/titanic-en/` (video.json, research.md). Контракт сцен и слоёв — `engine/scenes/CONTRACT.md`.
+Главное правило v3: **бит — это не сцена, а то, что зритель должен увидеть.** Сначала одно предложение «что видит зритель», потом intent, который это показывает. Сцены с HTML (`counter-title`, `map-marker`, `scale-gauge`, `year-odometer`, `picture-zoom`, `fraction-finale`, `pyroclastic-flow`) — рецепты на случай, когда нужен именно этот кадр.
+
+Эталоны: `videos/_proof/titanic-v2/` и `videos/_proof/krakatoa-v2/` (video.json + research.md). Контракт — `engine/scenes/CONTRACT.md`, разделы «Бит v2», «Stage», «Устройства», «Intents», «Арка», «Грамматика».
 
 ## 0. Подготовка (3 мин)
 
-1. Прочитай `engine/scenes/CONTRACT.md` целиком: сцены, «Look ролика», «Текстуры», «Фон бита», «Motion», «Переходы».
-2. `npm run scenes` — сцены, параметры, якоря (`*` — обязательный) и текстовые слоты для типографики.
-3. Что уже есть в движке:
+1. Прочитай `engine/scenes/CONTRACT.md`: «Бит v2» и всё после него; «Look ролика» и «Текстуры».
+2. Что есть в движке:
    ```bash
-   for f in engine/looks/*/look.json; do python3 -c "import json,sys; l=json.load(open('$f')); print(l['id'], '·', l['palette']['accent'], '·', l['about']['topics'])"; done
-   ls engine/textures engine/transitions
-   cat engine/motion/camera.json engine/motion/type.json engine/motion/post.json
+   ls engine/intents engine/scenes/recipes engine/devices engine/arcs engine/assets/maps
+   for f in engine/intents/*.json; do python3 -c "import json; d=json.load(open('$f')); print(d['id'], '·', d['stage']['types'], '·', [x['type'] for x in d['devices']], '·', d['use'])"; done
+   for f in engine/devices/*/device.json; do python3 -c "import json; d=json.load(open('$f')); print(d['type'], '·', d['target'], '·', list(d['params']))"; done
+   cat engine/arcs/arc.json
+   npm run scenes
    ```
-4. Какие looks и текстуры уже заняты другими роликами (новый ролик должен от них отличаться):
+3. Что уже занято другими роликами (новый должен отличаться миром и скелетом):
    ```bash
-   for v in videos/*/video.json; do python3 -c "import json; s=json.load(open('$v')); print(s['id'], '·', s.get('look', 'ember'), '·', sorted({t['id'] for b in s['beats'] for t in b.get('textures', [])}))"; done
+   for v in videos/*/video.json videos/_proof/*/video.json; do python3 -c "
+   import json; s=json.load(open('$v')); a=s.get('arc') or {}
+   print(s['id'], '·', s.get('look','ember'), '·', ' × '.join(a.get(k,'?') for k in ['structure','hook','protagonist','ending']), '·', ' → '.join(b.get('scene') or (b.get('stage') or {}).get('type') or b.get('intent','?') for b in s['beats']))"; done
    ```
-5. Для сцен, которые возьмёшь, прочитай их `engine/scenes/<id>/scene.json`: типы, `maxLength`, дефолты, `description` параметров и якорей, `text` (слоты).
-6. id ролика: латиница, цифры, дефис, суффикс `-en` (`krakatoa-en`). Папка `videos/<id>/`. Если папка уже есть и в ней есть рендер — возьми другой id.
+4. id ролика: латиница, цифры, дефис, суффикс `-en`. Папка `videos/<id>/`.
 
 ## 1. Исследование с источниками (10 мин)
 
-Нужно 5–8 проверяемых цифр: длительность, расстояние, высота/глубина, год, прошедшие годы, число людей, доля.
+5–8 проверяемых цифр и 2–4 медиа-кандидата. Цифра — только вместе с дословной фразой.
 
-- Источники: Wikipedia (en), сайты музеев, NASA, USGS, NOAA, энциклопедии. Не блоги и не агрегаторы.
-- Текст статьи Wikipedia без браузера:
+```bash
+UA="hygen-engine/0.1 (faceless channel draft tool)"
+curl -s -A "$UA" "https://en.wikipedia.org/w/api.php?action=query&prop=extracts&explaintext=1&titles=<Title>&format=json&redirects=1" \
+  | python3 -c "import json,sys;print(list(json.load(sys.stdin)['query']['pages'].values())[0]['extract'])" > /tmp/<Title>.txt
+grep -o -i "[^.]*<число или слово>[^.]*\." /tmp/<Title>.txt
+```
+
+Разброс в источниках — осторожная формулировка и одна цифра с цитатой. `videos/<id>/research.md` — таблица `| # | Факт (EN) | Цифра | Цитата | Ссылка |`.
+
+## 2. Концепция мира (3 мин)
+
+Раздел `## Concept` в research.md: настроение (2 фразы), ключевой цвет темы, look (id или объект с `extends`), текстуры, переходы. Правила look — как в CONTRACT.md «Look ролика»; акцент ≥ 30° от других роликов или другой набор текстур (кроме ролика, который ты явно пересказываешь: `"retells": "<id>"`).
+
+## 3. Арка (3 мин) — до сценария
+
+`video.json → "arc"`: `{structure, hook, protagonist, ending, why}` — значения из `engine/arcs/arc.json`, `why` — одна фраза обоснования.
+
+- **structure** — story (завязка → поворот → пик → последствия), mystery (вопрос → улики → разгадка), mechanism (как работало шаг за шагом), comparison (две стороны и вывод), list (равноправные пункты). Роли битов — `engine/arcs/<structure>.json`; у каждого бита поле `role`, первый — `hook`, последний — `ending`.
+- **hook** — одна из 9 стратегий (shocking-statistic, rhetorical-question, counterintuitive-claim, pain-validation, visceral-metaphor, concept-announcement, direct-address, imagine-scenario, stakes-consequence).
+- **protagonist** — place, person, object, number, sound: вокруг кого или чего ролик.
+- **ending** — lesson, open-question, callback, what-remains, one-number-silence.
+- Кортеж арки не совпадает ни с одним из двух последних роликов (п. 0.3) — автопроверка `uniqueness` упадёт.
+
+## 4. Сценарий (5 мин)
+
+- 5–8 битов, 45–60 с, 110–150 слов (Kokoro ≈ 2,6 слова/с), 6–20 слов на бит.
+- **Правило хука: цифра или ключевое слово — в первые 1,5 с реплики.** Не «In 1883, on a quiet island…», а «[4,800|Four thousand eight hundred] kilometers away…».
+- Цифры — токеном `[display|spoken]`. Английский, коротко, сдержанно, без сенсаций.
+
+## 5. Что видит зритель → intent (10 мин) — главный шаг
+
+Для **каждого** бита сначала одна строка в research.md (раздел `## Beats`):
+
+```markdown
+- 02-hull (turn): Зритель видит корпус, разделённый на 16 отсеков, и как шесть из них заполняются водой. → show-detail на фото корабля: box ×16 с заливкой 6, count 0→6.
+```
+
+Потом бит в `video.json`. Сначала попробуй intent — он раскроется в stage + устройства:
+
+| Что зритель должен увидеть | intent | stage | устройства по умолчанию |
+|---|---|---|---|
+| деталь на фото или кадре видео | `show-detail` | media | spotlight, label, (hold) |
+| что это: назвать предмет, место, человека | `identify` | media, split, map | spotlight + label |
+| где это | `locate` | map | circle с подписью |
+| путь: откуда куда | `show-route` | map | маршрут + бегунок, label |
+| две вещи и одна цифра разницы | `compare` | split | count |
+| насколько большое | `show-scale` | media | measure |
+| было → стало | `show-change` | split (media) | шторка + label |
+| документ или фото как доказательство | `show-evidence` | media + treatment | spotlight + label с источником |
+| открыть мир от детали к целому | `reveal` | media | камера reveal, title |
+| финал: одна картинка, одна цифра | `quiet-ending` | media, color | count или ничего |
+
+Короткая форма бита с intent:
+
+```json
+{ "id": "03-boat", "role": "ending", "text": "…", "pad": [0.8, 2.0],
+  "intent": "quiet-ending", "target": { "x": 50, "y": 21 }, "at": "seven",
+  "data": { "src": "media/lifeboat.jpg", "value": 710, "size": "hero", "source": "https://…" },
+  "stage": { "type": "media", "fit": "contain" }, "dominant": 0 }
+```
+
+- `target` — область `{x, y, w, h}` или точка `{x, y}` **в процентах кадра**, или имя из `stage.regions`. `at` — слово реплики (`six`, `six+0.2`, `gone.end`).
+- `data` — ключи, которые ждёт intent (`requires` в его JSON). Явные `stage`, `devices`, `dominant`, `camera` бита побеждают intent.
+- **Устройства явно** (`devices: [...]`) — только если intent не подходит. Каталог: `focus.spotlight`, `annotate.arrow|circle|box|label|measure`, `data.count|chart`, `text.title|quote`, `edit.hold` (параметры — `device.json`). Рецепты без HTML: `"scene": "quote-card" | "portrait" | "question-card"` с `data`.
+- `dominant` — что главное в кадре: `"stage"` или индекс устройства. Обязателен.
+- Камера движется только с причиной: `"camera": {"reason": "approach" | "reveal" | "follow" | "tension", "amplitude": 0.5}`.
+- Проверка кадра без голоса: `npm run scene -- --stage media --src videos/<id>/media/<файл> --beat '{"stage":{…},"devices":[…]}' --text "<реплика>"` → `.preview/stage-media/sheet.jpg` (смотри глазами).
+
+### Грамматика (ошибки ломают сборку)
+- ровно один stage; ≤ 3 устройств; ≤ 1 `data.*`; `explains` у каждого `annotate.*`; `dominant` есть; ≤ 2 видео одновременно;
+- ритм (предупреждения): не два бита плотности ≥ 3 подряд (плотность = 1 + устройства); после плотного — бит ≤ 1; hero-эффект не чаще раза за ролик; один intent не дважды подряд; текст на экране ≤ 7 слов (кроме `text.quote`); камера без reason стоит.
+- безопасная зона: смысловые метки выше y 74 % (1420 px), текст не заходит за x 89 % при y 52–88 %.
+
+## 6. Медиа с ролью (10 мин)
+
+У каждого файла роль: **hero** (главная картинка мира), **evidence** (документ, хроника, фото события), **place** (где это). Запиши роль в research.md рядом с файлом.
+
+- Только Wikimedia Commons (PD, CC BY, CC BY-SA), NASA, Pexels, Pixabay. Поиск в Commons, в том числе видео:
   ```bash
-  UA="hygen-engine/0.1 (faceless channel draft tool)"
-  curl -s -A "$UA" "https://en.wikipedia.org/w/api.php?action=query&prop=extracts&explaintext=1&titles=<Title>&format=json&redirects=1" \
-    | python3 -c "import json,sys;print(list(json.load(sys.stdin)['query']['pages'].values())[0]['extract'])" > /tmp/<Title>.txt
-  grep -o -i "[^.]*<число или ключевое слово>[^.]*\." /tmp/<Title>.txt
+  curl -s -A "$UA" "https://commons.wikimedia.org/w/api.php?action=query&list=search&srsearch=<запрос> filetype:video&srnamespace=6&format=json&srlimit=12"
+  curl -s -A "$UA" "https://commons.wikimedia.org/w/api.php?action=query&titles=File:<Имя>&prop=imageinfo&iiprop=url|extmetadata|size&iiurlwidth=1920&format=json"
   ```
-- Цифра берётся только вместе с дословной фразой из источника. Разброс в источниках — бери осторожную формулировку («about», «up to», «fewer than») и нижнюю границу.
-- Не бери цифры, которых нет в найденной фразе. Производные (1985 − 1912 = 73) можно, если оба числа из источника.
+- Прочитай описание файла: что на самом деле снято и когда. Подпись на экране не может утверждать больше описания (хроника «Титаника» снята в Белфасте 2 апреля, а не при отплытии 10-го).
+- Рядом `<файл>.license.json`: `title, source, author, license, url, retrieved, notes`. Производная (обрезка, половина листа) — отдельный файл со своей записью и пометкой в `notes`.
+- Видео: `in`/`out` — секунды исходника, `rate` 0.1–5, `hold` или устройство `edit.hold` — стоп-кадр на слове, `fit: contain` для 4:3 и 16:9, `treatment` film-memory | engraved | two-ink. Кадры исходника: `ffmpeg -i <видео> -t 150 -vf fps=1/5,scale=240:-2 /tmp/f%03d.jpg`.
+- Карта: силуэт `engine/assets/maps/<имя>.svg` или трассировка `engine/py/trace_map.py` (см. CONTRACT.md «Силуэты карт»); координаты меток — px/10,8 и px/19,2 в проценты.
 
-Запиши `videos/<id>/research.md`:
+## 7. Источники
 
-```markdown
-# <Topic> — исследование
-| # | Факт (EN, как на экране) | Цифра | Цитата из источника | Ссылка |
-|---|---|---|---|---|
-| 1 | Heard 4,800 km away | 4800 | "…" | https://… |
-```
+- Устройство, которое выводит цифры (`figures` в его device.json), — поле `source` у устройства.
+- Цифры реплики, которых нет среди цифр устройств, — `sources.text` бита.
+- Бит со сценой с HTML — как раньше: `sources.<param>`.
 
-## 2. Сценарий (5 мин)
+## 8. video.json и сборка
 
-- 5–8 битов, всего 45–60 с. Голос Kokoro читает ≈ 2,6 слова в секунду: 110–150 слов на весь ролик, 6–20 слов на бит.
-- Один бит = одна главная цифра или одна картинка. Первый бит — хук с самой сильной цифрой. Последний — итог или доля, после него тишина.
-- В хуке цифра звучит в первой половине реплики: число должно загореться в первые 2 секунды, а не после вводной фразы.
-- Английский, простые короткие фразы, без морали и вопросов к зрителю.
-- Цифры в реплике — токеном `[display|spoken]`: `[4,800|four thousand eight hundred]`, `[1883|eighteen eighty-three]`. В `spoken` только слова.
-- Тон сдержанный: без описаний тел и страданий, без сенсаций (`engine/styles/documentary-dark/frame.md`, Don't).
-
-## 3. Визуальная концепция (5 мин) — до раскадровки
-
-Концепция решает, **каким будет мир ролика**, раскадровка потом только расставляет сцены внутри него. Запиши её в `videos/<id>/research.md` разделом `## Concept` (по-русски, коротко):
-
-```markdown
-## Concept
-- Настроение: <2 фразы — что зритель чувствует и какой свет в кадре>.
-- Ключевой цвет темы: <чем пахнет тема: море — бирюза, пожар — оранжевый, газ/гроза — сернисто-жёлтый; почему>.
-- Look: <id из engine/looks или новый объект; одна фраза — почему именно он; чем отличается от look других роликов>.
-- Картинки: 1) <что, запрос в Commons> 2) … (2–3 штуки, у каждой будет license.json).
-- Текстуры: весь ролик — <…>; по битам — <бит: текстура с параметрами>.
-- Motion: камера <пресет, амплитуда, тряска>; типографика <number/title/label → пресеты>; пост-эффект <какой и зачем>.
-- Переходы: по умолчанию <…>, на ударе <…>, особые стыки <…>.
-```
-
-Правила концепции:
-1. **Look.** Сначала посмотри `about.topics` и `about.avoid` встроенных look (`ember` — огонь и пепел, `abyss` — вода и глубина, `storm` — гроза, дым, газ). Подходит — бери id. Не подходит или тема уже занята другим роликом — **создай новый look объектом** в `video.json`:
-   ```json
-   "look": {
-     "extends": "storm",
-     "id": "plague",
-     "name": "Чума",
-     "about": { "mood": "…", "topics": "…", "avoid": "…" },
-     "palette": { "accent": "#C9B458", "secondary": "#8FA3B8", "groundTint": "#12100C", "temperature": "warm", "textColor": "#E8E4D8" },
-     "textures": [ { "id": "fog", "density": 0.6, "height": 0.4 } ],
-     "motion": { "camera": { "preset": "push-in", "amplitude": 0.5, "shake": 0 }, "type": { "number": "count-roll", "title": "mask-wipe", "label": "typewriter" }, "post": [ { "id": "flicker", "strength": 0.25 } ] },
-     "transitions": { "default": "hard-cut", "hit": "smoke-wipe" }
-   }
-   ```
-   Неизвестное поле look — ошибка сборки. Поля и значения — CONTRACT.md, «Look ролика».
-2. **Ключевой цвет.** accent — цвет самой темы: море не оранжевое, огонь не синий. `groundTint` окрашивает ночь и пепел в тон мира (тёмно-синий у воды, серо-зелёный у грозы); `secondary` — второй цвет для бита с `tone: cold` (контраст финала, лёд, свет спасения).
-3. **Уникальность.** Акцент отличается от акцента каждого ролика в `videos/` не меньше чем на 30° по кругу цветов **или** набор текстур другой. Автопроверка `uniqueness` падает, если нет.
-4. **Картинки.** 2–3 ключевые картинки из Wikimedia Commons (public domain, CC BY, CC BY-SA), NASA, Pexels, Pixabay — см. «Картинка» ниже. Минимум одна идёт **фоном бита** (`background`), не только в `picture-zoom`.
-5. **Текстуры** — от мира, а не от привычки: пепел и угольки только у огня и вулканов, пузыри и взвесь у воды, дождь, ветер и молния у бури, снег у холода, туман и дым — настроение. На весь ролик — 1–2, по битам — ещё 0–2. Молний — не больше одной на бит, удары — на слова реплики (`"strikes": ["blast"]`).
-6. **Motion под настроение.** Тихо и глубоко — `push-in`/`tilt`, амплитуда 0,5–0,7, без тряски; тревога и удары — `handheld` и `shake`; перечисление мест — `pan`. Типографика: минимум два разных пресета на ролик (look даёт по виду текста, бит переопределяет). Пост-эффект — хотя бы один: `bloom` у света и воды, `flicker` у грозы и старой хроники, `chromatic` на ударах, `blur-pull` у глубины и воспоминания, `light-leak` у тёплой памяти, `vignette-pulse` на ударах.
-7. **Переходы.** По умолчанию `hard-cut`; на тяжёлом ударе — переход мира (`flash`+`ash-burst` у огня, `water-ripple` у воды, `smoke-wipe` у дыма и войны, `whip` у смены места и времени). Особый переход — полем `transition` бита. Шейдерные переходы не использовать.
-
-## 4. Раскадровка (10 мин)
-
-### Выбор сцены на бит
-
-| Что за цифра | Сцена | Ключевые параметры |
-|---|---|---|
-| сколько длилось, число-заголовок | `counter-title` | `value`, `format` (`int`, `thousands`, `clock` — минуты как H:MM), `unit`, `heat` |
-| где это было, расстояние от места | `map-marker` | `map`, `marker`, `label`, `region`, `regionAt`, `route`/`routeTo`, `counterValue`/`counterLabel`, `items`, `peak` |
-| высота или глубина, если есть подходящая сценография | `scale-gauge` | `direction` up/down, `value`, `unit`, `scenery` (`volcano` — извержение, `ocean` — глубина воды), `dateValue`, `word`. `scenery: none` даёт почти пустой кадр — тогда заполни его текстурами (дождь, ветер, туман) или фоном бита, либо бери `counter-title` |
-| год и сколько лет прошло | `year-odometer` | `year`, `delta`/`deltaUnit`, `dust` (пепельная маска — только для раскопок), `section` (разрез — только если это слои), `voids` |
-| одна настоящая картинка крупно | `picture-zoom` | `image`, `fit` (`band` для широких фото), `focus`, `particles`, `tint`, `title`, `credit`, `creditSub` |
-| доля, итог | `fraction-finale` | `numerator`, `denominator` (однозначные), `label` |
-| геройские (`hero: true` в `npm run scenes`) | только по своей теме | например `pyroclastic-flow` — только вулкан |
-
-Правила:
-- 5–8 битов, **сцены в любом порядке** — не повторяй порядок другого ролика (одинаковая последовательность сцен — предупреждение автопроверки). Карта не обязательна.
-- Одна сцена может повториться, если во втором бите она в другом режиме (другие параметры, фон, текстуры, типографика); `picture-zoom` — не больше одного раза.
-- Минимум один бит с медиафоном (`background`) и минимум два разных type-пресета на ролик.
-- `tone`: без поля — accent look; `cold` — secondary look (контрастный бит). Один тон на ролик, если нет причины.
-- `seed`: разный на каждый бит (1, 2, 3…), чтобы частицы не повторялись.
-- Параметры — только из `scene.json`; всё, что не задано, берётся из дефолта **Помпей**. Поэтому выключай лишнее явно: `peak: false`, `items: []`, `dateValue: 0`, `word: ""`, `dust: false`, `section: false, voids: false`, `particles: "none"` (если частицы дают текстуры).
-- Строки на экране — ЗАГЛАВНЫМИ, в пределах `maxLength`.
-- Безопасная зона: точки (`marker`, `regionAt`, `routeTo`, `focus`) — y ≤ 1420; не ставь текст в x > 960 на высоте 1000–1700.
-
-### Слои бита
-
-```json
-"background": { "image": "media/ship.jpg", "treatment": ["duotone", "ken-burns"], "focus": [0.6, 0.5], "opacity": 0.5 },
-"textures": [ { "id": "rain", "density": 0.8, "angle": -20 }, { "id": "lightning", "strikes": ["blast"] } ],
-"camera": { "preset": "handheld", "amplitude": 1.2, "shake": 1 },
-"type": { "year": "typewriter", "delta": "count-roll" },
-"post": [ { "id": "blur-pull", "strength": 0.8 } ],
-"transition": "whip"
-```
-
-- Фон лучше всего под сценами с ночной землёй: `counter-title`, `fraction-finale`, `year-odometer` без пыли, `scale-gauge` без сценографии. Картинку сразу проверь: `npm run scene -- counter-title --look <look> --beat '{"background":{…}}'`.
-- `type` — имена слотов из `npm run scenes` (или одна строка на все слоты).
-- Превью сцены под look и слоями бита — `npm run scene -- <сцена> --look <id или '{json}'> --beat '{…}'`, лист `.preview/<сцена>/sheet.jpg` смотри глазами.
-
-### Якоря
-
-- Каждый якорь с `required` привязан к слову реплики. Остальные — к словам, на которые должно случиться событие (появление числа — на первом слове числа, единица — на слове единицы).
-- Слово якоря — нормализованное произносимое слово из `spoken`: строчные, без пунктуации, дефис делит слово (`eighty-five` → `eighty`, `five`). Повтор — `word#2`, конец слова — `word.end`.
-- Якоря должны идти в том же порядке, что и их опорные времена `at` в `scene.json`. Не привязывай якорь к самому первому слову, если его `at` совпадает с `ref.speechStart`.
-
-### Карта
-
-Силуэт берётся из `engine/assets/maps/<имя>.svg`. Если нужного нет, трассируй из Natural Earth (public domain):
+Образец — `videos/_proof/titanic-v2/video.json`: `id, title, format, fps 30, language, style, look, captions, voice, arc, beats, transitions [], sound` (гул: `peak` на кульминации, `cut` на старте финала; удары на стартах битов, один `heavy`).
 
 ```bash
-curl -s -L -o /tmp/ne_50m_land.geojson https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_land.geojson
-python3 engine/py/trace_map.py /tmp/ne_50m_land.geojson --lon <W> <E> --lat <S> <N> \
-  --out engine/assets/maps/<имя>.svg --name "<Name>" --mark <lon> <lat>
+npm run build -- videos/<id> --no-render   # схема, файлы, лицензии, грамматика, арка, голос и тайминги (кэш)
+npm run build -- videos/<id>               # до MP4 и автопроверки
 ```
 
-- Коробка: (E − W) · cos(средней широты) / (N − S) ≈ 1,14 — иначе суша растянута. Место события — примерно x 400–700, y 450–800 (скрипт печатает px для `--mark`, это и есть `marker`).
-- Рядом `engine/assets/maps/<имя>.license.json` по образцу `north-atlantic.license.json`.
-- Суша должна попадать в кадр: проверь `npm run scene -- map-marker --params '{"map":"<имя>", …}'`.
+Упала сборка или автопроверка:
 
-### Картинка
-
-Только Wikimedia Commons (public domain или CC BY/CC BY-SA), NASA, Pexels, Pixabay:
-
-```bash
-curl -s -A "$UA" "https://commons.wikimedia.org/w/api.php?action=query&list=search&srsearch=<запрос>&srnamespace=6&format=json&srlimit=10"
-curl -s -A "$UA" "https://commons.wikimedia.org/w/api.php?action=query&titles=File:<Имя>&prop=imageinfo&iiprop=url|extmetadata|size&iiurlwidth=1920&format=json"
-```
-
-Бери `LicenseShortName` = Public domain / CC BY / CC BY-SA, скачивай `thumburl` в `videos/<id>/media/<имя>.jpg`, рядом `<имя>.license.json` (`title, source, author, license, url, retrieved, notes`). В `credit`/`creditSub` — автор и лицензия. Цифры в кредите (год) тоже требуют `sources.credit`. Видео для фона (webm/mp4) — так же, с `license.json`.
-
-### Источники
-
-- Параметр с `figure: true` → `sources.<param>`.
-- Строковый или списочный параметр с цифрами → `sources.<param>`.
-- Цифры реплики, которых нет среди значений цифр-параметров бита → `sources.text`.
-
-### Звук
-
-```json
-"sound": {
-  "drone": { "peak": "<кульминация>:<ключевое слово>+0.3", "cut": "<последний бит>:start", "volume": 0.42, "carve": 0.65 },
-  "hits": [ { "at": "<бит>:start", "volume": 0.55, "carve": 0.75 }, { "at": "<кульминация>:start+0.3", "heavy": true, "volume": 0.62, "carve": 0.75 } ]
-}
-```
-
-- Удар на старте каждого бита, кроме первого; `heavy` — один, на кульминации: на этот стык встанет переход look «на удар»; финалу — `volume 0.42` без `carve`.
-- `ash` (шелест пепла) — только для вулканов и пожаров.
-- У последнего бита `pad: [2.0, 1.6]` — тишина до и после итоговой цифры; у остальных `[0.2, 0.4]`–`[0.3, 0.8]`.
-
-## 5. video.json
-
-Пиши `videos/<id>/video.json` по образцу `videos/titanic-en/video.json`: `id, title, format "1080x1920", fps 30, language "en", style "documentary-dark", look, captions "word-by-word", voice { engine "kokoro", voice "am_michael", speed 1.0 }, beats, transitions [], sound`.
-
-## 6. Сборка
-
-```bash
-npm run build -- videos/<id> --no-render   # быстро: параметры, якоря, слои, файлы, источники; голос и тайминги кэшируются
-npm run build -- videos/<id>               # весь конвейер до MP4 и автопроверки
-```
-
-Если проверка до голоса падает — чинишь `video.json` и повторяешь. Предупреждения «клип вне диапазона сцены» — меняй `pad` или длину реплики. «якорь пропущен: не по порядку» — перепривяжи якорь.
-
-Автопроверка (`videos/<id>/renders/<id>.verify.json`):
-
-| Упало | Что делать |
+| Что | Что делать |
 |---|---|
-| `sources` | добавить ссылку в `sources` бита |
-| `uniqueness` | ролик похож на другой: сдвинь accent look на ≥ 30° от названного ролика или смени набор текстур |
-| `frozen` — событие не изменило кадр | событие зависит от выключенного слоя или якорь слишком близко к концу клипа: включи слой, перепривяжи якорь к более раннему слову, увеличь `pad[1]` |
-| `blank` | у сцены выключены все слои — верни хотя бы один |
-| `settled` | кадр MP4 не совпал со снимком выше полосы субтитров — смотри контактный лист, запиши в отчёт (проблема сцены или движка, не ролика) |
-| `size`, `loudness`, `format` | проблема движка — не чинить в video.json, записать в отчёт |
+| `грамматика бита` | убери устройство, раздели бит на два, задай `dominant`, `explains` |
+| `sources` | `source` у устройства или `sources.text` у бита |
+| `uniqueness` | другая арка или другой порядок stage; другой акцент/текстуры (если ролик не пересказ) |
+| `expanded` | резолвер недетерминирован — ошибка движка, в отчёт |
+| `frozen` | событие устройства вне клипа: перепривяжи `at` к более раннему слову или увеличь `pad[1]` |
+| `settled`, `size`, `loudness` | проблема движка — в отчёт |
 
-Не больше 3 пересборок. Правки — только в `video.json`, `research.md` и `media/`.
+Не больше 3 пересборок; правки — только `video.json`, `research.md`, `media/`.
 
-## 7. Итог
+## 9. Итог
 
-Посмотри `videos/<id>/renders/<id>.contact.jpg` и напиши в ответе:
-
-1. Путь к MP4, длительность, размер, автопроверка (с `uniqueness`).
-2. Концепция в одну строку: look, ключевой цвет, текстуры, камера, типографика, пост-эффект, переходы.
-3. «Что видно» — одна фраза по кадрам контактного листа.
-4. Таблица цифр: цифра на экране → ссылка.
-5. Что пришлось поправить после первой сборки и почему (если было) — это правки навыка или контракта.
+По `videos/<id>/renders/<id>.contact.jpg`:
+1. MP4, длительность, размер, автопроверка (grammar, uniqueness, expanded).
+2. Арка одной строкой и последовательность stage.
+3. Для каждого бита: «что видит зритель» → intent/устройства.
+4. «Что видно» — одна фраза по контактному листу.
+5. Таблица цифр → ссылки.
+6. Что поправил после первой сборки и почему — это правки навыка или контракта.

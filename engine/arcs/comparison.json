@@ -1,0 +1,40 @@
+{
+  "id": "comparison",
+  "about": "Сравнение: две стороны и вывод.",
+  "roles": [
+    {
+      "id": "hook",
+      "what": "первые 1,5 с: цифра или ключевое слово",
+      "repeat": false
+    },
+    {
+      "id": "side-a",
+      "what": "первая сторона",
+      "repeat": false
+    },
+    {
+      "id": "side-b",
+      "what": "вторая сторона",
+      "repeat": false
+    },
+    {
+      "id": "contrast",
+      "what": "в чём разница, одной цифрой",
+      "repeat": false
+    },
+    {
+      "id": "verdict",
+      "what": "вывод",
+      "repeat": false
+    },
+    {
+      "id": "ending",
+      "what": "финал по arc.ending",
+      "repeat": false
+    }
+  ],
+  "required": [
+    "hook",
+    "ending"
+  ]
+}

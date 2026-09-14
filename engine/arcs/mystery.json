@@ -1,0 +1,40 @@
+{
+  "id": "mystery",
+  "about": "Загадка: вопрос, улики, разгадка.",
+  "roles": [
+    {
+      "id": "hook",
+      "what": "первые 1,5 с: цифра или ключевое слово",
+      "repeat": false
+    },
+    {
+      "id": "question",
+      "what": "вопрос, на который ролик отвечает",
+      "repeat": false
+    },
+    {
+      "id": "clue",
+      "what": "улика — факт с источником",
+      "repeat": true
+    },
+    {
+      "id": "false-lead",
+      "what": "очевидное объяснение, которое не подходит",
+      "repeat": false
+    },
+    {
+      "id": "reveal",
+      "what": "разгадка",
+      "repeat": false
+    },
+    {
+      "id": "ending",
+      "what": "финал по arc.ending",
+      "repeat": false
+    }
+  ],
+  "required": [
+    "hook",
+    "ending"
+  ]
+}

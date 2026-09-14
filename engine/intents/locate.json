@@ -1,0 +1,39 @@
+{
+  "id": "locate",
+  "use": "Where it happened: a map of the region, a circle on the place, its name.",
+  "stage": {
+    "types": [
+      "map"
+    ],
+    "default": {
+      "type": "map",
+      "map": "$data.map",
+      "draw": true
+    }
+  },
+  "devices": [
+    {
+      "type": "annotate.circle",
+      "target": "$target",
+      "at": "$at",
+      "params": {
+        "label": "$data.label",
+        "radius": "$data.radius|70"
+      },
+      "explains": "$data.explains|what the viewer should notice here"
+    }
+  ],
+  "dominant": 0,
+  "camera": {
+    "reason": "approach",
+    "amplitude": 0.5
+  },
+  "requires": [
+    "target",
+    "data.map"
+  ],
+  "rhythm": {
+    "density": 2,
+    "note": "Карта держится, пока звучит название места."
+  }
+}

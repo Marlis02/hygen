@@ -1,0 +1,42 @@
+{
+  "id": "reveal",
+  "use": "Open the world: the camera pulls back from a detail to the whole picture; a short title can land at the end.",
+  "stage": {
+    "types": [
+      "media"
+    ],
+    "default": {
+      "type": "media",
+      "src": "$data.src",
+      "zoom": [
+        1.18,
+        1.0
+      ]
+    }
+  },
+  "devices": [
+    {
+      "if": "$data.title",
+      "type": "text.title",
+      "at": "$at+0.6",
+      "params": {
+        "text": "$data.title",
+        "kicker": "$data.kicker",
+        "mode": "calm"
+      },
+      "source": "$data.source"
+    }
+  ],
+  "dominant": "stage",
+  "camera": {
+    "reason": "reveal",
+    "amplitude": 1.0
+  },
+  "requires": [
+    "data.src"
+  ],
+  "rhythm": {
+    "density": 2,
+    "note": "Не больше одного reveal на ролик."
+  }
+}

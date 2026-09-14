@@ -1,0 +1,117 @@
+{
+  "type": "data.count",
+  "name": "Счётчик",
+  "use": "Land one exact number: it counts up from a start value, decelerates into the final figure and lands with one restrained scale pulse; optional prefix, suffix and a small label under it.",
+  "origin": "registry:count-up",
+  "layer": "data",
+  "target": "box|point",
+  "targetNote": "центр числа (центр box или точка); число сдвигается внутрь кадра, если не помещается",
+  "explains": false,
+  "figures": [
+    "to",
+    "display",
+    "label",
+    "prefix",
+    "suffix"
+  ],
+  "params": {
+    "from": {
+      "type": "number",
+      "default": 0,
+      "description": "С какого значения начинается счёт."
+    },
+    "to": {
+      "type": "number",
+      "default": 100,
+      "description": "Итоговое значение."
+    },
+    "format": {
+      "type": "enum",
+      "values": [
+        "int",
+        "thousands",
+        "decimal1",
+        "fraction"
+      ],
+      "default": "int",
+      "description": "int — 1500; thousands — 1,500; decimal1 — 3.7; fraction — счёт целыми, в конце показывается display («2/3»)."
+    },
+    "display": {
+      "type": "string",
+      "default": "",
+      "maxLength": 8,
+      "description": "Что показать по окончании счёта вместо числа (например «2/3»); пусто — само число."
+    },
+    "prefix": {
+      "type": "string",
+      "default": "",
+      "maxLength": 4,
+      "description": "Текст перед числом: «$», «~»."
+    },
+    "suffix": {
+      "type": "string",
+      "default": "",
+      "maxLength": 6,
+      "description": "Текст после числа: «%», «+», « KM»."
+    },
+    "label": {
+      "type": "string",
+      "default": "",
+      "maxLength": 24,
+      "description": "Подпись под числом, ЗАГЛАВНЫМИ."
+    },
+    "size": {
+      "type": "enum",
+      "values": [
+        "hero",
+        "mid",
+        "small"
+      ],
+      "default": "mid",
+      "description": "Размер числа: numberHero, numberMid, headline."
+    },
+    "countDur": {
+      "type": "number",
+      "default": 1.2,
+      "min": 0.2,
+      "max": 6,
+      "description": "Сколько секунд идёт счёт."
+    },
+    "color": {
+      "type": "string",
+      "default": "text",
+      "maxLength": 16,
+      "description": "Цвет числа: токен палитры или #RRGGBB."
+    },
+    "labelColor": {
+      "type": "string",
+      "default": "text",
+      "maxLength": 16,
+      "description": "Цвет подписи: токен палитры или #RRGGBB; тёмный (night, heroDeep) — для светлой бумаги, тень тогда светлая."
+    }
+  },
+  "events": [
+    {
+      "label": "count",
+      "offset": 0
+    },
+    {
+      "label": "land",
+      "offset": "countDur"
+    }
+  ],
+  "demo": {
+    "target": {
+      "x": 50,
+      "y": 38
+    },
+    "params": {
+      "from": 0,
+      "to": 1517,
+      "format": "thousands",
+      "label": "LIVES LOST",
+      "size": "hero"
+    },
+    "at": 0.4
+  }
+}

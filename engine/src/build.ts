@@ -1,7 +1,10 @@
 import { rmSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { assembleProject } from "./assemble.ts";
-import { loadStyle, missingSources, validateBeats } from "./contract.ts";
+import { loadStyle, validateBeats } from "./contract.ts";
+import { requireExpanded } from "./expanded.ts";
+import { checkGrammar } from "./grammar.ts";
+import { allMissingSources, checkStageBeat } from "./stage.ts";
 import { validateLayers } from "./layers.ts";
 import { applyLook, loadLook } from "./look.ts";
 import { checkProject, lintProject, masterAudio, renderProject } from "./render.ts";
@@ -14,7 +17,7 @@ import { verifyVideo } from "./verify.ts";
 import type { VerifyResult } from "./verify.ts";
 import { makeVoices } from "./voice.ts";
 import { alignWords } from "./words.ts";
-import { ROOT_DIR, Timer, ensureDir, log, writeJson } from "./lib/util.ts";
+import { ROOT_DIR, Timer, ensureDir, fail, log, writeJson } from "./lib/util.ts";
 
 export interface BuildOptions {
   render: boolean;
@@ -29,14 +32,20 @@ export async function build(videoDir: string, opts: BuildOptions): Promise<boole
   const look = loadLook(spec.look);
   const style = applyLook(loadStyle(spec.style), look);
   validateBeats(spec, style, videoDir);
+  for (const beat of spec.beats) if (beat.scene === undefined) checkStageBeat(beat, style, videoDir);
   validateLayers(spec, look, videoDir);
+  const grammar = checkGrammar(spec, look, videoDir);
+  for (const w of grammar.warnings) log.warn(`грамматика: ${w}`);
+  if (grammar.errors.length) fail(`грамматика бита:\n  ${grammar.errors.join("\n  ")}`);
   const timer = new Timer();
   const buildDir = join(videoDir, "build");
   const rendersDir = ensureDir(join(videoDir, "renders"));
   console.log(`hygen build ${spec.id} — «${spec.title}» · look ${look.id}`);
-  for (const miss of missingSources(spec)) log.warn(`источник: ${miss} — автопроверка упадёт`);
+  for (const miss of allMissingSources(spec)) log.warn(`источник: ${miss} — автопроверка упадёт`);
+  const expanded = requireExpanded(videoDir, spec);
   rmSync(buildDir, { recursive: true, force: true });
   ensureDir(buildDir);
+  writeJson(join(buildDir, "beats.expanded.json"), expanded);
 
   const voices = await timer.step("голос: Kokoro, громкость, паузы", () => makeVoices(spec, videoDir, buildDir));
   const words = await timer.step("тайминги слов: whisper + выравнивание по сценарию", () => alignWords(spec, voices, videoDir));

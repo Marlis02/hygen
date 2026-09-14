@@ -1,0 +1,40 @@
+{
+  "id": "quote-card",
+  "name": "Карточка цитаты",
+  "use": "A real quote on a dark card: quote mark, words one by one, author and year.",
+  "stage": {
+    "types": [
+      "color"
+    ],
+    "default": {
+      "type": "color",
+      "color": "night",
+      "glow": true
+    }
+  },
+  "devices": [
+    {
+      "type": "text.quote",
+      "at": "$at",
+      "params": {
+        "text": "$data.text",
+        "author": "$data.author",
+        "year": "$data.year",
+        "size": "$data.size|large"
+      },
+      "source": "$data.source"
+    }
+  ],
+  "dominant": 0,
+  "requires": [
+    "data.text"
+  ],
+  "demo": {
+    "text": "The wireless said the ship was sinking and the women were in the boats.",
+    "data": {
+      "text": "We are putting the women off in the boats.",
+      "author": "Titanic wireless",
+      "year": "1912"
+    }
+  }
+}

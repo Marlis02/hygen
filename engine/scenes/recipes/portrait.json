@@ -1,0 +1,51 @@
+{
+  "id": "portrait",
+  "name": "Портрет",
+  "use": "A person from an archival portrait: treated photo, slow approach, a label with the name and the years.",
+  "stage": {
+    "types": [
+      "media"
+    ],
+    "default": {
+      "type": "media",
+      "src": "$data.src",
+      "treatment": "$data.treatment|film-memory",
+      "focus": "$data.focus"
+    }
+  },
+  "devices": [
+    {
+      "type": "annotate.label",
+      "target": "$target",
+      "at": "$at",
+      "params": {
+        "text": "$data.name",
+        "sub": "$data.years"
+      },
+      "explains": "$data.explains|who this person is",
+      "source": "$data.source"
+    }
+  ],
+  "dominant": "stage",
+  "camera": {
+    "reason": "approach",
+    "amplitude": 0.7
+  },
+  "requires": [
+    "target",
+    "data.src",
+    "data.name"
+  ],
+  "demo": {
+    "text": "Pierre-Jacques Volaire painted the eruption he watched from Naples.",
+    "target": {
+      "x": 50,
+      "y": 34
+    },
+    "data": {
+      "src": "engine/assets/media/volaire-vesuvius.jpg",
+      "name": "VESUVIUS",
+      "years": "Volaire, 1777"
+    }
+  }
+}

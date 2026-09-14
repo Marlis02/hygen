@@ -1,0 +1,46 @@
+{
+  "id": "compare",
+  "use": "Two states or two things side by side with one number that says how different they are.",
+  "stage": {
+    "types": [
+      "split"
+    ],
+    "default": {
+      "type": "split",
+      "a": {
+        "src": "$data.a"
+      },
+      "b": {
+        "src": "$data.b"
+      },
+      "at": "$at",
+      "labels": "$data.labels"
+    }
+  },
+  "devices": [
+    {
+      "type": "data.count",
+      "target": "$target",
+      "at": "$at+1.2",
+      "params": {
+        "from": "$data.from|0",
+        "to": "$data.value",
+        "display": "$data.display",
+        "label": "$data.label",
+        "size": "$data.size|mid",
+        "color": "$data.color|text",
+        "labelColor": "$data.labelColor|text"
+      },
+      "source": "$data.source"
+    }
+  ],
+  "dominant": 0,
+  "requires": [
+    "target",
+    "data.value"
+  ],
+  "rhythm": {
+    "density": 2,
+    "note": "Шторка на слове сравнения, число — после неё."
+  }
+}

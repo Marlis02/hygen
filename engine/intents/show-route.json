@@ -1,0 +1,45 @@
+{
+  "id": "show-route",
+  "use": "A path: from where to where — a voyage, a wave, a flight of ash. The route draws with a traveler on the map.",
+  "stage": {
+    "types": [
+      "map"
+    ],
+    "default": {
+      "type": "map",
+      "map": "$data.map",
+      "route": {
+        "points": "$data.points",
+        "at": "$at",
+        "dur": "$data.dur|1.8"
+      },
+      "markers": "$data.markers"
+    }
+  },
+  "devices": [
+    {
+      "if": "$data.label",
+      "type": "annotate.label",
+      "target": "$target",
+      "at": "$at+1.6",
+      "params": {
+        "text": "$data.label"
+      },
+      "explains": "$data.explains|what the viewer should notice here",
+      "source": "$data.source"
+    }
+  ],
+  "dominant": "stage",
+  "camera": {
+    "reason": "follow",
+    "amplitude": 0.4
+  },
+  "requires": [
+    "data.map",
+    "data.points"
+  ],
+  "rhythm": {
+    "density": 2,
+    "note": "Маршрут рисуется на глаголе движения, подпись — в конце пути."
+  }
+}

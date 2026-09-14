@@ -1,0 +1,37 @@
+{
+  "id": "quiet-ending",
+  "use": "The last beat: one picture, still camera, at most one mark — often a single number in silence.",
+  "stage": {
+    "types": [
+      "media",
+      "color"
+    ],
+    "default": {
+      "type": "media",
+      "src": "$data.src"
+    }
+  },
+  "devices": [
+    {
+      "if": "$data.value",
+      "type": "data.count",
+      "target": "$target|none",
+      "at": "$at",
+      "params": {
+        "to": "$data.value",
+        "display": "$data.display",
+        "label": "$data.label|",
+        "size": "$data.size|hero",
+        "color": "$data.color|text",
+        "labelColor": "$data.labelColor|text"
+      },
+      "source": "$data.source"
+    }
+  ],
+  "dominant": "stage",
+  "requires": [],
+  "rhythm": {
+    "density": 1,
+    "note": "После финала — тишина pad ≥ 1,5 с."
+  }
+}

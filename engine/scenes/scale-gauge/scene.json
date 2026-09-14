@@ -3,41 +3,162 @@
   "id": "scale-gauge",
   "name": "Шкала высоты или глубины",
   "use": "A height (up) or depth (down) figure: a marker and a counting readout ride a vertical scale while the scenery shows it — an ash column over a town (volcano) or a ship sinking through dark water to the seabed (ocean). Optional date and one word.",
-  "ref": { "duration": 9.545, "speechStart": 0.2, "speechEnd": 9.145 },
-  "duration": { "min": 5, "max": 13 },
+  "ref": {
+    "duration": 9.545,
+    "speechStart": 0.2,
+    "speechEnd": 9.145
+  },
+  "duration": {
+    "min": 5,
+    "max": 13
+  },
   "settle": 9.4,
   "depth": 1,
   "text": {
-    "readout": {"el": "alt", "kind": "number", "at": "rise", "dynamic": true},
-    "date": {"el": "year", "kind": "number", "at": "date", "dynamic": true},
-    "word": {"el": "word", "kind": "title", "at": "word"}
+    "readout": {
+      "el": "alt",
+      "kind": "number",
+      "at": "rise",
+      "dynamic": true
+    },
+    "date": {
+      "el": "year",
+      "kind": "number",
+      "at": "date",
+      "dynamic": true
+    },
+    "word": {
+      "el": "word",
+      "kind": "title",
+      "at": "word"
+    }
   },
   "params": {
-    "direction": { "type": "enum", "values": ["up", "down"], "default": "up", "description": "up — высота: маркер поднимается от земли; down — глубина: маркер опускается от поверхности до линии значения." },
-    "value": { "type": "number", "default": 30, "min": 0, "max": 99999, "figure": true, "description": "Значение, до которого идёт отсчёт (тысячи через запятую)." },
-    "unit": { "type": "string", "default": "KM", "maxLength": 5, "description": "Единица под отсчётом." },
-    "scenery": { "type": "enum", "values": ["volcano", "volcano-still", "ocean", "none"], "default": "volcano", "description": "volcano — конус, столб пепла, пемза, крыши рушатся; volcano-still — то же без обрушения крыш; ocean — вода, морской снег, тонущий корабль, дно (для down); none — только шкала." },
-    "dateValue": { "type": "integer", "default": 79, "min": 0, "max": 9999, "figure": true, "if": "dateValue>0", "description": "Дата в левом верхнем углу, считает от 0; 0 — без даты." },
-    "dateSuffix": { "type": "string", "default": "AD", "maxLength": 4, "description": "Приписка к дате (AD, BC или пусто)." },
-    "word": { "type": "string", "default": "PUMICE", "maxLength": 12, "description": "Одно слово слева посередине, стирается внутрь; пустая строка — без слова." }
+    "direction": {
+      "type": "enum",
+      "values": [
+        "up",
+        "down"
+      ],
+      "default": "up",
+      "description": "up — высота: маркер поднимается от земли; down — глубина: маркер опускается от поверхности до линии значения."
+    },
+    "value": {
+      "type": "number",
+      "default": 30,
+      "min": 0,
+      "max": 99999,
+      "figure": true,
+      "description": "Значение, до которого идёт отсчёт (тысячи через запятую)."
+    },
+    "unit": {
+      "type": "string",
+      "default": "KM",
+      "maxLength": 5,
+      "description": "Единица под отсчётом."
+    },
+    "scenery": {
+      "type": "enum",
+      "values": [
+        "volcano",
+        "volcano-still",
+        "ocean",
+        "wave",
+        "mountain",
+        "building",
+        "none"
+      ],
+      "default": "volcano",
+      "description": "volcano — конус, столб пепла, пемза, крыши рушатся; volcano-still — то же без обрушения крыш; ocean — вода, морской снег, тонущий корабль, дно (для down); none — только шкала. D4: wave — волна цунами растёт до значения (direction up), mountain — гора с вершиной на верху шкалы, building — башня, окна загораются под поднимающейся меткой."
+    },
+    "dateValue": {
+      "type": "integer",
+      "default": 79,
+      "min": 0,
+      "max": 9999,
+      "figure": true,
+      "if": "dateValue>0",
+      "description": "Дата в левом верхнем углу, считает от 0; 0 — без даты."
+    },
+    "dateSuffix": {
+      "type": "string",
+      "default": "AD",
+      "maxLength": 4,
+      "description": "Приписка к дате (AD, BC или пусто)."
+    },
+    "word": {
+      "type": "string",
+      "default": "PUMICE",
+      "maxLength": 12,
+      "description": "Одно слово слева посередине, стирается внутрь; пустая строка — без слова."
+    }
   },
   "anchors": {
-    "date": { "at": 0.2, "description": "Дата считает." },
-    "dateSuffix": { "at": 1.54, "description": "Приписка к дате." },
-    "rise": { "at": 2.12, "required": true, "description": "Шкала рисуется, маркер и отсчёт трогаются (извержение или погружение)." },
-    "value": { "at": 4.17, "description": "Маркер почти у значения (дальше доезжает с замедлением)." },
-    "fall": { "at": 5.08, "description": "Начинает падать пемза, камера медленно наезжает." },
-    "word": { "at": 5.89, "description": "Слово стирается внутрь." },
-    "layer": { "at": 6.45, "description": "Пемза ложится слоем на крыши." },
-    "collapse": { "at": 8.24, "description": "Крыши рушатся слева направо (scenery = volcano)." },
-    "rumble": { "at": 8.59, "description": "Тряска кадра от обрушения." }
+    "date": {
+      "at": 0.2,
+      "description": "Дата считает."
+    },
+    "dateSuffix": {
+      "at": 1.54,
+      "description": "Приписка к дате."
+    },
+    "rise": {
+      "at": 2.12,
+      "required": true,
+      "description": "Шкала рисуется, маркер и отсчёт трогаются (извержение или погружение)."
+    },
+    "value": {
+      "at": 4.17,
+      "description": "Маркер почти у значения (дальше доезжает с замедлением)."
+    },
+    "fall": {
+      "at": 5.08,
+      "description": "Начинает падать пемза, камера медленно наезжает."
+    },
+    "word": {
+      "at": 5.89,
+      "description": "Слово стирается внутрь."
+    },
+    "layer": {
+      "at": 6.45,
+      "description": "Пемза ложится слоем на крыши."
+    },
+    "collapse": {
+      "at": 8.24,
+      "description": "Крыши рушатся слева направо (scenery = volcano)."
+    },
+    "rumble": {
+      "at": 8.59,
+      "description": "Тряска кадра от обрушения."
+    }
   },
   "events": [
-    { "anchor": "date", "label": "date counts", "if": "dateValue>0" },
-    { "anchor": "rise", "label": "rise" },
-    { "anchor": "word", "label": "word", "if": "word" },
-    { "anchor": "collapse", "label": "roofs collapse", "if": "scenery==volcano" }
+    {
+      "anchor": "date",
+      "label": "date counts",
+      "if": "dateValue>0"
+    },
+    {
+      "anchor": "rise",
+      "label": "rise"
+    },
+    {
+      "anchor": "word",
+      "label": "word",
+      "if": "word"
+    },
+    {
+      "anchor": "collapse",
+      "label": "roofs collapse",
+      "if": "scenery==volcano"
+    }
   ],
-  "seed": { "default": 0, "affects": "ash column, pumice, sparks, marine snow, bubbles, seabed" },
-  "safeZone": { "contentMaxY": 1420, "rightRail": true }
+  "seed": {
+    "default": 0,
+    "affects": "ash column, pumice, sparks, marine snow, bubbles, seabed"
+  },
+  "safeZone": {
+    "contentMaxY": 1420,
+    "rightRail": true
+  }
 }

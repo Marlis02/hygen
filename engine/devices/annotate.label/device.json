@@ -1,0 +1,22 @@
+{
+  "type": "annotate.label",
+  "name": "Выноска",
+  "use": "Name a thing on the picture: a hand-drawn marker on the spot or around the area, a thin connector drawing out of it and a small callout label (with an optional second line, e.g. a date or source).",
+  "origin": "registry:vox-annotate",
+  "layer": "annotate",
+  "target": "box|point",
+  "targetNote": "point — маркер-кольцо с точкой; box — рукописный овал вокруг области",
+  "explains": true,
+  "figures": ["text", "sub"],
+  "params": {
+    "text": { "type": "string", "default": "", "maxLength": 28, "description": "Подпись; пусто — слово реплики, к которому привязано устройство." },
+    "side": { "type": "enum", "values": ["auto", "left", "right", "top", "bottom"], "default": "auto", "description": "Куда уходит выноска: auto — к центру кадра, где хватает места." },
+    "sub": { "type": "string", "default": "", "maxLength": 36, "description": "Вторая строка мелко: дата, уточнение, источник." },
+    "color": { "type": "string", "default": "heroLight", "maxLength": 16, "description": "Цвет маркера, линии и подписи: токен палитры или #RRGGBB." }
+  },
+  "events": [
+    { "label": "draw", "offset": 0 },
+    { "label": "land", "offset": 0.96 }
+  ],
+  "demo": { "target": { "x": 38, "y": 42 }, "params": { "text": "HERCULANEUM", "sub": "BURIED 79 AD" }, "at": 0.6 }
+}

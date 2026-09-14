@@ -1,0 +1,40 @@
+{
+  "id": "story",
+  "about": "Сюжет: завязка, поворот, пик, последствия.",
+  "roles": [
+    {
+      "id": "hook",
+      "what": "первые 1,5 с: цифра или ключевое слово",
+      "repeat": false
+    },
+    {
+      "id": "setup",
+      "what": "мир до события",
+      "repeat": false
+    },
+    {
+      "id": "turn",
+      "what": "что пошло не так",
+      "repeat": false
+    },
+    {
+      "id": "peak",
+      "what": "самый сильный момент",
+      "repeat": false
+    },
+    {
+      "id": "aftermath",
+      "what": "что было сразу после",
+      "repeat": false
+    },
+    {
+      "id": "ending",
+      "what": "финал по arc.ending",
+      "repeat": false
+    }
+  ],
+  "required": [
+    "hook",
+    "ending"
+  ]
+}

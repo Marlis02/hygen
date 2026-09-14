@@ -7,6 +7,7 @@ import type { BeatTiming, Warp } from "./timeline.ts";
 import { warpKnots } from "./timeline.ts";
 import type { BeatWords } from "./words.ts";
 import { typeInjection, videoSeed } from "./layers.ts";
+import { clockOf, writeStageBeat } from "./stage.ts";
 import type { LookDef } from "./look.ts";
 import { ENGINE_DIR, ensureDir, log } from "./lib/util.ts";
 
@@ -20,7 +21,8 @@ export interface SceneBuild {
   beatId: string;
   src: string;
   warp: Warp;
-  scene: SceneDef;
+  /** null for a stage beat (engine/src/stage.ts): identity warp, times in seconds. */
+  scene: SceneDef | null;
   params: Record<string, unknown>;
   settle: number;
   events: SceneEvent[];
@@ -44,9 +46,12 @@ export function sceneEvents(scene: SceneDef, params: Record<string, unknown>): S
 export function writeScenes(spec: VideoSpec, style: StyleDef, videoDir: string, buildDir: string, timings: BeatTiming[], words: BeatWords[], look: LookDef, hits: number[]): SceneBuild[] {
   ensureDir(join(buildDir, "compositions", "frames"));
   return spec.beats.map((beat, i) => {
+    const timing = timings[i] as BeatTiming;
+    if (beat.scene === undefined) {
+      return writeStageBeat({ beat, style, videoDir, dir: buildDir, compositionId: beat.id, clock: clockOf(timing, words[i] as BeatWords), fps: spec.fps, seed: beat.seed ?? i + 1 });
+    }
     const scene = loadScene(beat.scene);
     const params = resolveParams(beat, scene, { style, videoDir, buildDir });
-    const timing = timings[i] as BeatTiming;
     const warp = warpKnots(beatCues(beat, scene), scene.ref, timing, words[i] as BeatWords);
     for (const note of warp.notes) log.warn(`${beat.id}: ${note}`);
     if (timing.duration < scene.duration.min || timing.duration > scene.duration.max) {

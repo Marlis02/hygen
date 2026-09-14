@@ -450,6 +450,7 @@ export function beatCues(beat: BeatSpec, scene: SceneDef): RefCue[] {
 /** Everything about the beats that can be checked before the voice: scenes, params, anchor names, files. */
 export function validateBeats(spec: VideoSpec, style: StyleDef, videoDir: string): void {
   for (const beat of spec.beats) {
+    if (beat.scene === undefined) continue; // stage beats: engine/src/stage.ts → checkStageBeat
     const scene = loadScene(beat.scene);
     resolveParams(beat, scene, { style, videoDir });
     beatCues(beat, scene);
@@ -470,6 +471,7 @@ const numbersIn = (text: string): number[] => [...text.matchAll(NUMBER_RE)].map(
 export function missingSources(spec: VideoSpec): string[] {
   const missing: string[] = [];
   for (const beat of spec.beats) {
+    if (beat.scene === undefined) continue; // stage beats: engine/src/stage.ts → allMissingSources
     const scene = loadScene(beat.scene);
     const sources = beat.sources ?? {};
     const params: Record<string, unknown> = {};

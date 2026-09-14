@@ -1,0 +1,46 @@
+{
+  "id": "identify",
+  "use": "Name what the viewer is looking at: the ship, the island, the man in the photo.",
+  "stage": {
+    "types": [
+      "media",
+      "split",
+      "map"
+    ],
+    "default": {
+      "type": "media",
+      "src": "$data.src"
+    }
+  },
+  "devices": [
+    {
+      "type": "focus.spotlight",
+      "target": "$target",
+      "at": "$at",
+      "params": {
+        "mode": "dim",
+        "strength": 0.6
+      }
+    },
+    {
+      "type": "annotate.label",
+      "target": "$target",
+      "at": "$at+0.35",
+      "params": {
+        "text": "$data.label",
+        "sub": "$data.sub"
+      },
+      "explains": "$data.explains|what the viewer should notice here",
+      "source": "$data.source"
+    }
+  ],
+  "dominant": 1,
+  "requires": [
+    "target",
+    "data.label"
+  ],
+  "rhythm": {
+    "density": 3,
+    "note": "Имя появляется на слове; дальше — бит без аннотаций."
+  }
+}

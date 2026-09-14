@@ -6,6 +6,8 @@ dist/
 **/renders/*
 !videos/*/renders/
 !videos/*/renders/*.contact.jpg
+!videos/_proof/*/renders/
+!videos/_proof/*/renders/*.contact.jpg
 snapshots/
 .thumbnails/
 .waveform-cache/
@@ -27,5 +29,7 @@ __pycache__/
 
 # Сборка роликов и кэши движка
 videos/*/build/
+videos/_proof/*/build/
+videos/_proof/_*/
 .cache/
 .preview/

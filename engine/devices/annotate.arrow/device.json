@@ -1,0 +1,24 @@
+{
+  "type": "annotate.arrow",
+  "name": "Стрелка",
+  "use": "Point at one spot of the picture with a hand-drawn arrow that draws on and lands with a small head pop; an optional short label sits at the tail.",
+  "origin": "registry:hw-arrow",
+  "layer": "annotate",
+  "target": "point",
+  "targetNote": "точка — куда упирается остриё; хвост лежит на расстоянии length в сторону from",
+  "explains": true,
+  "figures": ["label"],
+  "params": {
+    "from": { "type": "enum", "values": ["left", "right", "up", "down", "up-left", "up-right", "down-left", "down-right"], "default": "left", "description": "Откуда приходит стрелка (где хвост относительно точки)." },
+    "length": { "type": "number", "default": 300, "min": 120, "max": 600, "description": "Длина стрелки в px кадра." },
+    "style": { "type": "enum", "values": ["straight", "gentle", "swoop"], "default": "gentle", "description": "Изгиб: прямая, мягкая дуга, размашистая дуга." },
+    "stroke": { "type": "enum", "values": ["plain", "soft", "sharp", "spray"], "default": "plain", "description": "Фактура линии: ровная, мягкая, сухой маркер (штрихи), спрей (точки)." },
+    "color": { "type": "string", "default": "heroLight", "maxLength": 16, "description": "Токен палитры (hero, heroLight, text, cold) или #RRGGBB." },
+    "label": { "type": "string", "default": "", "maxLength": 18, "description": "Подпись у хвоста, ЗАГЛАВНЫМИ; пусто — без подписи." }
+  },
+  "events": [
+    { "label": "draw", "offset": 0 },
+    { "label": "land", "offset": 0.7 }
+  ],
+  "demo": { "target": { "x": 58, "y": 40 }, "params": { "from": "down-left", "length": 340, "style": "gentle", "label": "THE CRATER" }, "at": 0.6 }
+}

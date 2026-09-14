@@ -83,6 +83,7 @@
   var DOWN = P.direction === "down";
   var VOLCANO = P.scenery === "volcano" || P.scenery === "volcano-still";
   var OCEAN = P.scenery === "ocean";
+  var SCENERY = P.scenery === "wave" || P.scenery === "mountain" || P.scenery === "building" ? P.scenery : null;   // D4 sceneries (direction up)
   var Y0 = 300, Y1 = 1300;                 // down: the surface (0) and the value line
   function fmtNum(n) { return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
   if (!VOLCANO) byId("__p__-world").style.display = "none";
@@ -429,6 +430,93 @@
     ctx.fill();
   }
 
+  // ---- D4 sceneries against the same gauge (direction up): a tsunami wave rises to the value, a mountain with its
+  //      summit at the top of the scale, a tower whose windows light up below the rising marker ----
+  function drawScenery(t) {
+    var e = riseE(t - T_ERUPT), top = CY - HTOP, x, k;
+    ctx.globalAlpha = 1;
+    if (SCENERY === "wave") {
+      var h = HTOP * e, cx0 = 430, wid = 380;
+      var sea = ctx.createLinearGradient(0, top, 0, 1920);
+      sea.addColorStop(0, S.colors.heroDeep);
+      sea.addColorStop(0.55, S.colors.plane);
+      sea.addColorStop(1, S.colors.night);
+      ctx.fillStyle = sea;
+      ctx.beginPath();
+      ctx.moveTo(-20, 1940);
+      for (x = -20; x <= 1100; x += 10) {
+        var d = (x - cx0) / wid;
+        var hump = h * Math.exp(-d * d * (d > 0 ? 2.6 : 1.1));      // steep front on the right, a long back on the left
+        ctx.lineTo(x, CY - hump + 6 * Math.sin(x / 38 + t * 2.2));
+      }
+      ctx.lineTo(1100, 1940);
+      ctx.closePath();
+      ctx.fill();
+      if (h > 40) {                                                 // the lip and the foam of the crest
+        var crx = cx0 + wid * 0.18, cry = CY - h * 0.97;
+        ctx.strokeStyle = S.colors.heroLight;
+        ctx.lineWidth = 5;
+        ctx.globalAlpha = 0.85;
+        ctx.beginPath();
+        ctx.moveTo(cx0 - wid * 0.35, CY - h * 0.9);
+        ctx.quadraticCurveTo(cx0, CY - h * 1.04, crx + 60, cry + 40);
+        ctx.quadraticCurveTo(crx + 90, cry + 80, crx + 40, cry + 90);
+        ctx.stroke();
+        ctx.fillStyle = S.colors.text;
+        for (k = 0; k < 40; k++) {
+          ctx.globalAlpha = 0.35 * prand(k * 3.1 + 1);
+          ctx.beginPath();
+          ctx.arc(crx + 60 + 70 * (prand(k * 2.7) - 0.5), cry + 40 + 60 * prand(k * 4.3) + 8 * Math.sin(t * 3 + k), 2 + 4 * prand(k * 5.9), 0, TAU);
+          ctx.fill();
+        }
+      }
+    } else if (SCENERY === "mountain") {
+      var ridge = [[-60, CY + 70], [150, CY - 230], [290, CY - 150], [470, top + 8], [560, top + 44], [700, CY - 310], [860, CY - 190], [1140, CY + 50]];
+      ctx.fillStyle = S.colors.plane;
+      ctx.beginPath();
+      ctx.moveTo(-60, 1940);
+      for (k = 0; k < ridge.length; k++) ctx.lineTo(ridge[k][0], ridge[k][1]);
+      ctx.lineTo(1140, 1940);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = S.colors.ashLight;                            // snow on the summit
+      ctx.globalAlpha = 0.9;
+      ctx.beginPath();
+      ctx.moveTo(470, top + 8); ctx.lineTo(412, top + 118); ctx.lineTo(452, top + 98); ctx.lineTo(482, top + 136); ctx.lineTo(522, top + 102); ctx.lineTo(560, top + 44);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = S.colors.ashMid;                            // slow cloud bands drifting across the slope
+      ctx.lineWidth = 26;
+      ctx.lineCap = "round";
+      for (k = 0; k < 3; k++) {
+        ctx.globalAlpha = 0.18;
+        var by = CY - 180 - k * 210, bx = 200 + ((t * (14 + 6 * k) + k * 260) % 700);
+        ctx.beginPath(); ctx.moveTo(bx, by); ctx.lineTo(bx + 260, by - 8); ctx.stroke();
+      }
+    } else if (SCENERY === "building") {
+      ctx.fillStyle = S.colors.plane;
+      ctx.fillRect(0, CY, 1080, 1920 - CY);
+      var blocks = [[30, CY - 190, 130], [175, CY - 270, 150], [700, CY - 230, 150], [865, CY - 150, 130]];
+      for (k = 0; k < blocks.length; k++) ctx.fillRect(blocks[k][0], blocks[k][1], blocks[k][2], CY - blocks[k][1]);
+      var tiers = [[360, 620, CY - HTOP * 0.72], [395, 585, CY - HTOP * 0.9], [440, 540, top + 36]];
+      for (k = 0; k < tiers.length; k++) ctx.fillRect(tiers[k][0], tiers[k][2], tiers[k][1] - tiers[k][0], CY - tiers[k][2]);
+      ctx.fillRect(487, top, 6, 40);                                // spire at the top of the scale
+      var line = CY - HTOP * e;                                     // windows below the marker are lit
+      ctx.fillStyle = S.colors.heroLight;
+      for (var r = 0; r * 26 < HTOP - 40; r++) {
+        var wy = CY - 20 - r * 26;
+        if (wy < line) break;
+        var tier = wy > tiers[0][2] ? tiers[0] : wy > tiers[1][2] ? tiers[1] : tiers[2];
+        for (var c = tier[0] + 14; c < tier[1] - 14; c += 22) {
+          if (prand(r * 13.7 + c * 0.31) < 0.45) continue;
+          ctx.globalAlpha = 0.35 + 0.4 * prand(r * 3.3 + c * 0.77);
+          ctx.fillRect(c, wy, 9, 12);
+        }
+      }
+    }
+    ctx.globalAlpha = 1;
+  }
+
   // altitude marker + readout: same function as the drawn column top, so they cannot drift apart
   var lastAlt = -1;
   function hud(t) {
@@ -459,6 +547,8 @@
       drawPumice(t);
     } else if (OCEAN) {
       drawOcean(t);
+    } else if (SCENERY) {
+      drawScenery(t);
     }
     ctx.globalAlpha = 1;
     hud(t);

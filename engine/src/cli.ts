@@ -2,7 +2,9 @@
 import { resolve } from "node:path";
 import { build, verifyOnly } from "./build.ts";
 import { doctor } from "./doctor.ts";
+import { isRecipe } from "./intents.ts";
 import { listScenes, previewScene } from "./preview.ts";
+import { previewStage } from "./preview-stage.ts";
 import { BuildError } from "./lib/util.ts";
 
 const USAGE = `hygen — движок faceless-канала
@@ -20,7 +22,7 @@ const USAGE = `hygen — движок faceless-канала
 
   из корня репозитория: npm run build -- videos/pompeii-en`;
 
-const VALUE_FLAGS = new Set(["--quality", "--mp4", "--params", "--tone", "--seed", "--at", "--look", "--textures", "--beat"]);
+const VALUE_FLAGS = new Set(["--quality", "--mp4", "--params", "--tone", "--seed", "--at", "--look", "--textures", "--beat", "--stage", "--src", "--device", "--text", "--dur"]);
 
 async function main(argv: string[]): Promise<number> {
   const [cmd, ...rest] = argv;
@@ -38,6 +40,13 @@ async function main(argv: string[]): Promise<number> {
     return ok ? 0 : 1;
   }
   if (cmd === "verify" && dir) return verifyOnly(dir, value("--mp4"), !flags.has("--no-snapshots")) ? 0 : 1;
+  if (cmd === "scene" && (value("--stage") || value("--device") || (positional[0] && isRecipe(positional[0])))) {
+    const dur = value("--dur");
+    const common = { beat: value("--beat"), look: value("--look"), text: value("--text"), dur: dur === undefined ? undefined : Number(dur), tone: value("--tone"), at: value("--at") };
+    if (value("--device")) return previewStage({ ...common, device: value("--device") }) ? 0 : 1;
+    if (value("--stage")) return previewStage({ ...common, stage: value("--stage"), src: value("--src") }) ? 0 : 1;
+    return previewStage({ ...common, recipe: positional[0] }) ? 0 : 1;
+  }
   if (cmd === "scene" && positional[0]) {
     const seed = value("--seed");
     return previewScene(positional[0], { params: value("--params"), tone: value("--tone"), seed: seed === undefined ? undefined : Number(seed), at: value("--at"), look: value("--look"), textures: value("--textures"), beat: value("--beat") }) ? 0 : 1;
