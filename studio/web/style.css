@@ -220,3 +220,13 @@ table.plain th { color: var(--muted); font-weight: 500; }
   #nav .spacer, #nav .foot { display: none; }
   #main { padding: 18px 16px 60px; }
 }
+
+/* Фильтры проектов, живой канал и баннер диалога (S2) */
+.filters { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 0 0 14px; }
+.filters .search { flex: 1 1 220px; min-width: 180px; }
+.filters select { width: auto; }
+.foot .live { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 6px; vertical-align: middle; background: #555; }
+.foot .live.on { background: #5bbd72; }
+.nav-banner { display: block; margin: 8px 10px 0; padding: 7px 10px; border-radius: 8px; background: #3a2d18; color: #e8c88a; font-size: 12px; text-decoration: none; }
+.nav-banner:hover { background: #4a3a1e; }
+.term-head .hint { font-size: 12px; opacity: .65; }

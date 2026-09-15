@@ -341,6 +341,80 @@ JSON-рецепты без HTML — `library/scenes/recipes/<id>.json` того 
 - **Ошибки:** ровно один stage; ≤ 3 устройств; ≤ 1 `data.*`; `explains` у каждого `annotate.*`; `dominant` есть; ≤ 2 видео одновременно; арка есть и её значения и роли верны.
 - **Предупреждения:** два подряд бита плотности ≥ 3; после плотного нет бита ≤ 1 в двух следующих; hero-эффект (пост ≥ 0,6 из chromatic, light-leak, flicker, blur-pull, или молния) чаще одного бита; один intent дважды подряд; текст на экране > 7 слов вне `text.quote`; камера у stage-бита без reason.
 
+### Примеры битов
+
+Режиссёр работает только в своей папке и чужие проекты не читает (CLAUDE.md, навык `/short`), поэтому образцы живут здесь. Отпечатки уже сделанных роликов — `library/index.json`.
+
+**Скелет `project.json`:**
+
+```json
+{ "id": "<id>-en", "title": "…", "status": "draft-kokoro",
+  "concept": "Настроение · ключевой цвет · look · арка — абзацем из research.md",
+  "format": "1080x1920", "fps": 30, "language": "en", "style": "documentary-dark",
+  "look": "ember",
+  "arc": { "structure": "mechanism", "hook": "rhetorical-question", "protagonist": "place", "ending": "callback", "why": "…" },
+  "beats": [ … ], "transitions": [],
+  "sound": { "drone": { "peak": "04-…", "cut": "06-…" } },
+  "music": { "track": "<id>", "duck": 0.35 },
+  "publish": { "titles": ["…", "…", "…"], "description": "…", "tags": ["…"] } }
+```
+
+Поля `voice` нет: черновик всегда Kokoro, финал делает кнопка панели. `captions` — объект только если стиль субтитров всего ролика отличается от look.
+
+**Хук: фото, свет на строке, обводка с подписью** (медиа + `focus.spotlight`, камера панорамой к детали):
+
+```json
+{ "id": "01-bakery", "role": "hook",
+  "text": "How does one bakery burn down the heart of London?",
+  "sees": "Зритель видит надпись на табличке, её выделяет свет и рукописная обводка с подписью PUDDING LANE.",
+  "pad": [0.2, 0.5],
+  "stage": { "type": "media", "src": "media/plaque-pudding-lane.jpg", "fit": "contain",
+             "crop": { "x": 2, "y": 0, "w": 96, "h": 93 },
+             "pan": { "to": { "x": 68.5, "y": 32.5, "w": 28, "h": 28 }, "at": "how", "dur": 2.6 } },
+  "devices": [ { "type": "focus.spotlight", "target": { "x": 0, "y": 46.5, "w": 100, "h": 7 }, "at": "how",
+                 "params": { "shape": "rect", "mode": "dim", "strength": 0.9 } } ],
+  "dominant": 0,
+  "sources": { "text": "https://en.wikipedia.org/wiki/Great_Fire_of_London" } }
+```
+
+**Спокойный бит без устройств** (кадр держит камера):
+
+```json
+{ "id": "02-timber", "role": "setup",
+  "text": "In [1666|sixteen sixty-six], the City was mostly timber, its upper floors almost touching across narrow lanes.",
+  "sees": "Зритель видит плотный деревянный Лондон, камера отъезжает от собора ко всему городу.",
+  "pad": [0.2, 0.6],
+  "stage": { "type": "media", "src": "media/hollar-london-before-1666.jpg", "fit": "contain",
+             "crop": { "x": 28, "y": 33, "w": 40, "h": 40 } },
+  "devices": [], "dominant": "stage", "camera": { "reason": "approach" },
+  "sources": { "text": "https://en.wikipedia.org/wiki/Great_Fire_of_London" } }
+```
+
+**Было → стало одной шторкой** (`compare` через intent — резолвер раскроет его в `split` с устройствами):
+
+```json
+{ "id": "05-after", "role": "consequence",
+  "text": "[13,200|Thirteen thousand two hundred] houses were gone in four days.",
+  "sees": "Зритель видит один и тот же вид Лондона до и после пожара, шторка идёт слева направо.",
+  "pad": [0.2, 0.8], "intent": "compare", "at": "thirteen",
+  "data": { "a": "media/hollar-before.jpg", "b": "media/hollar-after.jpg", "value": 13200,
+            "label": "houses lost", "source": "https://en.wikipedia.org/wiki/Great_Fire_of_London" },
+  "dominant": "stage" }
+```
+
+**Слово как кадр** (`text.kinetic`, dominant — само устройство; в документальном look — не больше двух таких битов):
+
+```json
+{ "id": "03-wind", "role": "turn",
+  "text": "Then the east wind picked up.",
+  "sees": "Зритель видит слово WIND во весь кадр — буквы сносит вправо, как искры.",
+  "pad": [0.2, 0.6],
+  "stage": { "type": "color", "color": "night", "glow": true },
+  "devices": [ { "type": "text.kinetic", "at": "wind",
+                 "params": { "mode": "marquee", "text": "WIND", "size": "hero" } } ],
+  "dominant": 0 }
+```
+
 ### Источники stage-бита
 
 Устройство с цифрами в `figures` — `source` у устройства. Цифры реплики, которых нет среди цифр устройств с источником, — `sources.text` бита.

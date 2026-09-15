@@ -1,9 +1,9 @@
-import { existsSync, readFileSync, statSync, writeFileSync } from "node:fs";
-import { join, relative } from "node:path";
-import { mediaRecord } from "./lib/project.ts";
+import { existsSync, readFileSync, renameSync, rmSync, statSync } from "node:fs";
+import { basename, join, relative } from "node:path";
+import { ledgerOf, mediaRecord } from "./lib/project.ts";
 import type { BeatSpec, VideoSpec } from "./spec.ts";
 import { isHtmlScene, parseBeatText } from "./spec.ts";
-import { LIBRARY_DIR, ROOT_DIR, ensureDir, fail, readJson, run } from "./lib/util.ts";
+import { LIBRARY_DIR, ROOT_DIR, ensureDir, fail, pyScript, python, readJson, run, writeIfChanged } from "./lib/util.ts";
 
 /** project.json → `publish`: what the director writes for the upload; the engine adds sources, credits, SRT and the cover. */
 export interface PublishSpec {
@@ -72,9 +72,10 @@ export function collectMedia(videoDir: string, spec: VideoSpec, beats: BeatSpec[
   return [...files].filter((f) => mediaRecord(f) !== null).sort();
 }
 
+/** A credit line is built from media.json alone: title, author, license, link — never from the path of the file. */
 function credit(file: string): { line: string; url: string } {
   const lic = mediaRecord(file) as unknown as Record<string, string>;
-  const title = lic.title ?? relative(ROOT_DIR, file);
+  const title = (lic.title ?? "").trim() || (ledgerOf(file)?.key ?? basename(file)).replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ");
   return { line: `- ${title} — ${lic.author}, ${lic.license}. ${lic.url}`, url: lic.url ?? "" };
 }
 
@@ -146,12 +147,12 @@ export function writePublish(videoDir: string, spec: VideoSpec, mp4?: string): P
   const titles = (pub.titles?.length ? pub.titles : [spec.title, hook, `${spec.title.split(":")[0]?.trim()} — ${display(spec.beats[spec.beats.length - 1]?.text ?? "")}`])
     .map((t) => clip(t, TITLE_MAX))
     .slice(0, 3);
-  writeFileSync(join(dir, "title.txt"), titles.join("\n") + "\n");
+  writeIfChanged(join(dir, "title.txt"), titles.join("\n") + "\n");
 
   const sources = [...collectSources(spec.beats), ...collectSources(beats)].filter((v, i, a) => a.indexOf(v) === i);
   const credits = collectMedia(videoDir, spec, beats).map(credit);
   const about = pub.description?.trim() || spec.beats.slice(0, 2).map((b) => display(b.text)).join(" ");
-  writeFileSync(
+  writeIfChanged(
     join(dir, "description.md"),
     [about, "", "Sources:", ...sources.map((s) => `- ${s}`), "", "Media:", ...(credits.length ? credits.map((c) => c.line) : ["- no third-party media"]), ""].join("\n"),
   );
@@ -159,9 +160,9 @@ export function writePublish(videoDir: string, spec: VideoSpec, mp4?: string): P
   // without publish.tags: words of the title first, then general ones up to at least 10
   const fallbackTags = [...spec.title.toLowerCase().split(/[^a-z0-9]+/).filter((w) => w.length > 3), "history", "shorts", "documentary", "explained", "history facts", "archive", "education", "true story", "on this day", "history shorts"];
   const tags = (pub.tags?.length ? pub.tags : fallbackTags).map((t) => t.trim()).filter((t, i, a) => t && a.indexOf(t) === i).slice(0, 15);
-  writeFileSync(join(dir, "tags.txt"), tags.join(", ") + "\n");
+  writeIfChanged(join(dir, "tags.txt"), tags.join(", ") + "\n");
 
-  writeFileSync(join(dir, "subtitles.srt"), srtPhrases(videoWords(buildDir)));
+  writeIfChanged(join(dir, "subtitles.srt"), srtPhrases(videoWords(buildDir)));
 
   // cover: the settle frame of the densest beat (its dominant device has landed); ties go to the earliest
   const plan = readJson<{ scenes: PlanScene[] }>(join(buildDir, "verify_plan.json")).scenes;
@@ -171,7 +172,13 @@ export function writePublish(videoDir: string, spec: VideoSpec, mp4?: string): P
     if (density(b) > density(beats[pick] as BeatSpec)) pick = i;
   });
   const at = plan[pick] as PlanScene;
-  run("ffmpeg", ["-v", "error", "-y", "-ss", at.settle.toFixed(3), "-i", video, "-frames:v", "1", "-q:v", "2", join(dir, "thumbnail.jpg")]);
+  // обложка без даты и метаданных времени; кадр, показывающий то же самое, оставляет файл, который уже на диске
+  const thumb = join(dir, "thumbnail.jpg");
+  const part = `${thumb}.part.jpg`;
+  run("ffmpeg", ["-v", "error", "-y", "-ss", at.settle.toFixed(3), "-i", video, "-frames:v", "1", "-q:v", "2", "-map_metadata", "-1", "-fflags", "+bitexact", part]);
+  const same = existsSync(thumb) && run(python(), [pyScript("same_picture.py"), thumb, part], { allowFail: true }).status === 0;
+  if (!same) renameSync(part, thumb);
+  rmSync(part, { force: true });
 
   return { dir, files: ["title.txt", "description.md", "tags.txt", "subtitles.srt", "thumbnail.jpg"], sources, credits: credits.map((c) => c.line), thumbnailAt: { beat: at.id, t: at.settle } };
 }

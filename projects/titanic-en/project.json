@@ -1,7 +1,7 @@
 {
   "id": "titanic-en",
   "title": "Titanic: the largest ship afloat and lifeboats for half",
-  "status": "verified",
+  "status": "final-elevenlabs",
   "concept": "Холодная глубина look `abyss` (пересказ того же мира, `retells: titanic-v2`). Субтитры calm · plain по слову; в бите шлюпок — editorial-emphasis фразами. Хук — единственная хроника корабля и кинетика THE LARGEST SHIP AFLOAT на словах голоса.\n\nАрка: **story × imagine-scenario × object × one-number-silence** — «представьте самый большой корабль на плаву», рейс, машина, которая не выдержала, места в шлюпках, гибель, одна цифра живых. Отличие от первой версии: у той не было арки, скелет — шесть сцен с HTML; у proof — concept-announcement и три бита.",
   "format": "1080x1920",
   "fps": 30,

@@ -2,331 +2,331 @@
   "captions/blend-difference": {
     "file": "library/previews/captions/blend-difference.mp4",
     "hash": "6405a2d33d74b005",
-    "seconds": 6.904,
+    "seconds": 19.811,
     "ok": true
   },
   "captions/camera-follow": {
     "file": "library/previews/captions/camera-follow.mp4",
     "hash": "3a40a1d19b3f056b",
-    "seconds": 8.167,
+    "seconds": 12.533,
     "ok": true
   },
   "captions/clip-wipe": {
     "file": "library/previews/captions/clip-wipe.mp4",
     "hash": "99a373aa011a1703",
-    "seconds": 6.533,
+    "seconds": 17.916,
     "ok": true
   },
   "captions/editorial-emphasis": {
     "file": "library/previews/captions/editorial-emphasis.mp4",
     "hash": "7dda6fe03bb24345",
-    "seconds": 7.07,
+    "seconds": 20.157,
     "ok": true
   },
   "captions/emoji-pop": {
     "file": "library/previews/captions/emoji-pop.mp4",
     "hash": "3a2c3ae7656d8f71",
-    "seconds": 7.191,
+    "seconds": 18.09,
     "ok": true
   },
   "captions/glitch-rgb": {
     "file": "library/previews/captions/glitch-rgb.mp4",
     "hash": "80caf2d539b6495c",
-    "seconds": 6.407,
+    "seconds": 9.861,
     "ok": true
   },
   "captions/gradient-fill": {
     "file": "library/previews/captions/gradient-fill.mp4",
     "hash": "5a4b043cb91b6506",
-    "seconds": 7.364,
+    "seconds": 18.856,
     "ok": true
   },
   "captions/highlight": {
     "file": "library/previews/captions/highlight.mp4",
     "hash": "29ae4302763cabb1",
-    "seconds": 6.871,
+    "seconds": 20.374,
     "ok": true
   },
   "captions/karaoke": {
     "file": "library/previews/captions/karaoke.mp4",
     "hash": "cfe30387c811361b",
-    "seconds": 8.062,
+    "seconds": 17.109,
     "ok": true
   },
   "captions/kinetic-slam": {
     "file": "library/previews/captions/kinetic-slam.mp4",
     "hash": "575654d8712ee125",
-    "seconds": 6.541,
+    "seconds": 20.097,
     "ok": true
   },
   "captions/matrix-decode": {
     "file": "library/previews/captions/matrix-decode.mp4",
     "hash": "4cee4d8fc6a8e234",
-    "seconds": 6.868,
+    "seconds": 9.462,
     "ok": true
   },
   "captions/neon-accent": {
     "file": "library/previews/captions/neon-accent.mp4",
     "hash": "5b7a19fda3ea8962",
-    "seconds": 7.904,
+    "seconds": 16.12,
     "ok": true
   },
   "captions/neon-glow": {
     "file": "library/previews/captions/neon-glow.mp4",
     "hash": "83945b317065181e",
-    "seconds": 7.844,
+    "seconds": 20.177,
     "ok": true
   },
   "captions/parallax-layers": {
     "file": "library/previews/captions/parallax-layers.mp4",
     "hash": "e83826fe95d62296",
-    "seconds": 6.914,
+    "seconds": 11.002,
     "ok": true
   },
   "captions/particle-burst": {
     "file": "library/previews/captions/particle-burst.mp4",
     "hash": "292e38713609f14c",
-    "seconds": 6.666,
+    "seconds": 10.112,
     "ok": true
   },
   "captions/pill-karaoke": {
     "file": "library/previews/captions/pill-karaoke.mp4",
     "hash": "72095ea6081f79fa",
-    "seconds": 7.043,
+    "seconds": 21.312,
     "ok": true
   },
   "captions/plain": {
     "file": "library/previews/captions/plain.mp4",
     "hash": "6465ebaeea0128db",
-    "seconds": 7.726,
+    "seconds": 12.43,
     "ok": true
   },
   "captions/texture": {
     "file": "library/previews/captions/texture.mp4",
     "hash": "4a2d641f3d26aac7",
-    "seconds": 6.981,
+    "seconds": 19.912,
     "ok": true
   },
   "captions/typewriter": {
     "file": "library/previews/captions/typewriter.mp4",
     "hash": "a150a1f26eb295bd",
-    "seconds": 7.928,
+    "seconds": 17.699,
     "ok": true
   },
   "captions/weight-shift": {
     "file": "library/previews/captions/weight-shift.mp4",
     "hash": "aaaf435cf16d56b7",
-    "seconds": 6.872,
+    "seconds": 20.061,
     "ok": true
   },
   "devices/annotate.arrow": {
     "file": "library/previews/devices/annotate.arrow.mp4",
     "hash": "3388e3cb22dd709e",
-    "seconds": 6.585,
+    "seconds": 16.746,
     "ok": true
   },
   "devices/annotate.box": {
     "file": "library/previews/devices/annotate.box.mp4",
     "hash": "72a2111b3fef14b7",
-    "seconds": 6.707,
+    "seconds": 16.633,
     "ok": true
   },
   "devices/annotate.circle": {
     "file": "library/previews/devices/annotate.circle.mp4",
     "hash": "265e7559844965b7",
-    "seconds": 8.55,
+    "seconds": 17.012,
     "ok": true
   },
   "devices/annotate.label": {
     "file": "library/previews/devices/annotate.label.mp4",
     "hash": "deb82ce3958247c1",
-    "seconds": 8.417,
+    "seconds": 15.148,
     "ok": true
   },
   "devices/annotate.measure": {
     "file": "library/previews/devices/annotate.measure.mp4",
     "hash": "f4ab0bcff394677c",
-    "seconds": 7.574,
+    "seconds": 16.541,
     "ok": true
   },
   "devices/data.chart": {
     "file": "library/previews/devices/data.chart.mp4",
     "hash": "98186cd2106e916e",
-    "seconds": 7.32,
+    "seconds": 11.747,
     "ok": true
   },
   "devices/data.chart:line": {
     "file": "library/previews/devices/data.chart~line.mp4",
     "hash": "35fb81d9627ae7a8",
-    "seconds": 7.293,
+    "seconds": 9.538,
     "ok": true
   },
   "devices/data.count": {
     "file": "library/previews/devices/data.count.mp4",
     "hash": "b031f484a5a2d260",
-    "seconds": 7.034,
+    "seconds": 9.037,
     "ok": true
   },
   "devices/data.dots": {
     "file": "library/previews/devices/data.dots.mp4",
     "hash": "69e04948277e215a",
-    "seconds": 6.843,
+    "seconds": 9.364,
     "ok": true
   },
   "devices/data.dots:fade": {
     "file": "library/previews/devices/data.dots~fade.mp4",
     "hash": "d8b52b93b2a1423e",
-    "seconds": 6.68,
+    "seconds": 9.959,
     "ok": true
   },
   "devices/data.timeline": {
     "file": "library/previews/devices/data.timeline.mp4",
     "hash": "dbaf12562d595ae9",
-    "seconds": 6.38,
+    "seconds": 11.032,
     "ok": true
   },
   "devices/edit.hold": {
     "file": "library/previews/devices/edit.hold.mp4",
     "hash": "47689ff5dc9a82fb",
-    "seconds": 7.4,
+    "seconds": 12.387,
     "ok": true
   },
   "devices/edit.pip": {
     "file": "library/previews/devices/edit.pip.mp4",
     "hash": "dba71a8f4592e28f",
-    "seconds": 7.199,
+    "seconds": 10.193,
     "ok": true
   },
   "devices/focus.spotlight": {
     "file": "library/previews/devices/focus.spotlight.mp4",
     "hash": "63844bfbfb8af09d",
-    "seconds": 6.761,
+    "seconds": 8.052,
     "ok": true
   },
   "devices/focus.spotlight:blur": {
     "file": "library/previews/devices/focus.spotlight~blur.mp4",
     "hash": "b6c3bd42bee8e245",
-    "seconds": 6.939,
+    "seconds": 8.831,
     "ok": true
   },
   "devices/text.quote": {
     "file": "library/previews/devices/text.quote.mp4",
     "hash": "67d4081e227124da",
-    "seconds": 6.346,
+    "seconds": 8.192,
     "ok": true
   },
   "devices/text.title": {
     "file": "library/previews/devices/text.title.mp4",
     "hash": "2531fb0eae86d56d",
-    "seconds": 6.307,
+    "seconds": 8.187,
     "ok": true
   },
   "devices/text.title:slam": {
     "file": "library/previews/devices/text.title~slam.mp4",
     "hash": "4c099bb76bb72e1e",
-    "seconds": 6.555,
+    "seconds": 8.425,
     "ok": true
   },
   "devices/text.title:typewriter": {
     "file": "library/previews/devices/text.title~typewriter.mp4",
     "hash": "ac86cee876f16d06",
-    "seconds": 6.321,
+    "seconds": 8.203,
     "ok": true
   },
   "kinetic/behind-subject": {
     "file": "library/previews/kinetic/behind-subject.mp4",
     "hash": "39291331ff1a61e0",
-    "seconds": 8.441,
+    "seconds": 22.909,
     "ok": true
   },
   "kinetic/center-build": {
     "file": "library/previews/kinetic/center-build.mp4",
     "hash": "013e51dd4ae1a3ef",
-    "seconds": 6.395,
+    "seconds": 13.089,
     "ok": true
   },
   "kinetic/extrude": {
     "file": "library/previews/kinetic/extrude.mp4",
     "hash": "6f24649cbb7b45b0",
-    "seconds": 6.562,
+    "seconds": 8.659,
     "ok": true
   },
   "kinetic/marquee": {
     "file": "library/previews/kinetic/marquee.mp4",
     "hash": "b54b65e62d859a4f",
-    "seconds": 6.759,
+    "seconds": 19.964,
     "ok": true
   },
   "kinetic/outline": {
     "file": "library/previews/kinetic/outline.mp4",
     "hash": "86234adee4e7d973",
-    "seconds": 6.343,
+    "seconds": 8.309,
     "ok": true
   },
   "kinetic/scramble": {
     "file": "library/previews/kinetic/scramble.mp4",
     "hash": "f6391d6123554518",
-    "seconds": 6.295,
+    "seconds": 15.07,
     "ok": true
   },
   "kinetic/slam": {
     "file": "library/previews/kinetic/slam.mp4",
     "hash": "2f434cd754dbb752",
-    "seconds": 6.45,
+    "seconds": 15.945,
     "ok": true
   },
   "kinetic/stack": {
     "file": "library/previews/kinetic/stack.mp4",
     "hash": "9243f787268d8aa3",
-    "seconds": 6.836,
+    "seconds": 8.675,
     "ok": true
   },
   "kinetic/texture": {
     "file": "library/previews/kinetic/texture.mp4",
     "hash": "a02b8a12326bf4fb",
-    "seconds": 6.567,
+    "seconds": 19.82,
     "ok": true
   },
   "kinetic/tilt": {
     "file": "library/previews/kinetic/tilt.mp4",
     "hash": "db31d48ce9114d30",
-    "seconds": 6.313,
+    "seconds": 8.318,
     "ok": true
   },
   "kinetic/type-swap": {
     "file": "library/previews/kinetic/type-swap.mp4",
     "hash": "5cf0f9ffad516a48",
-    "seconds": 6.396,
+    "seconds": 12.557,
     "ok": true
   },
   "kinetic/weight-morph": {
     "file": "library/previews/kinetic/weight-morph.mp4",
     "hash": "de92758577102985",
-    "seconds": 6.492,
+    "seconds": 8.44,
     "ok": true
   },
   "looks/abyss": {
     "file": "library/previews/looks/abyss.mp4",
     "hash": "6d96695e3820c5df",
-    "seconds": 21.692,
+    "seconds": 29.134,
     "ok": true
   },
   "looks/bright-explainer": {
     "file": "library/previews/looks/bright-explainer.mp4",
     "hash": "d0ae9dd71500e6a1",
-    "seconds": 13.79,
+    "seconds": 16.744,
     "ok": true
   },
   "looks/ember": {
     "file": "library/previews/looks/ember.mp4",
-    "hash": "57c9c71dd3b699dd",
-    "seconds": 21.729,
+    "hash": "2be780d09b50e47a",
+    "seconds": 23.91,
     "ok": true
   },
   "looks/storm": {
     "file": "library/previews/looks/storm.mp4",
     "hash": "9ae83c240e0e4907",
-    "seconds": 22.67,
+    "seconds": 24.987,
     "ok": true
   },
   "music/documentary-dark-01": {
@@ -344,205 +344,205 @@
   "recipes/portrait": {
     "file": "library/previews/recipes/portrait.mp4",
     "hash": "7fa819e0eb1cf9cd",
-    "seconds": 20.807,
+    "seconds": 26.03,
     "ok": true
   },
   "recipes/question-card": {
     "file": "library/previews/recipes/question-card.mp4",
     "hash": "128192249cd18b29",
-    "seconds": 6.548,
+    "seconds": 18.906,
     "ok": true
   },
   "recipes/quote-card": {
     "file": "library/previews/recipes/quote-card.mp4",
     "hash": "c5bb174db57c63ab",
-    "seconds": 7.171,
+    "seconds": 20.328,
     "ok": true
   },
   "scenes/counter-title": {
     "file": "library/previews/scenes/counter-title.mp4",
     "hash": "a5e845344e8548df",
-    "seconds": 11.435,
+    "seconds": 17.994,
     "ok": true
   },
   "scenes/fraction-finale": {
     "file": "library/previews/scenes/fraction-finale.mp4",
     "hash": "1a47aefadd7cf6cc",
-    "seconds": 11.211,
+    "seconds": 17.415,
     "ok": true
   },
   "scenes/map-marker": {
     "file": "library/previews/scenes/map-marker.mp4",
     "hash": "bff0f835fcca40c3",
-    "seconds": 16.733,
+    "seconds": 23.107,
     "ok": true
   },
   "scenes/picture-zoom": {
     "file": "library/previews/scenes/picture-zoom.mp4",
     "hash": "528ca92f44411809",
-    "seconds": 15.09,
+    "seconds": 19.362,
     "ok": true
   },
   "scenes/pyroclastic-flow": {
     "file": "library/previews/scenes/pyroclastic-flow.mp4",
     "hash": "5c4dd4059894713b",
-    "seconds": 23.824,
+    "seconds": 25.111,
     "ok": true
   },
   "scenes/scale-gauge": {
     "file": "library/previews/scenes/scale-gauge.mp4",
     "hash": "d39bb472111ffa5e",
-    "seconds": 26.339,
+    "seconds": 29.824,
     "ok": true
   },
   "scenes/year-odometer": {
     "file": "library/previews/scenes/year-odometer.mp4",
     "hash": "2d5026344dde1317",
-    "seconds": 22.103,
+    "seconds": 30.379,
     "ok": true
   },
   "textures/ash": {
     "file": "library/previews/textures/ash.mp4",
     "hash": "edf03a8dafd09a80",
-    "seconds": 8.399,
+    "seconds": 22.095,
     "ok": true
   },
   "textures/bubbles": {
     "file": "library/previews/textures/bubbles.mp4",
     "hash": "ed8d224273d1c0df",
-    "seconds": 8.603,
+    "seconds": 22.081,
     "ok": true
   },
   "textures/embers": {
     "file": "library/previews/textures/embers.mp4",
     "hash": "91f7a9621c1b2dac",
-    "seconds": 8.175,
+    "seconds": 18.842,
     "ok": true
   },
   "textures/fire": {
     "file": "library/previews/textures/fire.mp4",
     "hash": "2a651bf6b540000a",
-    "seconds": 8.132,
+    "seconds": 13.065,
     "ok": true
   },
   "textures/fog": {
     "file": "library/previews/textures/fog.mp4",
     "hash": "61bd4ef259eb2f91",
-    "seconds": 8.919,
+    "seconds": 17.36,
     "ok": true
   },
   "textures/grain": {
     "file": "library/previews/textures/grain.mp4",
     "hash": "78c12669ac10521a",
-    "seconds": 9.462,
+    "seconds": 22.252,
     "ok": true
   },
   "textures/lightning": {
     "file": "library/previews/textures/lightning.mp4",
     "hash": "f769dc4a90a241f9",
-    "seconds": 10.039,
+    "seconds": 20.881,
     "ok": true
   },
   "textures/paper": {
     "file": "library/previews/textures/paper.mp4",
     "hash": "65634abf5cd329ab",
-    "seconds": 10.043,
+    "seconds": 20.419,
     "ok": true
   },
   "textures/rain": {
     "file": "library/previews/textures/rain.mp4",
     "hash": "e5ee0cbe8eb5bd71",
-    "seconds": 8.225,
+    "seconds": 19.55,
     "ok": true
   },
   "textures/smoke": {
     "file": "library/previews/textures/smoke.mp4",
     "hash": "496d391b0171c44e",
-    "seconds": 8.166,
+    "seconds": 19.783,
     "ok": true
   },
   "textures/snow": {
     "file": "library/previews/textures/snow.mp4",
     "hash": "7f3887577389332a",
-    "seconds": 8.354,
+    "seconds": 19.527,
     "ok": true
   },
   "textures/wind": {
     "file": "library/previews/textures/wind.mp4",
     "hash": "f115bb41354da6c7",
-    "seconds": 8.448,
+    "seconds": 19.277,
     "ok": true
   },
   "transitions/ash-burst": {
     "file": "library/previews/transitions/ash-burst.mp4",
     "hash": "1295fd6dbdc975c0",
-    "seconds": 10.586,
+    "seconds": 15.024,
     "ok": true
   },
   "transitions/blinds": {
     "file": "library/previews/transitions/blinds.mp4",
     "hash": "7fd6eacf7c7131b0",
-    "seconds": 11.523,
+    "seconds": 14.43,
     "ok": true
   },
   "transitions/directional-wipe": {
     "file": "library/previews/transitions/directional-wipe.mp4",
     "hash": "1ed1007233d507a8",
-    "seconds": 12.502,
+    "seconds": 13.22,
     "ok": true
   },
   "transitions/film-burn": {
     "file": "library/previews/transitions/film-burn.mp4",
     "hash": "abda21acb3703ac9",
-    "seconds": 12.401,
+    "seconds": 16.174,
     "ok": true
   },
   "transitions/flash": {
     "file": "library/previews/transitions/flash.mp4",
     "hash": "2b0070851a86c0b9",
-    "seconds": 13.852,
+    "seconds": 14.154,
     "ok": true
   },
   "transitions/grade-split": {
     "file": "library/previews/transitions/grade-split.mp4",
     "hash": "6d1edb2987987fc0",
-    "seconds": 13.125,
+    "seconds": 14.723,
     "ok": true
   },
   "transitions/grid-dissolve": {
     "file": "library/previews/transitions/grid-dissolve.mp4",
     "hash": "5a1b276d30f93ba8",
-    "seconds": 13.844,
+    "seconds": 16.35,
     "ok": true
   },
   "transitions/hard-cut": {
     "file": "library/previews/transitions/hard-cut.mp4",
     "hash": "2ec70592201224a2",
-    "seconds": 12.764,
+    "seconds": 15.794,
     "ok": true
   },
   "transitions/iris": {
     "file": "library/previews/transitions/iris.mp4",
     "hash": "bd66366f291fa6e4",
-    "seconds": 14.849,
+    "seconds": 15.396,
     "ok": true
   },
   "transitions/smoke-wipe": {
     "file": "library/previews/transitions/smoke-wipe.mp4",
     "hash": "e4f6923115431f71",
-    "seconds": 15.843,
+    "seconds": 15.895,
     "ok": true
   },
   "transitions/water-ripple": {
     "file": "library/previews/transitions/water-ripple.mp4",
     "hash": "84e4dc680ebe0a07",
-    "seconds": 14.864,
+    "seconds": 16.594,
     "ok": true
   },
   "transitions/whip": {
     "file": "library/previews/transitions/whip.mp4",
     "hash": "69f3a427654d14f3",
-    "seconds": 14.383,
+    "seconds": 19.042,
     "ok": true
   }
 }

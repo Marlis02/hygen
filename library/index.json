@@ -1,0 +1,131 @@
+{
+  "great-fire-en": {
+    "arc": "mechanism × rhetorical-question × place × callback",
+    "stages": [
+      "media",
+      "media",
+      "scene:quote-card",
+      "media",
+      "media",
+      "split",
+      "show-scale"
+    ],
+    "look": "ink-fire",
+    "captions": "из look",
+    "devices": [
+      "focus.spotlight"
+    ],
+    "at": "2026-09-15"
+  },
+  "halifax-en": {
+    "arc": "story × stakes-consequence × place × what-remains",
+    "stages": [
+      "media",
+      "media",
+      "scene:quote-card",
+      "media",
+      "media",
+      "media"
+    ],
+    "look": "harbour-frost",
+    "captions": "из look",
+    "devices": [
+      "data.count",
+      "focus.spotlight",
+      "annotate.label"
+    ],
+    "at": "2026-09-15"
+  },
+  "krakatoa-en": {
+    "arc": "mechanism × counterintuitive-claim × sound × what-remains",
+    "stages": [
+      "color",
+      "map",
+      "map",
+      "media",
+      "color",
+      "split"
+    ],
+    "look": "storm",
+    "captions": "из look",
+    "devices": [
+      "text.kinetic",
+      "data.chart",
+      "annotate.circle"
+    ],
+    "at": "2026-09-15"
+  },
+  "molasses-flood-en": {
+    "arc": "story × shocking-statistic × object × what-remains",
+    "stages": [
+      "media",
+      "color",
+      "media",
+      "media",
+      "show-consequence",
+      "media"
+    ],
+    "look": "molasses-amber",
+    "captions": "из look",
+    "devices": [
+      "data.count",
+      "data.count",
+      "annotate.label"
+    ],
+    "at": "2026-09-15"
+  },
+  "odyssey-en": {
+    "arc": "mystery × rhetorical-question × person × callback",
+    "stages": [
+      "media",
+      "color",
+      "media",
+      "media",
+      "media",
+      "scene:quote-card",
+      "media"
+    ],
+    "look": "wine-dark",
+    "captions": "из look",
+    "devices": [
+      "annotate.label",
+      "data.dots",
+      "data.count"
+    ],
+    "at": "2026-09-15"
+  },
+  "pompeii-en": {
+    "arc": "? × ? × ? × ?",
+    "stages": [
+      "scene:counter-title",
+      "scene:map-marker",
+      "scene:scale-gauge",
+      "scene:pyroclastic-flow",
+      "scene:year-odometer",
+      "scene:fraction-finale"
+    ],
+    "look": "ember",
+    "captions": "word-by-word",
+    "devices": [],
+    "at": "2026-09-15"
+  },
+  "titanic-en": {
+    "arc": "story × imagine-scenario × object × one-number-silence",
+    "stages": [
+      "media",
+      "map",
+      "media",
+      "color",
+      "media",
+      "media"
+    ],
+    "look": "abyss",
+    "captions": "из look",
+    "devices": [
+      "text.kinetic",
+      "edit.hold",
+      "focus.spotlight"
+    ],
+    "at": "2026-09-15"
+  }
+}

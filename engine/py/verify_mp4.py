@@ -131,7 +131,39 @@ def contact_sheet(mp4, plan, out):
             sheet.paste(Image.fromarray(frame_rgb(mp4, t, tw, th)), (x, y + label_h))
             draw.text((x + 6, y + 6), f"{sc['id']}  {t:.1f}s", fill=(236, 231, 222), font=font)
     os.makedirs(os.path.dirname(os.path.abspath(out)), exist_ok=True)
-    sheet.save(out, quality=90)
+    save_stable(sheet, out)
+
+
+def same_picture(a_path, b_path, tile=3.0, block=40.0):
+    """Две картинки показывают одно и то же: среднее размытой разницы ≤ tile и ни один блок 60 px не выше block.
+
+    Контактный лист нельзя повторить байт в байт: кадры снимают четыре параллельных воркера Chrome, а MP4 сжат
+    с потерями — два рендера одной сборки расходятся примерно на 1,4 из 255 по всему кадру (TRAPS.md). Пороги —
+    те самые, которыми движок всегда говорил «кадры не изменились» (engine/py/compare_frames.py).
+    """
+    from compare_frames import diff, load
+
+    try:
+        a = load(a_path)
+        b = load(b_path, size=(a.shape[1], a.shape[0]))
+    except Exception:
+        return False
+    if a.shape != b.shape:
+        return False
+    mean, worst = diff(a, b, 60)
+    return mean <= tile and worst <= block
+
+
+def save_stable(img, out, quality=90):
+    """Детерминированный выход: JPEG без даты и метаданных времени, а лист, показывающий то же, что лежит на диске,
+    не перезаписывается — чистая пересборка неизменённого ролика оставляет чистое дерево."""
+    part = out + ".part.jpg"
+    img.save(part, quality=quality, exif=b"")
+    if os.path.exists(out) and same_picture(out, part):
+        os.remove(part)
+        return False
+    os.replace(part, out)
+    return True
 
 
 def main():

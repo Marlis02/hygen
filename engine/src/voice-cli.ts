@@ -1,16 +1,14 @@
 #!/usr/bin/env node
 import { basename } from "node:path";
-import { budgetState, globalTakes, moveTake, projectOfLabel, resetBudget } from "./voice.ts";
+import { allProjectSpend, globalTakes, moveTake, previewSpend, projectBudget } from "./voice.ts";
+import { projectDirs } from "./lib/project.ts";
+import { projectOfLabel } from "./voice.ts";
 
-// npm run voice [-- --reset-budget] [-- --migrate] — the ElevenLabs character budget (ELEVENLABS_BUDGET_CHARS in .env)
-// against .cache/voice/elevenlabs/usage.jsonl and projects/<id>/voice/usage.jsonl: what is spent since the last reset and what
-// is left. Cached takes cost nothing. --migrate moves takes of videos from the old global cache into their projects.
+// npm run voice [-- --migrate] — the ElevenLabs budget of every video: project.json → voice.budgetChars (default:
+// voice.defaultBudgetChars of hygen.config.json) against projects/<id>/voice/usage.jsonl. Cached takes cost nothing.
+// There is no global budget any more (ROADMAP S2). --migrate moves takes of the old global cache into their projects.
 
 const args = process.argv.slice(2);
-if (args.includes("--reset-budget")) {
-  resetBudget();
-  console.log("бюджет ElevenLabs сброшен: счёт символов начинается заново");
-}
 if (args.includes("--migrate")) {
   let moved = 0;
   for (const t of globalTakes().videos) {
@@ -22,9 +20,14 @@ if (args.includes("--migrate")) {
   }
   console.log(`дубли ElevenLabs перенесены в проекты: ${moved}`);
 }
-const b = budgetState();
-console.log(
-  b.budget === null
-    ? `бюджет ElevenLabs не задан (budgets.elevenlabsChars в hygen.config.json) · потрачено с последнего сброса: ${b.spent} символов`
-    : `бюджет ElevenLabs: ${b.budget} символов · потрачено ${b.spent} · осталось ${b.left}${b.since ? ` · сброс ${b.since}` : ""}`,
-);
+
+console.log("бюджет ElevenLabs по роликам (символы):");
+let total = 0;
+for (const dir of projectDirs()) {
+  const b = projectBudget(dir);
+  total += b.spent;
+  if (b.spent === 0 && b.budget === 0) continue;
+  console.log(`  ${basename(dir).padEnd(20)} потрачено ${String(b.spent).padStart(6)} из ${String(b.budget).padStart(6)} · осталось ${String(b.left).padStart(6)} · дублей ${b.takes}`);
+}
+const previews = previewSpend();
+console.log(`всего по роликам ${total} символов${previews ? ` · превью голосов ${previews}` : ""} · роликов с расходом ${allProjectSpend().filter((p) => p.chars > 0).length}`);

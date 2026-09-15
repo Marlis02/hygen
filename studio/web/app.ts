@@ -1,4 +1,4 @@
-import { clear, h, loadStrings, t } from "./lib.ts";
+import { api, clear, h, loadStrings, t } from "./lib.ts";
 import { icon } from "./icons.ts";
 import { projectsScreen } from "./screens/projects.ts";
 import { projectScreen, stopProjectWatch } from "./screens/project.ts";
@@ -6,7 +6,8 @@ import { libraryScreen } from "./screens/library.ts";
 import { looksScreen } from "./screens/looks.ts";
 import { settingsScreen } from "./screens/settings.ts";
 import { newVideoScreen } from "./screens/newvideo.ts";
-import { directorHome } from "./screens/director.ts";
+import { directorHome } from "./screens/dialogs.ts";
+import { onLive, setLiveIndicator } from "./live.ts";
 
 // Hash router: #/projects, #/project/<id>/<tab>, #/library/<section>, #/looks, #/director, #/settings, #/new.
 
@@ -21,7 +22,7 @@ const NAV = [
 
 /** The sidebar item of a screen: a project's «Режиссёр» tab belongs to «Режиссёр», its other tabs to «Проекты». */
 function currentItem(hash: string): string {
-  if (hash.startsWith("#/project/")) return hash.split("/")[3] === "director" ? "#/director" : "#/projects";
+  if (hash.startsWith("#/project/")) return hash.split("/")[3] === "dialogs" ? "#/director" : "#/projects";
   return NAV.find((n) => hash.startsWith(n.hash))?.hash ?? "#/projects";
 }
 
@@ -33,8 +34,27 @@ function renderNav(): void {
     h("div", { class: "brand" }, "hygen", h("small", null, t("nav.tagline"))),
     NAV.map((n) => h("a", { href: n.hash, class: n.hash === on ? "on" : "" }, icon(n.icon), h("span", null, t(n.key)))),
     h("div", { class: "spacer" }),
-    h("div", { class: "foot" }, t("nav.foot")),
+    h("div", { class: "foot" }, h("span", { id: "live-dot" }), t("nav.foot")),
   );
+  setLiveIndicator(document.getElementById("live-dot"));
+  if (liveDialogs.length) {
+    nav.appendChild(h("a", { class: "nav-banner", href: `#/project/${liveDialogs[0]}/dialogs` }, t("director.banner", { project: liveDialogs[0] as string, n: liveDialogs.length })));
+  }
+}
+
+/** Баннер «идёт диалог в проекте X» и счётчик в сайдбаре: при возврате в панель видно, где живой режиссёр. */
+let liveDialogs: string[] = [];
+async function readDialogs(): Promise<void> {
+  try {
+    const d = await api<{ running: { project: string }[] }>("/api/dialogs");
+    const next = d.running.map((r) => r.project);
+    if (next.join() !== liveDialogs.join()) {
+      liveDialogs = next;
+      renderNav();
+    }
+  } catch {
+    // сервер перезапускается — канал вернётся сам
+  }
 }
 
 async function route(): Promise<void> {
@@ -59,5 +79,9 @@ async function route(): Promise<void> {
 
 await loadStrings();
 document.title = t("app.title");
+onLive((msg) => {
+  if (msg.type === "dialog-start" || msg.type === "dialog-exit" || msg.type === "hello") void readDialogs();
+});
+void readDialogs();
 window.addEventListener("hashchange", () => void route());
 void route();

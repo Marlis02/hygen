@@ -47,6 +47,28 @@ export function writeJson(path: string, value: unknown): void {
   writeFileSync(path, JSON.stringify(value, null, 2) + "\n");
 }
 
+/**
+ * A deterministic output of the build: write only when the bytes really differ. A clean rebuild of an unchanged
+ * project must leave a clean git tree, so publish/, the sheets and library/index.json are never touched for nothing.
+ */
+export function writeIfChanged(path: string, content: string | Buffer): boolean {
+  const buf = typeof content === "string" ? Buffer.from(content, "utf8") : content;
+  if (existsSync(path) && readFileSync(path).equals(buf)) return false;
+  mkdirSync(dirname(path), { recursive: true });
+  writeFileSync(path, buf);
+  return true;
+}
+
+export function writeJsonIfChanged(path: string, value: unknown): boolean {
+  return writeIfChanged(path, JSON.stringify(value, null, 2) + "\n");
+}
+
+/** Commit of the engine — part of the input of a build: the same project on a new engine gets a new history snapshot. */
+export function engineCommit(): string {
+  const r = spawnSync("git", ["rev-parse", "--short=7", "HEAD"], { cwd: ROOT_DIR, encoding: "utf8" });
+  return r.status === 0 ? r.stdout.trim() : "";
+}
+
 export function ensureDir(path: string): string {
   mkdirSync(path, { recursive: true });
   return path;

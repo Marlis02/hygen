@@ -12,7 +12,7 @@ Everything heavy happens once at build time and is cached by the caller; the ren
   backdrop <src> <out.jpg>                       cover crop 1080×1920, blurred and darkened (under fit: contain)
 
 Treatments are CPU versions of the media-use recipes (no WebGL in the render):
-  film-memory  vintage wash: lifted blacks, warm, less saturation, vignette, seeded grain
+  film-memory  vintage wash: lifted blacks, warm, less saturation, vignette, grain seeded by --seed
   engraved     line engraving: luminance → thickness of diagonal lines, cross-hatch in the deep shadows; ink/paper
   two-ink      two spot inks on paper: hero ink in the mids, deep ink in the shadows, 15°/75° halftone screens
   duotone      the look's two inks: shadows → night, lights → a muted light of text and hero (≤ 72 % bright, so white
@@ -55,7 +55,7 @@ def luminance(arr):
     return (arr[..., 0] * 0.299 + arr[..., 1] * 0.587 + arr[..., 2] * 0.114) / 255.0
 
 
-def film_memory(arr, seed=7):
+def film_memory(arr, seed):
     a = arr / 255.0
     lum = luminance(arr)[..., None]
     a = lum + (a - lum) * 0.68
@@ -134,7 +134,7 @@ def treat(arr, a):
     if a.treatment == "duotone":
         return duotone(arr, ink_night, ink_hero, paper, hex_rgb(a.inks[4]) if len(a.inks) > 4 else None)
     if a.treatment == "film-memory":
-        return film_memory(arr)
+        return film_memory(arr, a.seed)
     if a.treatment == "engraved":
         return engraved(arr, ink_night, paper)
     if a.treatment == "two-ink":
@@ -183,7 +183,8 @@ def cmd_video(a):
         vf.append("reverse")
     night, hero, deep, paper = (hex_rgb(c) for c in a.inks[:4])
     if a.treatment == "film-memory":
-        vf += ["eq=contrast=0.86:brightness=0.03:saturation=0.66", "colorchannelmixer=rr=1.05:gg=0.99:bb=0.88", "vignette=angle=PI/4.5", "noise=alls=9:allf=t"]
+        # CLAUDE.md, правило 5: случайность только от сида — у ffmpeg-зерна свой явный seed, а не «как получится»
+        vf += ["eq=contrast=0.86:brightness=0.03:saturation=0.66", "colorchannelmixer=rr=1.05:gg=0.99:bb=0.88", "vignette=angle=PI/4.5", f"noise=alls=9:allf=t:all_seed={a.seed}"]
     elif a.treatment == "engraved":
         vf += ["eq=contrast=1.45", "unsharp=5:5:1.4"] + tone_map([night, (night + paper) / 2, paper])
     elif a.treatment == "two-ink":
@@ -240,6 +241,8 @@ def main():
     ap.add_argument("--focus", type=float, nargs=2, default=[0.5, 0.5])
     ap.add_argument("--inks", nargs="+", default=["#0A0A09", "#FF5A1F", "#7A2208", "#ECE7DE"])
     ap.add_argument("--fps", type=int, default=30)
+    # зерно обработки (film-memory) — от сида ролика: два рендера одного бита дают один и тот же шум
+    ap.add_argument("--seed", type=int, default=7)
     a = ap.parse_args()
     if a.cmd == "probe":
         print(json.dumps(probe(a.src)))

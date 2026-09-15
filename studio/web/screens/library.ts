@@ -1,6 +1,7 @@
 import { api, clear, fail, go, h, modal, t, toast } from "../lib.ts";
 import type { Dict } from "../lib.ts";
 import { field, fields } from "../forms.ts";
+import { debounce, onLive } from "../live.ts";
 
 // «Библиотека»: every element of the engine with its 3-second preview (library/previews), description and params;
 // «apply to a beat» writes it into project.json. Music: listen, BPM, mood, looks; add a track with its license.
@@ -8,7 +9,7 @@ import { field, fields } from "../forms.ts";
 export async function libraryScreen(main: HTMLElement, section: string): Promise<void> {
   // looks have their own screen (sidebar «Look»), not a section of the library
   if (section === "looks") return go("#/looks");
-  const data = await api<{ sections: string[]; items: Dict[] }>("/api/library");
+  const data = await api<{ sections: string[]; items: Dict[]; missing: number; job: Dict | null }>("/api/library");
   const items = data.items.filter((i) => i.section === section);
   const families = [...new Set(items.map((i) => i.family).filter(Boolean))] as string[];
   const fam = h("select", null, h("option", { value: "" }, t("library.allFamilies")), families.map((f) => h("option", { value: f }, f)));
@@ -24,9 +25,11 @@ export async function libraryScreen(main: HTMLElement, section: string): Promise
   search.oninput = draw;
   const shown = data.items.filter((i) => i.section !== "looks");
   const withPreview = shown.filter((i) => i.preview || i.audio).length;
+  const bar = previewsBar(main, section, data);
   clear(
     main,
     h("div", { class: "header" }, h("div", null, h("h1", null, t("library.title")), h("div", { class: "sub" }, t("library.sub", { n: shown.length, p: withPreview }))), section === "music" ? h("button", { class: "btn primary", onclick: addTrack }, t("library.addTrack")) : null),
+    bar,
     h("div", { class: "sections" }, data.sections.filter((s) => s !== "looks").map((s) => h("a", { href: `#/library/${s}`, class: s === section ? "on" : "" }, `${t(`library.sections.${s}`)} · ${data.items.filter((i) => i.section === s).length}`))),
     h("div", { class: "filters" }, families.length ? fam : null, section === "music" ? null : origin, search),
     grid,
@@ -124,4 +127,34 @@ async function addTrack(): Promise<void> {
       },
     },
   ]);
+}
+
+/**
+ * Превью галереи (ROADMAP S2): при открытии считаются недостающие по хэшам и досчитываются задачей сервера —
+ * карточки видны сразу, превью появляются по готовности, открытый раздел идёт первым. Закрытие вкладки задачу
+ * не останавливает: она живёт на сервере. Это единственная автоматическая сборка в системе.
+ */
+function previewsBar(main: HTMLElement, section: string, data: Dict): HTMLElement {
+  const box = h("div");
+  if (!data.missing && !data.job) return box;
+  const line = h("div", { class: "banner info" });
+  box.appendChild(line);
+  // 22 с на превью — среднее по прошлым прогонам (S1.1: 83 превью за 388 с в два потока)
+  const show = (done: number, total: number): void => {
+    const left = Math.max(0, total - done);
+    line.textContent = left ? t("library.previewsRunning", { done, total, min: Math.max(1, Math.round((left * 22) / 60 / 2)) }) : t("library.previewsDone", { total });
+    if (!left) setTimeout(() => line.remove(), 4000);
+  };
+  show(Number(data.job?.done ?? 0), Number(data.job?.total ?? data.missing));
+  const reload = debounce(() => {
+    if (main.isConnected && location.hash.startsWith("#/library")) void libraryScreen(main, section).catch(() => undefined);
+  }, 1500);
+  onLive((msg) => {
+    if (msg.type === "job" && msg.job?.kind === "previews") {
+      show(Number((msg.job.result as Dict | undefined)?.done ?? 0), Number((msg.job.result as Dict | undefined)?.total ?? data.missing));
+      if (msg.job.status !== "running") reload();
+    } else if (msg.type === "files" && (msg.library as string[] | undefined)?.some((f) => f.startsWith("previews/"))) reload();
+  });
+  if (!data.job) void api("/api/library/previews", { body: { section } }).catch(() => undefined);
+  return box;
 }

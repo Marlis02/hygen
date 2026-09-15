@@ -1,12 +1,12 @@
-import { copyFileSync, cpSync, existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, statSync, watch, writeFileSync } from "node:fs";
+import { copyFileSync, cpSync, existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from "node:fs";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { homedir } from "node:os";
 import { basename, delimiter, extname, join, relative, sep } from "node:path";
-import { BUILD_STAGES, buildStageOf, getJob, listJobs, runningJob, startJob, stopJob } from "./jobs.ts";
+import { BUILD_STAGES, buildStageOf, dropJobs, getJob, listJobs, runningJob, startJob, stopJob } from "./jobs.ts";
 import type { Job } from "./jobs.ts";
-import { SECTIONS, libraryCatalog, previewIndex } from "../engine/src/library.ts";
+import { SECTIONS, itemHash, libraryCatalog, previewFile, previewIndex } from "../engine/src/library.ts";
 import type { LibraryItem } from "../engine/src/library.ts";
-import { CONFIG_PATH, LICENSES, ROLES, checkProjectMedia, loadConfig, missingLicense, musicDir, projectDirs, projectsDir, readLedger, snapshotHistory, writeLedger } from "../engine/src/lib/project.ts";
+import { CONFIG_PATH, LICENSES, ROLES, checkProjectMedia, dropFromLibraryIndex, loadConfig, missingLicense, musicDir, projectDirs, projectsDir, readLedger, snapshotHistory, writeLedger } from "../engine/src/lib/project.ts";
 import type { MediaRecord } from "../engine/src/lib/project.ts";
 import { ENGINE_DIR, LIBRARY_DIR, ROOT_DIR, loadEnv, readJson, runAsync, sha, writeJson } from "../engine/src/lib/util.ts";
 import { SECRET_KEYS } from "../engine/src/doctor.ts";
@@ -16,9 +16,9 @@ import { trackBeats } from "../engine/src/music.ts";
 import { isHtmlScene, loadSpec, parseBeatText } from "../engine/src/spec.ts";
 import type { BeatSpec, VideoSpec } from "../engine/src/spec.ts";
 import { CAMERA_REASONS, STAGE_TYPES, TREATMENTS } from "../engine/src/stage.ts";
-import { budgetState, resolveVoice } from "../engine/src/voice.ts";
-import { DirectorRecorder, claudeEnv, directorAllowlist, directorArgs, directorJournal } from "./director.ts";
-import { openClaude, pasteShort, resizeTerminal, startTerminal, stopTerminal, streamTerminal, terminalState, writeTerminal } from "./terminal.ts";
+import { ELEVEN_SPEED, finalPlan, projectBudget, resolveVoice } from "../engine/src/voice.ts";
+import { dialogBuffer, dialogContext, dialogState, findClaude, listDialogs, maxDialogs, noteEdit, resizeDialog, runningProjects, startDialog, stopDialog, writeDialog } from "./dialogs.ts";
+import { markSelfWrite, setProjectEditHook } from "./events.ts";
 
 // The local API of the studio over the engine: every write goes to project.json, media.json, music.json, a look file
 // or hygen.config.json — the same files the CLI and the director read, so editing JSON by hand keeps working.
@@ -28,7 +28,22 @@ const CLI = join(ENGINE_DIR, "src", "cli.ts");
 const MEDIA_CLI = join(ENGINE_DIR, "src", "media.ts");
 const ID_RE = /^[a-z0-9][a-z0-9-]{0,60}$/;
 const ASSET_RE = /\.(jpe?g|png|webp|gif|mp4|webm|mov|ogv|wav|mp3|flac|ogg)$/i;
-export const STATUSES = ["draft", "built", "verified", "published"];
+/**
+ * Статусы ролика (ROADMAP S2). Черновик живёт на Kokoro и ничего не стоит; финал — один прогон ElevenLabs;
+ * «выложен» ставит человек; waiting-library ждёт будущих референсов и пока не используется.
+ */
+/** Жанры брифа (ROADMAP S2): по жанру навык берёт свои правила исследования. */
+export const GENRES = ["history", "science", "facts", "entertainment", "explainer"];
+
+export const STATUSES = ["draft-kokoro", "final-elevenlabs", "published", "waiting-library"];
+export const STATUS_OF_OLD: Record<string, string> = { draft: "draft-kokoro", built: "draft-kokoro", verified: "draft-kokoro", published: "published" };
+export const statusOf = (p: Record<string, any>): string => {
+  const raw = String(p.status ?? "draft-kokoro");
+  if (STATUSES.includes(raw)) return raw;
+  const mapped = STATUS_OF_OLD[raw] ?? "draft-kokoro";
+  // a video voiced by ElevenLabs was a final long before the statuses of S2 existed
+  return mapped === "draft-kokoro" && (p.voice?.provider ?? p.voice?.engine) === "elevenlabs" ? "final-elevenlabs" : mapped;
+};
 
 class HttpError extends Error {
   readonly status: number;
@@ -115,9 +130,8 @@ function projectDir(name: string, needSpec = true): string {
 
 const readProject = (dir: string): VideoSpec & Record<string, any> => readJson(join(dir, "project.json"));
 /** Writes of the panel itself: the file watch of a project must not reload the page after its own save. */
-const selfWrites = new Map<string, number>();
 const markSelf = (dir: string): void => {
-  selfWrites.set(dir, Date.now());
+  for (const f of ["project.json", "media.json"]) markSelfWrite(join(dir, f));
 };
 const writeProject = (dir: string, p: unknown): void => {
   markSelf(dir);
@@ -137,7 +151,7 @@ function validate(dir: string): { ok: boolean; error: string | null } {
 
 const lookLabel = (look: unknown): string => (typeof look === "string" ? look : look && typeof look === "object" ? String((look as any).id ?? (look as any).extends ?? "свой") : "ember");
 const voiceLabel = (v: any): string => {
-  const provider = v?.provider ?? v?.engine ?? loadConfig().voice.provider;
+  const provider = v?.provider ?? v?.engine ?? "kokoro";
   return provider === "elevenlabs" ? "ElevenLabs" : `Kokoro${v?.voiceId || v?.voice ? ` · ${v.voiceId ?? v.voice}` : ""}`;
 };
 
@@ -149,14 +163,23 @@ function card(dir: string): Record<string, unknown> {
   const build = readOpt<{ duration_s?: number }>(buildJson);
   const thumb = [join(renders, "publish", "thumbnail.jpg"), join(renders, `${p.id}.contact.jpg`)].find((f) => existsSync(f));
   const media = checkProjectMedia(dir);
+  const mp4 = join(renders, `${p.id}.mp4`);
+  const brief = readOpt<{ topic?: string; genre?: string; createdAt?: string }>(join(dir, "brief.json"));
   return {
     id: name,
     title: p.title,
-    status: p.status ?? "draft",
+    topic: brief?.topic ?? null,
+    genre: brief?.genre ?? null,
+    status: statusOf(p),
     proof: Boolean(p.proof),
     duration: build?.duration_s ?? null,
     builtAt: existsSync(buildJson) ? statSync(buildJson).mtime.toISOString() : null,
+    // a video is only «собран» when its MP4 is here: renders are not in git, so a fresh clone shows «не собран»
+    built: existsSync(mp4),
+    createdAt: brief?.createdAt ?? statSync(join(dir, "project.json")).birthtime.toISOString(),
+    changedAt: statSync(join(dir, "project.json")).mtime.toISOString(),
     voice: voiceLabel(p.voice),
+    provider: (p.voice?.provider ?? p.voice?.engine ?? "kokoro") as string,
     look: lookLabel(p.look),
     beats: p.beats?.length ?? 0,
     thumb: fileUrl(thumb),
@@ -164,6 +187,7 @@ function card(dir: string): Record<string, unknown> {
     mediaErrors: media.errors.length,
     publishedAt: p.publishedAt ?? null,
     building: Boolean(runningJob("build", name)),
+    dialog: runningProjects().includes(name),
   };
 }
 
@@ -175,10 +199,10 @@ function historyOf(dir: string): Record<string, unknown>[] {
     .sort()
     .reverse()
     .map((n) => {
-      const snap = readOpt<{ at?: string; reason?: string }>(join(hist, n, "snapshot.json"));
+      const snap = readOpt<{ at?: string; reason?: string; why?: string; engine?: string }>(join(hist, n, "snapshot.json"));
       const files = readdirSync(join(hist, n));
       const sheet = files.find((f) => f.endsWith(".contact.jpg"));
-      return { name: n, at: snap?.at ?? null, reason: snap?.reason ?? (files.includes("research.md") ? "архив до пересказа" : ""), files, canRollback: files.includes("project.json"), sheet: sheet ? fileUrl(join(hist, n, sheet)) : null };
+      return { name: n, at: snap?.at ?? null, reason: snap?.reason ?? (files.includes("research.md") ? "архив до пересказа" : ""), why: snap?.why ?? "", engine: snap?.engine ?? null, files, canRollback: files.includes("project.json"), sheet: sheet ? fileUrl(join(hist, n, sheet)) : null };
     });
 }
 
@@ -242,6 +266,10 @@ route("GET", "/api/projects/:id", ({ m }) => {
     },
     publish: publishOf(dir),
     history: historyOf(dir),
+    budget: projectBudget(dir),
+    final: finalPlan(dir),
+    dialogs: listDialogs(dir),
+    dialog: dialogState(basename(dir)).dialog,
     brief: readOpt(join(dir, "brief.json")),
     research: existsSync(join(dir, "research.md")) ? readFileSync(join(dir, "research.md"), "utf8") : null,
     jobs: listJobs(basename(dir)).slice(0, 8).map((j) => ({ id: j.id, kind: j.kind, title: j.title, status: j.status, startedAt: j.startedAt })),
@@ -316,6 +344,23 @@ route("POST", "/api/projects/:id/status", async ({ req, m }) => {
   else delete p.publishedAt;
   writeProject(dir, p);
   return { status, publishedAt: p.publishedAt ?? null };
+});
+
+/**
+ * «Удалить проект» (ROADMAP S2): the folder, the row of library/index.json and the jobs of the panel go together.
+ * The body must repeat the id — a click cannot delete a video by accident.
+ */
+route("DELETE", "/api/projects/:id", async ({ req, m }) => {
+  const dir = projectDir(m[1] as string, false);
+  const id = basename(dir);
+  const b = await body<{ confirm?: string }>(req);
+  if ((b.confirm ?? "").trim() !== id) throw new HttpError(400, `чтобы удалить, впишите имя проекта: ${id}`);
+  if (!existsSync(dir)) throw new HttpError(404, `нет projects/${id}`);
+  if (runningProjects().includes(id)) throw new HttpError(409, "в проекте идёт диалог — сначала «Завершить»");
+  const jobs = dropJobs(id);
+  const indexed = dropFromLibraryIndex(id);
+  rmSync(dir, { recursive: true, force: true });
+  return { removed: id, jobs, index: indexed };
 });
 
 route("POST", "/api/projects/:id/duplicate", async ({ req, m }) => {
@@ -499,8 +544,10 @@ function startBuild(dir: string, opts: { render: boolean; voice?: string; note?:
     onDone: (job) => {
       const p = readProject(dir);
       const verify = readOpt<{ ok?: boolean }>(join(dir, "renders", `${p.id}.verify.json`));
-      if (opts.render && job.status !== "stopped" && p.status !== "published") {
-        const status = job.status === "ok" && verify?.ok ? "verified" : existsSync(join(dir, "renders", `${p.id}.mp4`)) ? "built" : p.status ?? "draft";
+      // a Kokoro build is a draft, an ElevenLabs build is the final; «выложен» is set by hand and never overwritten
+      if (opts.render && job.status !== "stopped" && statusOf(p) !== "published") {
+        const provider = readOpt<{ voice?: { provider?: string } }>(join(dir, "renders", `${p.id}.build.json`))?.voice?.provider;
+        const status = provider === "elevenlabs" ? "final-elevenlabs" : "draft-kokoro";
         if (status !== p.status) {
           p.status = status;
           writeProject(dir, p);
@@ -511,10 +558,64 @@ function startBuild(dir: string, opts: { render: boolean; voice?: string; note?:
   });
 }
 
+/**
+ * «Собрать» и «Без рендера» — всегда Kokoro, бесплатно. A final video whose line was edited would send those lines to
+ * ElevenLabs: such a build answers 409 with what it would cost until the page confirms it.
+ */
 route("POST", "/api/projects/:id/build", async ({ req, m }) => {
   const dir = projectDir(m[1] as string);
-  const b = await body<{ render?: boolean; voice?: string }>(req);
+  const b = await body<{ render?: boolean; voice?: string; confirm?: boolean }>(req);
+  const p = readProject(dir);
+  const provider = b.voice ?? p.voice?.provider ?? p.voice?.engine ?? "kokoro";
+  if (provider === "elevenlabs" && !b.confirm) {
+    const plan = finalPlan(dir);
+    if (plan.missing.length) {
+      throw new HttpError(409, `${plan.missing.length === 1 ? "1 реплика будет переозвучена" : `${plan.missing.length} реплик будут переозвучены`}, ${plan.chars} символов (бюджет ролика: осталось ${plan.budget.left} из ${plan.budget.budget})`);
+    }
+  }
   return startBuild(dir, { render: b.render !== false, voice: b.voice });
+});
+
+// ── бюджет и финал на ElevenLabs (ROADMAP S2) ───────────────────────────────────────────────────────
+
+route("GET", "/api/projects/:id/final", ({ m }) => {
+  const dir = projectDir(m[1] as string);
+  return { ...finalPlan(dir), speed: ELEVEN_SPEED, key: Boolean(loadEnv().ELEVENLABS_API_KEY) };
+});
+
+route("PUT", "/api/projects/:id/budget", async ({ req, m }) => {
+  const dir = projectDir(m[1] as string);
+  const { budgetChars } = await body<{ budgetChars: number }>(req);
+  const n = Number(budgetChars);
+  if (!Number.isFinite(n) || n < 0 || n > 1_000_000) throw new HttpError(400, "бюджет — число символов от 0 до 1 000 000");
+  const p = readProject(dir);
+  p.voice = { ...(p.voice && typeof p.voice === "object" ? p.voice : {}), budgetChars: Math.round(n) };
+  writeProject(dir, p);
+  return projectBudget(dir);
+});
+
+/** «Финал на ElevenLabs»: the confirmed run — the provider goes into project.json and the build re-voices what is missing. */
+route("POST", "/api/projects/:id/final", async ({ req, m }) => {
+  const dir = projectDir(m[1] as string);
+  const b = await body<{ confirm?: boolean }>(req);
+  const plan = finalPlan(dir);
+  if (!b.confirm) throw new HttpError(400, "нужно подтверждение");
+  if (!loadEnv().ELEVENLABS_API_KEY && plan.missing.length) throw new HttpError(400, "нет ELEVENLABS_API_KEY в .env — переозвучить нечем");
+  if (!plan.enough) throw new HttpError(400, `нужно ${plan.chars} символов, бюджет ролика ${plan.budget.left} из ${plan.budget.budget}`);
+  const p = readProject(dir);
+  p.voice = { ...(p.voice && typeof p.voice === "object" ? p.voice : {}), provider: "elevenlabs" };
+  writeProject(dir, p);
+  return startBuild(dir, { render: true, title: "финал на ElevenLabs", note: "final" });
+});
+
+/** «Обратно на Kokoro»: правки без трат; дубли ElevenLabs остаются в voice/ и ждут следующего финала. */
+route("POST", "/api/projects/:id/kokoro", ({ m }) => {
+  const dir = projectDir(m[1] as string);
+  const p = readProject(dir);
+  p.voice = { ...(p.voice && typeof p.voice === "object" ? p.voice : {}), provider: "kokoro" };
+  if (statusOf(p) !== "published") p.status = "draft-kokoro";
+  writeProject(dir, p);
+  return { provider: "kokoro", status: p.status };
 });
 
 route("POST", "/api/projects/:id/beats/:beat/rebuild", ({ m }) => {
@@ -538,7 +639,7 @@ function voiceInfo(dir: string, beatId: string): { beat: BeatSpec; provider: str
 route("GET", "/api/projects/:id/beats/:beat/voice", ({ m }) => {
   const dir = projectDir(m[1] as string);
   const v = voiceInfo(dir, decodeURIComponent(m[2] as string));
-  return { provider: v.provider, chars: v.chars, cached: Boolean(v.take), budget: budgetState() };
+  return { provider: v.provider, chars: v.chars, cached: Boolean(v.take), budget: projectBudget(dir) };
 });
 
 route("POST", "/api/projects/:id/beats/:beat/revoice", ({ m }) => {
@@ -546,8 +647,8 @@ route("POST", "/api/projects/:id/beats/:beat/revoice", ({ m }) => {
   const beatId = decodeURIComponent(m[2] as string);
   const v = voiceInfo(dir, beatId);
   if (v.provider !== "elevenlabs") throw new HttpError(400, "голос Kokoro детерминирован: тот же текст даёт тот же дубль — переозвучка имеет смысл только для ElevenLabs или после правки реплики");
-  const budget = budgetState();
-  if (budget.left !== null && budget.left < v.chars) throw new HttpError(400, `бюджет ElevenLabs: осталось ${budget.left}, нужно ${v.chars}`);
+  const budget = projectBudget(dir);
+  if (budget.left < v.chars) throw new HttpError(400, `бюджет ролика: осталось ${budget.left}, нужно ${v.chars}`);
   if (v.take) {
     const hist = join(dir, "history");
     mkdirSync(hist, { recursive: true });
@@ -608,9 +709,54 @@ route("GET", "/api/schema", () => {
 
 // ── library ──────────────────────────────────────────────────────────────────────────────────────────
 
+/** Элементы без превью — по хэшу содержимого: столько галерея и будет считать. */
+function missingPreviews(): string[] {
+  const index = previewIndex();
+  return libraryCatalog()
+    .filter((item) => {
+      const prev = index[`${item.section}/${item.id}`];
+      return !prev || prev.hash !== itemHash(item) || !prev.ok || !existsSync(join(ROOT_DIR, prev.file));
+    })
+    .map((item) => `${item.section}/${item.id}`);
+}
+
+/**
+ * Единственная автоматическая сборка в системе (CLAUDE.md, правило 14): галерея досчитывает недостающие превью.
+ * Задача живёт на сервере — закрытие вкладки её не останавливает; открытый раздел считается первым.
+ */
+route("POST", "/api/library/previews", async ({ req }) => {
+  const b = await body<{ section?: string; force?: boolean }>(req);
+  const running = runningJob("previews");
+  if (running) return running;
+  const missing = missingPreviews();
+  if (!missing.length && !b.force) return { nothing: true, missing: 0 };
+  const args = [join(ENGINE_DIR, "src", "library-previews.ts"), "--jobs", "2"];
+  if (b.section && SECTIONS.includes(b.section as never)) args.push("--first", b.section);
+  if (b.force) args.push("--force");
+  let total = missing.length;
+  let done = 0;
+  return startJob({
+    kind: "previews",
+    title: `превью библиотеки: ${total}`,
+    cmd: NODE,
+    args,
+    cwd: ROOT_DIR,
+    onLine: (line, job) => {
+      const m = /^\[(\d+)\/(\d+)\]/.exec(line.trim());
+      if (!m) return;
+      done = Number(m[1]);
+      total = Number(m[2]);
+      job.result = { done, total };
+    },
+  });
+});
+
 route("GET", "/api/library", () => {
   const index = previewIndex();
+  const job = runningJob("previews");
   return {
+    missing: missingPreviews().length,
+    job: job ? { id: job.id, ...(job.result ?? {}) } : null,
     sections: SECTIONS,
     items: libraryCatalog().map((item) => {
       const entry = index[`${item.section}/${item.id}`];
@@ -753,18 +899,8 @@ route("GET", "/api/settings", () => {
   const env = loadEnv();
   const envFile = join(ROOT_DIR, ".env");
   const envKeys = existsSync(envFile) ? [...readFileSync(envFile, "utf8").matchAll(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=/gm)].map((x) => x[1] as string) : [];
-  const usage = projectDirs().map((d) => {
-    const f = join(d, "voice", "usage.jsonl");
-    const lines = existsSync(f) ? readFileSync(f, "utf8").split("\n").filter(Boolean) : [];
-    const chars = lines.reduce((n, l) => {
-      try {
-        return n + Number(JSON.parse(l).chars ?? 0);
-      } catch {
-        return n;
-      }
-    }, 0);
-    return { project: basename(d), takes: lines.length, chars };
-  });
+  // the budget is per video now: the settings screen shows what each of them has spent against its own budget
+  const usage = projectDirs().map((d) => ({ project: basename(d), ...projectBudget(d) }));
   let config: unknown;
   let error: string | null = null;
   try {
@@ -780,7 +916,6 @@ route("GET", "/api/settings", () => {
     // values of the keys never leave the server: only whether they are set
     secrets: SECRET_KEYS.map((key) => ({ key, set: Boolean(env[key]) })),
     extraEnv: envKeys.filter((k) => !SECRET_KEYS.includes(k)),
-    budget: budgetState(),
     usage,
     looks: lookIds(),
   };
@@ -802,67 +937,34 @@ route("PUT", "/api/settings", async ({ req }) => {
 
 route("POST", "/api/doctor", () => startJob({ kind: "doctor", title: "doctor", cmd: NODE, args: [CLI, "doctor"], cwd: ROOT_DIR }));
 
-// ── director: brief.json and claude -p ───────────────────────────────────────────────────────────────
+// ── режиссёр: бриф и диалог (ROADMAP S2) ────────────────────────────────────────────────────────────
 
-const CHECK_FILE = join(ROOT_DIR, ".cache", "studio", "claude-check.json");
-
-function findClaude(): string | null {
-  const candidates = [process.env.CLAUDE_BIN, join(homedir(), ".local", "bin", "claude"), ...(process.env.PATH ?? "").split(delimiter).map((d) => join(d, "claude"))];
-  return candidates.find((c): c is string => Boolean(c) && existsSync(c as string)) ?? null;
-}
-
-route("GET", "/api/director", () => ({ claude: findClaude(), check: readOpt(CHECK_FILE), looks: lookIds(), config: loadConfig() }));
-
-route("POST", "/api/director/check", () => {
-  const bin = findClaude();
-  if (!bin) throw new HttpError(404, "claude не найден: ни в PATH, ни в ~/.local/bin");
-  let out = "";
-  return startJob({
-    kind: "claude-check",
-    title: "проверка claude -p",
-    cmd: bin,
-    args: ["-p", "Reply with exactly one word: ok", "--output-format", "json", "--max-turns", "1"],
-    cwd: ROOT_DIR,
-    env: claudeEnv(),
-    onLine: (line) => {
-      out += line + "\n";
-    },
-    onDone: (job) => {
-      let parsed: Record<string, any> | null = null;
-      const line = out.trim().split("\n").reverse().find((l) => l.trim().startsWith("{"));
-      try {
-        parsed = line ? JSON.parse(line) : null;
-      } catch {
-        parsed = null;
-      }
-      const ok = job.status === "ok" && Boolean(parsed) && !parsed?.is_error && /ok/i.test(String(parsed?.result ?? ""));
-      const record = { at: new Date().toISOString(), bin, ok, exitCode: job.exitCode, result: parsed?.result ?? null, error: ok ? null : String(parsed?.result ?? out.trim().split("\n").slice(-3).join(" ")).slice(0, 400), cost: parsed?.total_cost_usd ?? null, durationMs: parsed?.duration_ms ?? null };
-      writeJson(CHECK_FILE, record);
-      job.result = record;
-    },
-  });
-});
+route("GET", "/api/director", () => ({ claude: findClaude(), looks: lookIds(), config: loadConfig(), genres: GENRES, dialogs: dialogState(), max: maxDialogs() }));
 
 route("POST", "/api/brief", async ({ req }) => {
-  const b = await body<{ id: string; topic: string; look?: string; voice?: string; seconds?: number; wishes?: string }>(req);
+  const b = await body<{ id: string; topic: string; genre?: string; look?: string; seconds?: number; wishes?: string; arc?: string; avoid?: string; mustShow?: string }>(req);
   if (!ID_RE.test(b.id ?? "")) throw new HttpError(400, "id ролика — строчная латиница, цифры и дефис, например tunguska-en");
   if (!b.topic?.trim()) throw new HttpError(400, "нужна тема");
   const dir = join(projectsDir(), b.id);
   if (existsSync(join(dir, "project.json"))) throw new HttpError(409, `projects/${b.id} уже есть — выберите другой id`);
   if (b.look && b.look !== "director" && !lookIds().includes(b.look)) throw new HttpError(400, `нет look ${b.look}`);
+  if (!GENRES.includes(b.genre ?? "")) throw new HttpError(400, `жанр — ${GENRES.join(", ")}`);
   mkdirSync(dir, { recursive: true });
   const cfg = loadConfig();
   const brief = {
     id: b.id,
     topic: b.topic.trim(),
+    genre: b.genre,
     look: b.look && b.look !== "director" ? b.look : null,
-    voice: b.voice === "kokoro" || b.voice === "elevenlabs" ? b.voice : cfg.voice.provider,
     seconds: Number(b.seconds) || cfg.short.targetSeconds,
     wishes: (b.wishes ?? "").trim(),
+    arc: (b.arc ?? "").trim() || null,
+    avoid: (b.avoid ?? "").trim() || null,
+    mustShow: (b.mustShow ?? "").trim() || null,
     createdAt: new Date().toISOString(),
   };
   writeJson(join(dir, "brief.json"), brief);
-  return { brief, command: `claude "/short ${b.id}"` };
+  return { brief, command: `/short ${b.id}` };
 });
 
 route("GET", "/api/brief/:id", ({ m }) => {
@@ -871,100 +973,38 @@ route("GET", "/api/brief/:id", ({ m }) => {
   return { brief: readOpt(join(dir, "brief.json")), project: existsSync(join(dir, "project.json")), media: existsSync(join(dir, "media.json")) ? Object.keys(readLedger(join(dir, "media.json"))).length : 0, research: existsSync(join(dir, "research.md")), job: job ? { id: job.id, status: job.status } : null };
 });
 
-const DIRECTOR_STAGES = ["research", "script", "media", "project", "build"];
+// ── диалог с режиссёром (studio/dialogs.ts) ─────────────────────────────────────────────────────────
 
-route("POST", "/api/director/run", async ({ req }) => {
-  const b = await body<{ id: string }>(req);
-  const dir = projectDir(b.id, false);
+route("GET", "/api/dialogs", () => ({ ...dialogState(), claude: findClaude() }));
+
+route("GET", "/api/projects/:id/dialog", ({ m }) => {
+  const dir = projectDir(m[1] as string, false);
   const id = basename(dir);
-  if (!existsSync(join(dir, "brief.json"))) throw new HttpError(400, "сначала бриф");
-  const bin = findClaude();
-  if (!bin) throw new HttpError(404, "claude не найден");
-  const running = runningJob("director", id);
-  if (running) return running;
-  // every line of the run goes to projects/<id>/director.log, refusals of the allowlist as their own events
-  const recorder = new DirectorRecorder(dir, { project: id, prompt: `/short ${id}`, permissionMode: "dontAsk", allowedTools: directorAllowlist(id) });
-  return startJob({
-    kind: "director",
-    title: `/short ${id}`,
-    project: id,
-    cmd: bin,
-    args: directorArgs(id),
-    cwd: ROOT_DIR,
-    env: claudeEnv(),
-    stages: DIRECTOR_STAGES,
-    transform: (line) => recorder.line(line),
-    stageOf: (line) => {
-      if (!line.includes("▸")) return null;
-      if (/npm run build/.test(line)) return "build";
-      if (/project\.json/.test(line)) return "project";
-      if (/npm run media|media\.json/.test(line)) return "media";
-      if (/research\.md/.test(line) && /Write|Edit/.test(line)) return "script";
-      if (/WebFetch|WebSearch|wikipedia/i.test(line)) return "research";
-      return null;
-    },
-    onDone: (job) => recorder.end(job.exitCode),
-  });
+  return { ...dialogState(id), context: dialogContext(dir), list: listDialogs(dir), buffer: dialogBuffer(id), claude: findClaude() };
 });
 
-// ── «Режиссёр» of a project: the journal and the watch of its files ─────────────────────────────────────────
-
-route("GET", "/api/projects/:id/director", ({ m }) => {
-  const dir = projectDir(m[1] as string);
-  const id = basename(dir);
-  const job = listJobs(id).find((j) => j.kind === "director");
-  return { ...directorJournal(dir, id), claude: findClaude(), job: job ? { id: job.id, status: job.status } : null };
+/** «Открыть диалог» / «Продолжить диалог»: без проекта терминал не запускается. */
+route("POST", "/api/projects/:id/dialog", async ({ req, m }) => {
+  const dir = projectDir(m[1] as string, false);
+  const b = await body<{ cols?: number; rows?: number; resume?: string }>(req);
+  if (!existsSync(join(dir, "brief.json")) && !existsSync(join(dir, "project.json"))) throw new HttpError(400, "у проекта нет ни брифа, ни project.json");
+  return startDialog(dir, { cols: b.cols, rows: b.rows, resume: b.resume });
 });
 
-/** Server-sent events when project.json or media.json change outside the panel (claude in the terminal, an editor). */
-route("GET", "/api/projects/:id/watch", ({ req, res, m }) => {
-  const dir = projectDir(m[1] as string);
-  res.writeHead(200, { "Content-Type": "text/event-stream; charset=utf-8", "Cache-Control": "no-cache", Connection: "keep-alive" });
-  res.write(": project.json, media.json\n\n");
-  const changed = new Set<string>();
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  const watcher = watch(dir, (_event, name) => {
-    const file = String(name ?? "");
-    if (file !== "project.json" && file !== "media.json") return;
-    if (Date.now() - (selfWrites.get(dir) ?? 0) < 1500) return;
-    changed.add(file);
-    clearTimeout(timer);
-    timer = setTimeout(() => {
-      res.write(`event: change\ndata: ${JSON.stringify({ files: [...changed], at: new Date().toISOString() })}\n\n`);
-      changed.clear();
-    }, 400);
-  });
-  const ping = setInterval(() => res.write(": ping\n\n"), 20_000);
-  req.on("close", () => {
-    watcher.close();
-    clearInterval(ping);
-    clearTimeout(timer);
-  });
-});
-
-// ── terminal (studio/terminal.ts) ───────────────────────────────────────────────────────────────────────────
-
-route("GET", "/api/terminal", () => terminalState());
-route("GET", "/api/terminal/stream", ({ req, res }) => streamTerminal(req, res));
-route("POST", "/api/terminal/start", async ({ req }) => {
-  const b = await body<{ cols?: number; rows?: number }>(req);
-  return startTerminal(b.cols, b.rows);
-});
-route("POST", "/api/terminal/input", async ({ req }) => {
-  writeTerminal((await body<{ data: string }>(req)).data);
+route("POST", "/api/projects/:id/dialog/input", async ({ req, m }) => {
+  writeDialog(basename(projectDir(m[1] as string, false)), (await body<{ data: string }>(req)).data);
   return { ok: true };
 });
-route("POST", "/api/terminal/resize", async ({ req }) => {
+
+route("POST", "/api/projects/:id/dialog/resize", async ({ req, m }) => {
   const b = await body<{ cols?: number; rows?: number }>(req);
-  resizeTerminal(b.cols, b.rows);
+  resizeDialog(basename(projectDir(m[1] as string, false)), b.cols, b.rows);
   return { ok: true };
 });
-route("POST", "/api/terminal/stop", () => stopTerminal());
-route("POST", "/api/terminal/claude", async ({ req }) => {
-  const b = await body<{ cols?: number; rows?: number }>(req);
-  return openClaude(b.cols, b.rows);
-});
-route("POST", "/api/terminal/short", async ({ req }) => {
-  const b = await body<{ id: string; cols?: number; rows?: number }>(req);
-  return pasteShort(basename(projectDir(b.id)), b.cols, b.rows);
+
+route("POST", "/api/projects/:id/dialog/stop", ({ m }) => stopDialog(basename(projectDir(m[1] as string, false))));
+
+/** The file watch counts what the director changed while the dialog was running — it becomes the summary of the run. */
+setProjectEditHook((id, files) => {
+  if (files.some((f) => f === "project.json" || f === "media.json" || f.startsWith("media/"))) noteEdit(id);
 });

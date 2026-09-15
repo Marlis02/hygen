@@ -8,6 +8,8 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import * as nodeModule from "node:module";
 import { extname, join, normalize, resolve, sep } from "node:path";
 import { handleApi } from "./api.ts";
+import { attachWebSocket, startWatching } from "./events.ts";
+import { restoreJobs } from "./jobs.ts";
 import { loadConfig } from "../engine/src/lib/project.ts";
 import { ROOT_DIR } from "../engine/src/lib/util.ts";
 
@@ -51,7 +53,7 @@ const TYPES: Record<string, string> = {
 /** Folders the page may read files from (media, renders, previews, fonts); never .env or the rest of the repo. */
 const READABLE = ["projects", "library", ".preview"].map((d) => join(ROOT_DIR, d) + sep);
 
-/** xterm.js for the terminal of «Режиссёр» — straight from node_modules, only these files. */
+/** xterm.js for the dialog with the director — straight from node_modules, only these files. */
 const VENDOR: Record<string, string> = {
   "/vendor/xterm/xterm.mjs": join(ROOT_DIR, "node_modules", "@xterm", "xterm", "lib", "xterm.mjs"),
   "/vendor/xterm/xterm.css": join(ROOT_DIR, "node_modules", "@xterm", "xterm", "css", "xterm.css"),
@@ -164,9 +166,13 @@ const server = createServer((req, res) => {
   }
 });
 
-server.listen(port, "127.0.0.1", () => {
+server.listen(port, "127.0.0.1", async () => {
   const address = `http://localhost:${port}`;
+  const restored = restoreJobs();
+  const live = await attachWebSocket(server, port);
+  const watching = await startWatching();
   console.log(`hygen studio — ${address}  (остановить: Ctrl+C)`);
+  console.log(`  ${live ? "живые обновления: WebSocket /api/events" : "без WebSocket: ws не установлен"} · ${watching}${restored ? ` · задач из прошлого запуска: ${restored}` : ""}`);
   if (!process.argv.includes("--no-open") && (process.env.DISPLAY || process.env.WAYLAND_DISPLAY)) {
     const opener = spawn("xdg-open", [address], { stdio: "ignore", detached: true });
     opener.on("error", () => {});

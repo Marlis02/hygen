@@ -1,15 +1,12 @@
 {
   "about": "Настройки движка и панели без секретов (ROADMAP S1). Ключи — только в .env. Все команды читают этот файл; панель (npm run studio) правит его формой.",
   "voice": {
-    "provider": "kokoro",
     "voiceId": "",
     "model": "eleven_multilingual_v2",
-    "kokoroVoice": "am_michael"
+    "kokoroVoice": "am_michael",
+    "defaultBudgetChars": 3000
   },
   "look": "ember",
-  "budgets": {
-    "elevenlabsChars": 3000
-  },
   "bitrate": {
     "crf": 18,
     "preset": "slow",
@@ -26,6 +23,7 @@
     "library": "library"
   },
   "studio": {
-    "port": 5177
+    "port": 5177,
+    "maxDialogs": 2
   }
 }

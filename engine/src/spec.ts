@@ -108,11 +108,16 @@ export interface ArcSpec {
   why?: string;
 }
 
-/** Voice of the video: {provider: kokoro | elevenlabs, voiceId, model}; the old form {engine: "kokoro", voice, speed} still works. */
+/**
+ * Voice of the video: {provider: kokoro | elevenlabs, budgetChars}; the old form {engine: "kokoro", voice, speed}
+ * still works. Kokoro is the default provider (S2); budgetChars is the ElevenLabs budget of THIS video — what the
+ * «Финал на ElevenLabs» button may spend, counted against projects/<id>/voice/usage.jsonl.
+ */
 export interface VoiceSpec {
   provider?: string;
   voiceId?: string;
   model?: string;
+  budgetChars?: number;
   engine?: string;
   voice?: string;
   speed?: number;
@@ -121,7 +126,7 @@ export interface VoiceSpec {
 export interface VideoSpec {
   id: string;
   title: string;
-  /** draft | built | verified | published — the card of the project in the studio. */
+  /** draft-kokoro | final-elevenlabs | published | waiting-library — the card of the project in the studio. */
   status?: string;
   /** A proof project (capabilities, not for upload). */
   proof?: boolean;

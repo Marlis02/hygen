@@ -35,15 +35,15 @@ thought to be just a mountain.
 79 AD.
 
 10
-00:00:17,596 --> 00:00:19,486
+00:00:17,596 --> 00:00:19,416
 Vesuvius hurls a column of
 
 11
-00:00:19,486 --> 00:00:21,796
+00:00:19,416 --> 00:00:21,606
 ash 30 kilometers high.
 
 12
-00:00:22,106 --> 00:00:23,666
+00:00:21,606 --> 00:00:23,666
 Then the sky rains pumice,
 
 13
@@ -51,7 +51,7 @@ Then the sky rains pumice,
 several centimeters an hour.
 
 14
-00:00:25,336 --> 00:00:26,816
+00:00:25,336 --> 00:00:26,806
 Roofs give way.
 
 15

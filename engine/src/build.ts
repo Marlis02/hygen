@@ -21,7 +21,7 @@ import type { VerifyResult } from "./verify.ts";
 import { makeVoices, resolveVoice } from "./voice.ts";
 import { writePublish } from "./publish.ts";
 import { alignWords } from "./words.ts";
-import { checkProjectMedia, snapshotHistory } from "./lib/project.ts";
+import { checkProjectMedia, snapshotHistory, updateLibraryIndex } from "./lib/project.ts";
 import { ROOT_DIR, Timer, ensureDir, fail, log, writeJson } from "./lib/util.ts";
 
 export interface BuildOptions {
@@ -39,7 +39,7 @@ export async function build(videoDir: string, opts: BuildOptions): Promise<boole
   const media = checkProjectMedia(videoDir);
   if (media.errors.length) fail(`медиа проекта — у каждого файла запись с лицензией в media.json:\n  ${media.errors.join("\n  ")}`);
   const snap = snapshotHistory(videoDir, "build");
-  if (snap) log.info(`история: снимок project.json и media.json → ${relative(ROOT_DIR, snap)}`);
+  if (snap) log.info(`история: вход изменился, снимок project.json и media.json → ${relative(ROOT_DIR, snap)}`);
   const look = loadLook(spec.look);
   const style = applyLook(loadStyle(spec.style), look);
   validateBeats(spec, style, videoDir);
@@ -107,6 +107,8 @@ export async function build(videoDir: string, opts: BuildOptions): Promise<boole
     const pub = await timer.step("публикация: названия, описание, теги, SRT, обложка", () => writePublish(videoDir, spec));
     log.info(`publish/: источников ${pub.sources.length}, кредитов ${pub.credits.length}, обложка — ${pub.thumbnailAt.beat} @${pub.thumbnailAt.t.toFixed(2)} с`);
     verify = await timer.step("автопроверка MP4", () => verifyVideo(videoDir, spec, { snapshots: opts.snapshots }));
+    // library/index.json — the fingerprint of the video for the director; the row is rewritten only when it changed
+    if (updateLibraryIndex(videoDir)) log.info("library/index.json: отпечаток ролика обновлён");
   }
 
   const seconds = timer.totalSeconds();

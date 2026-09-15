@@ -30,7 +30,6 @@ export async function settingsScreen(main: HTMLElement): Promise<void> {
       fail(err);
     }
   };
-  const b = s.budget;
   const doctorBox = h("div");
   const doctor = async (): Promise<void> => {
     try {
@@ -53,7 +52,8 @@ export async function settingsScreen(main: HTMLElement): Promise<void> {
         { class: "stack" },
         langPanel(),
         h("div", { class: "panel" }, h("h3", null, t("settings.secrets")), h("div", { class: "muted small" }, t("settings.secretsAbout")), h("table", { class: "plain" }, (s.secrets as Dict[]).map((x) => h("tr", null, h("td", { class: "mono" }, x.key), h("td", { class: "secret" }, x.set ? "••••••••••" : ""), h("td", null, x.set ? h("span", { class: "pill pill-ok" }, t("settings.set")) : h("span", { class: "pill red" }, t("settings.unset")))))), s.extraEnv.length ? h("div", { class: "banner err" }, t("settings.extraEnv", { list: s.extraEnv.join(", ") })) : null),
-        h("div", { class: "panel" }, h("h3", null, t("settings.budget")), b.budget === null ? h("div", null, t("settings.noBudget", { spent: b.spent })) : [h("div", { class: "row between" }, h("span", null, t("settings.spent", { spent: b.spent, budget: b.budget })), h("b", null, t("settings.left", { left: b.left }))), h("div", { class: "meter", style: "margin:8px 0" }, h("div", { style: `width:${Math.min(100, (100 * b.spent) / Math.max(1, b.budget))}%` }))], h("div", { class: "muted small" }, b.since ? t("settings.since", { d: new Date(b.since).toLocaleString(lang() === "en" ? "en-GB" : "ru-RU") }) : ""), h("table", { class: "plain", style: "margin-top:8px" }, h("tr", null, h("th", null, t("settings.project")), h("th", null, t("settings.takes")), h("th", null, t("settings.chars"))), (s.usage as Dict[]).filter((u) => u.takes).map((u) => h("tr", null, h("td", null, u.project), h("td", null, u.takes), h("td", null, u.chars))))),
+        // бюджет живёт у ролика (S2): здесь видно, сколько каждый потратил из своего
+        h("div", { class: "panel" }, h("h3", null, t("settings.budget")), h("div", { class: "muted small" }, t("settings.budgetAbout", { n: cfg.voice?.defaultBudgetChars ?? 0 })), h("table", { class: "plain", style: "margin-top:8px" }, h("tr", null, h("th", null, t("settings.project")), h("th", null, t("settings.takes")), h("th", null, t("settings.chars")), h("th", null, t("settings.leftCol"))), (s.usage as Dict[]).filter((u) => u.spent).map((u) => h("tr", null, h("td", null, u.project), h("td", null, u.takes), h("td", null, `${u.spent} / ${u.budget}`), h("td", null, u.left))))),
         h("div", { class: "panel" }, h("div", { class: "row between" }, h("h3", null, "doctor"), h("button", { class: "btn", onclick: doctor }, t("settings.doctor"))), doctorBox),
       ),
     ),

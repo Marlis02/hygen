@@ -1,14 +1,11 @@
 {
   "voice": {
-    "provider": "elevenlabs",
     "voiceId": "uju3wxzG5OhpWcoi3SMy",
     "model": "eleven_multilingual_v2",
-    "kokoroVoice": "am_michael"
+    "kokoroVoice": "am_michael",
+    "defaultBudgetChars": 3000
   },
   "look": "ember",
-  "budgets": {
-    "elevenlabsChars": 3000
-  },
   "bitrate": {
     "crf": 18,
     "preset": "slow",
@@ -25,6 +22,7 @@
     "library": "library"
   },
   "studio": {
-    "port": 5177
+    "port": 5177,
+    "maxDialogs": 2
   }
 }

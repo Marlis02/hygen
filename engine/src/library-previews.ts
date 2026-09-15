@@ -5,7 +5,7 @@ import type { LibraryItem, PreviewIndexEntry, Section } from "./library.ts";
 import { SECTIONS, itemHash, libraryCatalog, previewFile, previewIndex, previewsDir } from "./library.ts";
 import { ENGINE_DIR, ROOT_DIR, ensureDir, pool, r3, runAsync, stripAnsi } from "./lib/util.ts";
 
-// npm run library:previews [-- --only looks,devices] [--force] [--jobs 2]
+// npm run library:previews [-- --only looks,devices] [--first devices] [--force] [--jobs 2]
 // A 3-second silent 540×960 clip per library item (library.ts → libraryCatalog) through `npm run scene … --render`,
 // into library/previews/<section>/<id>.mp4; library/previews/index.json keeps {file, hash, seconds, ok, error?} per
 // section/id and an item whose hash is unchanged and whose file exists is skipped. Music gets an index entry only.
@@ -85,7 +85,7 @@ function sceneArgs(item: LibraryItem): string[] | null {
 const key = (item: LibraryItem): string => `${item.section}/${item.id}`;
 const tail = (text: string, n: number): string => stripAnsi(text).trim().split("\n").map((l) => l.trim()).filter(Boolean).slice(-n).join(" | ").slice(-400);
 
-function parseArgs(argv: string[]): { only: Section[]; force: boolean; jobs: number } {
+function parseArgs(argv: string[]): { only: Section[]; first: Section | null; force: boolean; jobs: number } {
   const value = (name: string): string | undefined => {
     const i = argv.indexOf(name);
     return i >= 0 ? argv[i + 1] : undefined;
@@ -94,14 +94,18 @@ function parseArgs(argv: string[]): { only: Section[]; force: boolean; jobs: num
   for (const s of only) if (!SECTIONS.includes(s as Section)) throw new Error(`--only: «${s}» — разделы: ${SECTIONS.join(", ")}`);
   const jobs = Number(value("--jobs") ?? 2);
   if (!Number.isInteger(jobs) || jobs < 1) throw new Error(`--jobs: целое ≥ 1, а не ${value("--jobs")}`);
-  return { only: only as Section[], force: argv.includes("--force"), jobs };
+  const first = value("--first");
+  if (first && !SECTIONS.includes(first as Section)) throw new Error(`--first: раздел из ${SECTIONS.join(", ")}, а не ${first}`);
+  return { only: only as Section[], first: (first ?? null) as Section | null, force: argv.includes("--force"), jobs };
 }
 
 async function main(argv: string[]): Promise<number> {
-  const { only, force, jobs } = parseArgs(argv);
+  const { only, first, force, jobs } = parseArgs(argv);
   const started = Date.now();
   const catalog = libraryCatalog();
   const items = catalog.filter((it) => !only.length || only.includes(it.section));
+  // the gallery asks for the open section first: its cards fill in while the rest is still rendering
+  if (first) items.sort((a, b) => Number(b.section === first) - Number(a.section === first));
   const dir = ensureDir(previewsDir());
   const indexPath = join(dir, "index.json");
   const index = previewIndex();

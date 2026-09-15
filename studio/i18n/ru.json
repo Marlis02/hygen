@@ -1,5 +1,7 @@
 {
-  "app": { "title": "hygen studio" },
+  "app": {
+    "title": "hygen studio"
+  },
   "common": {
     "ok": "Готово",
     "cancel": "Отмена",
@@ -10,7 +12,10 @@
     "yes": "да",
     "no": "нет"
   },
-  "units": { "mb": "МБ", "kb": "КБ" },
+  "units": {
+    "mb": "МБ",
+    "kb": "КБ"
+  },
   "nav": {
     "projects": "Проекты",
     "new": "Новый ролик",
@@ -21,7 +26,12 @@
     "tagline": "studio",
     "foot": "локально · 127.0.0.1"
   },
-  "status": { "draft": "черновик", "built": "собран", "verified": "проверен", "published": "выложен" },
+  "status": {
+    "draft-kokoro": "черновик (Kokoro)",
+    "final-elevenlabs": "финал (ElevenLabs)",
+    "published": "выложен",
+    "waiting-library": "ждёт библиотеку"
+  },
   "stages": {
     "voice": "голос",
     "timings": "тайминги",
@@ -38,7 +48,12 @@
   "job": {
     "log": "лог",
     "stop": "Остановить",
-    "status": { "running": "идёт", "ok": "готово", "fail": "ошибка", "stopped": "остановлено" },
+    "status": {
+      "running": "идёт",
+      "ok": "готово",
+      "fail": "ошибка",
+      "stopped": "остановлено"
+    },
     "notes": {
       "segment": "Движок не умеет заменять сегмент MP4: рендер идёт одной композицией, мастеринг перекодирует весь файл. Пересобирается весь ролик — голос, звук и кадры берутся из кэша.",
       "revoice": "Старый дубль бита убран в history/, остальные реплики — из кэша."
@@ -52,9 +67,8 @@
   },
   "projects": {
     "title": "Проекты",
-    "sub": "{n} роликов и {proof} proof в projects/",
+    "sub": "показано {n} из {all}",
     "empty": "Проектов нет — начните с «Новый ролик»",
-    "showProof": "показывать proof",
     "open": "Открыть",
     "duplicate": "Дублировать",
     "duplicateTitle": "Копия {id}",
@@ -66,24 +80,80 @@
     "builtAt": "сборка {d}",
     "publishedAt": "выложен {d}",
     "mediaErrors": "лицензии: {n}",
-    "building": "собирается"
+    "building": "собирается",
+    "emptyFiltered": "под фильтры ничего не попало",
+    "notBuilt": "не собран",
+    "notBuiltHere": "не собран на этой машине",
+    "dialog": "диалог идёт",
+    "delete": "Удалить",
+    "deleteTitle": "Удалить проект {id}?",
+    "deleteText": "Уйдут папка projects/{id}, строка в library/index.json и задачи панели. Отменить нельзя. Впишите имя проекта, чтобы подтвердить:",
+    "deleted": "проект {id} удалён",
+    "filter": {
+      "search": "поиск по названию и теме",
+      "reset": "сбросить",
+      "kind": {
+        "videos": "ролики",
+        "proof": "proof",
+        "all": "все"
+      },
+      "status": {
+        "all": "все статусы",
+        "unbuilt": "не собран"
+      },
+      "look": {
+        "all": "любой look"
+      },
+      "voice": {
+        "all": "любой голос",
+        "kokoro": "Kokoro",
+        "elevenlabs": "ElevenLabs"
+      },
+      "date": {
+        "all": "за всё время",
+        "week": "за неделю",
+        "month": "за месяц"
+      },
+      "sort": {
+        "changed": "по дате изменения",
+        "built": "по дате сборки",
+        "created": "по дате создания"
+      }
+    }
   },
   "project": {
-    "tabs": { "beats": "Биты", "assets": "Ассеты", "director": "Режиссёр", "publish": "Publish", "verify": "Проверка", "history": "История" },
+    "tabs": {
+      "beats": "Биты",
+      "assets": "Ассеты",
+      "publish": "Publish",
+      "verify": "Проверка",
+      "history": "История",
+      "dialogs": "Диалоги"
+    },
     "invalid": "project.json не собирается:",
     "noMp4": "MP4 ещё нет — нажмите «Собрать»",
     "contact": "Контактный лист",
     "noContact": "Контактного листа нет",
     "buildInfo": "сборка {s} с · {d}",
     "statusSaved": "Статус сохранён",
-    "changedOutside": "{files} изменён вне панели — карточки перечитаны"
+    "changedOutside": "{files} изменён вне панели — карточки перечитаны",
+    "notBuiltHere": "MP4 нет на этой машине — рендеры не в git. Контактный лист ниже — из последней сборки в репозитории."
   },
-  "build": { "run": "Собрать", "noRender": "Без рендера", "done": "Сборка готова", "failed": "Сборка упала — см. лог" },
+  "build": {
+    "run": "Собрать",
+    "noRender": "Без рендера",
+    "done": "Сборка готова",
+    "failed": "Сборка упала — см. лог"
+  },
   "beats": {
     "about": "Любое поле пишет project.json; ручная правка JSON по-прежнему работает. Списки и типы полей — из device.json, scene.json и schema.json движка.",
     "add": "+ Бит",
     "added": "Добавлен бит {id}",
-    "kind": { "stage": "stage + устройства", "intent": "intent", "scene": "сцена или рецепт" },
+    "kind": {
+      "stage": "stage + устройства",
+      "intent": "intent",
+      "scene": "сцена или рецепт"
+    },
     "kindLabel": "что строит кадр",
     "text": "реплика",
     "sees": "что видит зритель",
@@ -170,7 +240,11 @@
     "searchAbout": "тот же npm run media, только лицензии PD, CC0, CC BY, CC BY-SA и Pexels",
     "searchPlaceholder": "Halifax harbour 1917",
     "videoOnly": "видео",
-    "providers": { "all": "Commons + Pexels", "commons": "только Commons", "pexels": "только Pexels" },
+    "providers": {
+      "all": "Commons + Pexels",
+      "commons": "только Commons",
+      "pexels": "только Pexels"
+    },
     "find": "Найти",
     "searching": "Ищу…",
     "nothing": "Ничего не нашлось — короче или другими словами",
@@ -208,9 +282,18 @@
         "title": "Формат и длительность",
         "fix": "MP4 не 1080×1920 / 30 fps или длиннее плана — пересобрать; если длительность разошлась, смотреть переходы (TRAPS «Лишние кадры»)"
       },
-      "size": { "title": "Размер файла", "fix": "больше 25 МБ на 10 с — проверить bitrate.crf в настройках (18 по умолчанию)" },
-      "loudness": { "title": "Громкость", "fix": "не −14 LUFS или пик выше −1,5 dBTP — пересобрать: мастеринг идёт в сборке" },
-      "blank": { "title": "Пустые сцены", "fix": "в MP4 есть пустой бит — смотреть кадр на листе, чаще всего это медиа без файла или перекрытие слоем" },
+      "size": {
+        "title": "Размер файла",
+        "fix": "больше 25 МБ на 10 с — проверить bitrate.crf в настройках (18 по умолчанию)"
+      },
+      "loudness": {
+        "title": "Громкость",
+        "fix": "не −14 LUFS или пик выше −1,5 dBTP — пересобрать: мастеринг идёт в сборке"
+      },
+      "blank": {
+        "title": "Пустые сцены",
+        "fix": "в MP4 есть пустой бит — смотреть кадр на листе, чаще всего это медиа без файла или перекрытие слоем"
+      },
       "frozen": {
         "title": "Застывшие сцены",
         "fix": "бит не двигается или событие не меняет кадр — добавить движение (камера с причиной, устройство) или проверить слово события",
@@ -220,20 +303,32 @@
         "title": "Кадры = снимки",
         "fix": "кадр MP4 разошёлся со снимком композиции — смотреть лист; играющее видео в момент settle сравнивать нельзя"
       },
-      "sources": { "title": "Источники цифр", "fix": "у цифры на экране нет ссылки — добавить source устройству или sources.text биту" },
-      "media": { "title": "Лицензии медиа", "fix": "во вкладке «Ассеты» заполнить красные записи: источник, автор, лицензия, ссылка" },
+      "sources": {
+        "title": "Источники цифр",
+        "fix": "у цифры на экране нет ссылки — добавить source устройству или sources.text биту"
+      },
+      "media": {
+        "title": "Лицензии медиа",
+        "fix": "во вкладке «Ассеты» заполнить красные записи: источник, автор, лицензия, ссылка"
+      },
       "grammar": {
         "title": "Грамматика битов",
         "fix": "исправить бит из текста ошибки: один stage, ≤ 3 устройств, dominant, explains у пометок",
         "warn": "ритм: после плотного бита — пауза, intent не подряд, текст ≤ 7 слов"
       },
-      "expanded": { "title": "Развёртка intents", "fix": "резолвер дал разный результат — сообщить в сессию движка" },
+      "expanded": {
+        "title": "Развёртка intents",
+        "fix": "резолвер дал разный результат — сообщить в сессию движка"
+      },
       "uniqueness": {
         "title": "Уникальность",
         "fix": "ролик похож на один из двух последних: сменить look, арку или последовательность stage",
         "warn": "совпадение 40–60 % — стоит развести кадры"
       },
-      "publish": { "title": "Publish", "fix": "не хватает названий, тегов или кредитов — заполнить publish в project.json и пересобрать" },
+      "publish": {
+        "title": "Publish",
+        "fix": "не хватает названий, тегов или кредитов — заполнить publish в project.json и пересобрать"
+      },
       "text": {
         "title": "Текст на экране",
         "fix": "контраст под субтитрами ниже 4,5:1 без подложки — поставить background у субтитров бита",
@@ -251,7 +346,8 @@
     "rollback": "Откатить",
     "rollbackTitle": "Откатить проект?",
     "rollbackText": "project.json и media.json вернутся к снимку {name}. Текущее состояние сначала уйдёт в историю.",
-    "rolledBack": "Откат к {name}; прежнее состояние — {saved}"
+    "rolledBack": "Откат к {name}; прежнее состояние — {saved}",
+    "why": "что изменилось"
   },
   "library": {
     "title": "Библиотека",
@@ -268,7 +364,11 @@
       "music": "Музыка"
     },
     "allFamilies": "все семейства",
-    "origin": { "all": "свои и реестр", "own": "своё", "registry": "реестр HyperFrames" },
+    "origin": {
+      "all": "свои и реестр",
+      "own": "своё",
+      "registry": "реестр HyperFrames"
+    },
     "search": "поиск",
     "empty": "Ничего не подходит под фильтр",
     "noPreview": "превью ещё нет — npm run library:previews",
@@ -294,7 +394,9 @@
     "pickFile": "Выберите файл трека",
     "trackAdded": "{file}: {bpm} BPM, битов {beats}",
     "mood": "настроение",
-    "looks": "подходит к look"
+    "looks": "подходит к look",
+    "previewsRunning": "Готовлю превью: {done} из {total} · ~{min} мин",
+    "previewsDone": "Превью готовы: {total}"
   },
   "looks": {
     "title": "Look",
@@ -348,10 +450,6 @@
     "unset": "нет",
     "extraEnv": "В .env лежат не секреты: {list} — перенесите в hygen.config.json",
     "budget": "ElevenLabs",
-    "noBudget": "Бюджет не задан · потрачено {spent}",
-    "spent": "потрачено {spent} из {budget}",
-    "left": "осталось {left}",
-    "since": "с отметки сброса {d}",
     "project": "проект",
     "takes": "дублей",
     "chars": "символов",
@@ -360,105 +458,94 @@
     "doctorFail": "doctor нашёл проблемы — см. лог",
     "language": "Язык панели",
     "languageAbout": "Только интерфейс панели в этом браузере; ролики, движок и сообщения CLI не меняются.",
-    "langs": { "ru": "Русский", "en": "English" }
+    "langs": {
+      "ru": "Русский",
+      "en": "English"
+    },
+    "budgetAbout": "Бюджет ElevenLabs у каждого ролика свой: project.json → voice.budgetChars, умолчание нового ролика — {n} символов. Расход — по projects/<id>/voice/usage.jsonl.",
+    "leftCol": "осталось"
   },
   "newvideo": {
     "title": "Новый ролик",
-    "sub": "Бриф → режиссёр /short в Claude Code → ассеты → биты → сборка → publish",
+    "sub": "Бриф с жанром → «Создать» откроет проект и диалог с режиссёром → ассеты → биты → сборка → publish",
     "brief": "Бриф",
     "topic": "тема",
     "topicPlaceholder": "Tunguska event 1908",
     "id": "id ролика",
     "look": "look",
-    "voice": "голос",
     "seconds": "длина, с",
     "wishes": "пожелания режиссёру",
     "lookHint": "look «director» — пусть решит режиссёр по теме.",
-    "saveBrief": "Сохранить бриф",
     "briefSaved": "brief.json сохранён",
-    "director": "Режиссёр",
-    "check": "Проверить claude -p",
-    "claudeFound": "claude: {path}",
-    "claudeMissing": "claude не найден ни в PATH, ни в ~/.local/bin — режиссёр только из Claude Code вручную",
-    "claudeOk": "claude -p отвечает",
-    "claudeFail": "claude -p не ответил — см. лог",
-    "checkOk": "Проверено {d}: claude -p с подпиской отвечает ({s} с)",
-    "checkFail": "Проверка {d} не прошла: {e}",
-    "notChecked": "claude -p ещё не проверялся",
-    "briefOf": "Бриф {id}",
-    "mediaCount": "медиа: {n}",
-    "openProject": "Открыть проект",
-    "create": "Создать — запустить /short",
-    "manual": "Запустите режиссёра в Claude Code в корне репозитория командой ниже — панель подхватит project.json, когда он появится.",
-    "directorDone": "Режиссёр закончил",
-    "directorFail": "Режиссёр остановился с ошибкой — см. лог",
-    "projectAppeared": "project.json появился — проект готов к правкам"
+    "genre": "жанр",
+    "arc": "арка (пусто — решит режиссёр)",
+    "avoid": "чего избегать",
+    "mustShow": "обязательный кадр (текст или ссылка на Commons)",
+    "howTitle": "Что будет дальше",
+    "how": "«Создать» сохранит бриф в projects/<id>/brief.json, откроет проект на вкладке «Диалоги» и запустит диалог с /short <id>. Режиссёр работает в своей папке; панель перечитывает карточки после каждой его правки.",
+    "genreHint": "Жанр задаёт правила исследования: история — Wikipedia и вторая ссылка у цифр хука и финала; наука — NASA, NOAA, университеты; факты и списки — источник у каждого пункта; развлекательное — гипотеза помечена как гипотеза; объясняющее — арка mechanism.",
+    "create": "Создать"
   },
   "director": {
-    "title": "Режиссёр",
-    "homeSub": "Терминал панели и журнал режиссёра — выберите проект",
-    "journal": "Журнал режиссёра",
-    "run": "Запустить /short (claude -p)",
-    "manual": "Сделан вручную: у проекта нет director.log — режиссёр из панели его не делал. Ниже — то, что лежит в файлах проекта.",
-    "allowlist": "Разрешения claude -p · {n}",
-    "allowlistAbout": "Всё, что не в списке, — отказ (--permission-mode dontAsk); каждый отказ записывается в director.log.",
-    "cols": {
-      "when": "когда",
-      "source": "откуда",
-      "prompt": "команда",
-      "model": "модель",
-      "duration": "длительность",
-      "tokens": "токены",
-      "cost": "стоимость",
-      "denied": "отказы"
-    },
-    "source": { "studio": "из панели", "transcript": "из транскрипта Claude Code" },
-    "turns": "ходов {n}",
-    "tokensLine": "вход {input} · выход {output} · кэш {read} / {write}",
-    "brief": "Бриф",
-    "noBrief": "Брифа нет — проект начат не через «Новый ролик»",
-    "briefFields": { "topic": "тема", "look": "look", "voice": "голос", "seconds": "длина, с", "wishes": "пожелания", "createdAt": "создан" },
-    "lookByDirector": "выбирает режиссёр",
-    "concept": "Концепция и арка",
-    "noConcept": "В research.md нет раздела Concept",
-    "media": "Медиа: что искал и что выбрал",
-    "searches": "запросы npm run media",
-    "noSearches": "запросов в журнале нет",
-    "gets": "скачано",
-    "getFailed": "не скачалось",
-    "whyChosen": "что выбрано и почему (research.md → Media)",
-    "licenses": "лицензии (media.json)",
-    "mediaCols": { "file": "файл", "role": "роль", "license": "лицензия", "author": "автор", "source": "источник" },
-    "beats": "Intents по битам",
-    "beatCols": { "id": "бит", "role": "роль", "sees": "что видит зритель", "frame": "кадр", "devices": "устройства", "dominant": "ведёт" },
-    "grammar": "Грамматика",
-    "grammarOk": "ошибок нет",
-    "density": "плотность по битам",
-    "spend": "Расход",
-    "eleven": "ElevenLabs: дублей {takes}, символов {chars}",
-    "noEleven": "ElevenLabs не тратился (Kokoro или кэш)",
-    "takes": "дубли по репликам",
-    "tokensTotal": "Токены Claude: {line}",
-    "costTotal": "стоимость ${cost}",
-    "noTokens": "токенов в журнале нет",
-    "denied": "Отказы allowlist",
-    "noDenied": "отказов нет",
-    "log": "строк {n} · {size}",
-    "noLog": "director.log нет"
+    "sub": "живых диалогов {n} из {max}",
+    "live": "Идут сейчас",
+    "goTo": "Открыть",
+    "pick": "Диалог всегда в контексте проекта: выберите ролик или заведите новый.",
+    "noClaude": "claude не найден: ни в PATH, ни в ~/.local/bin, ни в расширении VS Code",
+    "banner": "идёт диалог: {project} ({n})",
+    "title": "Режиссёр"
   },
-  "terminal": {
-    "title": "Терминал",
-    "hint": "cwd {cwd} · проект {project}",
-    "start": "Запустить",
-    "claude": "Открыть claude здесь",
-    "short": "/short для этого проекта",
-    "shortNone": "сначала откройте проект",
-    "stop": "Завершить",
-    "stopTitle": "Завершить терминал?",
-    "stopText": "Shell и всё, что в нём запущено (в том числе claude), будут остановлены.",
-    "running": "работает · {process}",
+  "final": {
+    "button": "Финал на ElevenLabs",
+    "title": "Финал на ElevenLabs",
+    "lines": "переозвучить реплик: {n} из {all} (остальные — из кэша voice/)",
+    "chars": "символов: {n}",
+    "budgetLine": "бюджет ролика: осталось {left} из {budget}",
+    "duration": "длительность: {was} с → примерно {now} с ({delta} с)",
+    "durationUnknown": "длительность: ролик ещё не собирался",
+    "hint": "После подтверждения: переозвучка недостающих реплик, пересборка с пересчётом варпа, субтитров, звука и sync, автопроверка.",
+    "confirm": "Подтвердить",
+    "notEnough": "нужно {need} символов, бюджет ролика {budget}",
+    "noKey": "нет ELEVENLABS_API_KEY в .env — переозвучить нечем",
+    "revoiceTitle": "Реплика поменялась",
+    "backToKokoro": "Обратно на Kokoro",
+    "backTitle": "Вернуть Kokoro?",
+    "backText": "Правки пойдут на бесплатном голосе. Дубли ElevenLabs останутся в voice/ и пригодятся следующему финалу.",
+    "backDone": "голос ролика — Kokoro",
+    "budget": "бюджет {left}/{budget}",
+    "budgetHint": "бюджет ElevenLabs этого ролика",
+    "budgetTitle": "Бюджет ролика",
+    "budgetText": "Потрачено {spent} символов, дублей в кэше {takes}. Бюджет считается по projects/<id>/voice/usage.jsonl.",
+    "budgetSaved": "бюджет ролика сохранён"
+  },
+  "dialog": {
+    "title": "Диалог с режиссёром",
+    "running": "идёт",
     "stopped": "не запущен",
-    "exited": "процесс завершён, код {code}",
-    "noXterm": "xterm.js не загрузился: {e} — npm install в корне репозитория"
+    "hint": "проект {project} · claude пишет только в его папку",
+    "hintRunning": "с {at} · закрытие вкладки диалог не завершает",
+    "open": "Открыть диалог",
+    "continue": "Продолжить диалог",
+    "focus": "В диалог",
+    "stop": "Завершить",
+    "stopTitle": "Завершить диалог?",
+    "stopText": "claude в проекте {project} будет остановлен. Журнал останется в dialogs/.",
+    "exited": "диалог закончился, код {code}",
+    "noXterm": "терминал не загрузился: {e}",
+    "past": "Прошлые диалоги",
+    "pastHint": "журнал — projects/<id>/dialogs/",
+    "when": "когда",
+    "summary": "итог",
+    "journal": "журнал",
+    "noneYet": "диалогов ещё не было",
+    "since": "с {at}",
+    "contextHint": "Первой строкой claude получает контекст: id и тема проекта, жанр и пожелания из брифа, статус, что собрано, итог прошлого диалога и правило «пиши только в свою папку; библиотеку и документы движка — читай; уникальность — library/index.json»."
+  },
+  "genre": {
+    "history": "история",
+    "science": "наука",
+    "facts": "факты и списки",
+    "entertainment": "развлекательное",
+    "explainer": "объясняющее"
   }
 }

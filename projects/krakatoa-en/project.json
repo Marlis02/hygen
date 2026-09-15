@@ -1,7 +1,7 @@
 {
   "id": "krakatoa-en",
   "title": "Krakatoa, 1883: the loudest sound in history was an island",
-  "status": "verified",
+  "status": "final-elevenlabs",
   "concept": "Серо-зелёная мгла грозы look `storm` (как у proof: пересказ того же мира, `retells: krakatoa-v2`). Субтитры calm · plain по слову, в бите звука — karaoke фразами. Хук — kinetic type-swap: сначала ложные ответы, потом «AN ISLAND».\n\nАрка: **mechanism × counterintuitive-claim × sound × what-remains** — «самый громкий звук был не войной, а островом», дальше шаг за шагом: где остров → как далеко слышно → как высоко ушёл пепел → чем обернулись волны → что осталось от острова. Отличие от первой версии: у той не было арки, скелет — шесть сцен с HTML; у proof — mystery × shocking-statistic.",
   "format": "1080x1920",
   "fps": 30,

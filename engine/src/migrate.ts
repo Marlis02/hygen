@@ -221,11 +221,12 @@ function migrateEnv(): void {
       const m = /^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*?)\s*$/.exec(line);
       const value = m ? (m[2] as string).replace(/^(["'])(.*)\1$/, "$2") : "";
       const key = m?.[1];
-      if (key === "VOICE_PROVIDER" && (value === "kokoro" || value === "elevenlabs")) cfg.voice.provider = value;
-      else if (key === "ELEVENLABS_VOICE_ID") cfg.voice.voiceId = value;
+      if (key === "ELEVENLABS_VOICE_ID") cfg.voice.voiceId = value;
       else if (key === "ELEVENLABS_MODEL") cfg.voice.model = value || cfg.voice.model;
-      else if (key === "ELEVENLABS_BUDGET_CHARS") cfg.budgets.elevenlabsChars = value ? Number(value) : null;
-      else if (key === "ELEVENLABS_LIVE") cfg.voice.provider = value === "1" ? "elevenlabs" : cfg.voice.provider;
+      else if (key === "ELEVENLABS_BUDGET_CHARS") cfg.voice.defaultBudgetChars = value ? Number(value) : cfg.voice.defaultBudgetChars;
+      else if (key === "VOICE_PROVIDER" || key === "ELEVENLABS_LIVE") {
+        // S2: the provider is not a global setting any more — Kokoro is the default, ElevenLabs is a decision per video
+      }
       else {
         keep.push(line);
         continue;

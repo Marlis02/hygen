@@ -1,7 +1,7 @@
 {
   "id": "media-ops",
   "title": "Control render: reverse, two-ink and pan on video, boil of a drawn circle",
-  "status": "verified",
+  "status": "draft-kokoro",
   "proof": true,
   "format": "1080x1920",
   "fps": 30,

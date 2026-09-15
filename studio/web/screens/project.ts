@@ -1,30 +1,35 @@
-import { api, clear, confirmBox, copyText, fail, fmtDate, fmtSec, h, mountJob, statusPill, t, tn, toast } from "../lib.ts";
+import { api, clear, confirmBox, copyText, fail, fmtDate, fmtSec, h, modal, mountJob, statusPill, t, tn, toast } from "../lib.ts";
 import type { Dict } from "../lib.ts";
 import { beatsTab, setReopenBeats } from "./beats.ts";
-import { directorTab } from "./director.ts";
+import { dialogsTab } from "./dialogs.ts";
 import { assetsTab } from "./assets.ts";
-import { rollback } from "./projects.ts";
+import { removeProject, rollback } from "./projects.ts";
+import { debounce, onLive } from "../live.ts";
 
-const TABS = ["beats", "assets", "director", "publish", "verify", "history"];
+const TABS = ["beats", "assets", "dialogs", "publish", "verify", "history"];
 
-let watcher: EventSource | null = null;
+let unwatch: (() => void) | null = null;
 
 /** Leaving the project screens: stop following its files. */
 export function stopProjectWatch(): void {
-  watcher?.close();
-  watcher = null;
+  unwatch?.();
+  unwatch = null;
 }
 
-/** project.json or media.json changed outside the panel (claude in the terminal, an editor): re-read the cards. */
+/**
+ * Живая панель: project.json или media.json поменял кто-то снаружи (режиссёр в диалоге, редактор) — перечитываем
+ * карточки этого проекта. Во время сборки карточки не мигают: у сборки свой прогресс.
+ */
 function watchProject(id: string, reload: () => void): void {
   stopProjectWatch();
-  const es = new EventSource(`/api/projects/${encodeURIComponent(id)}/watch`);
-  es.addEventListener("change", (e) => {
-    const files = (JSON.parse((e as MessageEvent).data).files as string[]).join(", ");
-    toast(t("project.changedOutside", { files }), "info");
-    reload();
+  const soon = debounce(reload, 400);
+  unwatch = onLive((msg) => {
+    if (msg.type !== "files") return;
+    const files = (msg.projects ?? {})[id] as string[] | undefined;
+    if (!files?.length) return;
+    toast(t("project.changedOutside", { files: files.join(", ") }), "info");
+    soon();
   });
-  watcher = es;
 }
 
 export async function projectScreen(main: HTMLElement, id: string, tab: string): Promise<void> {
@@ -43,14 +48,22 @@ export async function projectScreen(main: HTMLElement, id: string, tab: string):
   }
   watchProject(id, reload);
   const jobBox = h("div");
-  const runBuild = async (render: boolean): Promise<void> => {
+  const follow = (job: Dict): void => {
+    mountJob(jobBox, job.id, (j) => {
+      toast(j.status === "ok" ? t("build.done") : t("build.failed"), j.status === "ok" ? "ok" : "err");
+      if (j.status === "ok") setTimeout(reload, 600);
+    });
+  };
+  // a build of a final video whose line was edited would pay for it: the server answers 409 and the panel asks first
+  const runBuild = async (render: boolean, confirm = false): Promise<void> => {
     try {
-      const job = await api(`/api/projects/${id}/build`, { body: { render } });
-      mountJob(jobBox, job.id, (j) => {
-        toast(j.status === "ok" ? t("build.done") : t("build.failed"), j.status === "ok" ? "ok" : "err");
-        if (j.status === "ok") setTimeout(reload, 600);
-      });
+      follow(await api(`/api/projects/${id}/build`, { body: { render, confirm } }));
     } catch (err) {
+      const text = err instanceof Error ? err.message : String(err);
+      if (!confirm && /переозвуч/.test(text)) {
+        if (await confirmBox(t("final.revoiceTitle"), text, t("build.run"))) await runBuild(render, true);
+        return;
+      }
       fail(err);
     }
   };
@@ -58,7 +71,7 @@ export async function projectScreen(main: HTMLElement, id: string, tab: string):
   if (running) mountJob(jobBox, running.id, () => setTimeout(reload, 600));
 
   const verifyOk = data.renders.verify?.ok;
-  const statusSel = h("select", { style: "width:auto" }, (schema.statuses as string[]).map((s) => h("option", { value: s, selected: s === (p.status ?? "draft") }, t(`status.${s}`))));
+  const statusSel = h("select", { style: "width:auto" }, (schema.statuses as string[]).map((s) => h("option", { value: s, selected: s === data.card.status }, t(`status.${s}`))));
   statusSel.onchange = async () => {
     try {
       await api(`/api/projects/${id}/status`, { body: { status: statusSel.value } });
@@ -69,14 +82,18 @@ export async function projectScreen(main: HTMLElement, id: string, tab: string):
     }
   };
 
-  const counts: Dict = { beats: p.beats.length, assets: data.media.length, history: data.history.length };
+  const counts: Dict = { beats: p.beats.length, assets: data.media.length, history: data.history.length, dialogs: (data.dialogs as Dict[]).length };
+  const budgetBox = budgetPanel(id, data, reload);
+  const voiceBtn = data.card.provider === "elevenlabs"
+    ? h("button", { class: "btn", onclick: () => backToKokoro(id, reload) }, t("final.backToKokoro"))
+    : h("button", { class: "btn", onclick: () => finalDialog(id, data, follow, reload) }, t("final.button"));
   const body = h("div");
   clear(
     main,
-    h("div", { class: "header" }, h("div", null, h("div", { class: "row" }, h("a", { href: "#/projects", class: "muted" }, `← ${t("nav.projects")}`)), h("h1", null, p.title), h("div", { class: "sub row" }, statusPill(p.status ?? "draft"), p.proof ? h("span", { class: "pill proof" }, "proof") : null, `${id} · look ${typeof p.look === "string" ? p.look : p.look?.id ?? p.look?.extends ?? "ember"} · ${data.card.voice} · ${fmtSec(data.renders.build?.duration_s)}`)), h("div", { class: "row" }, statusSel, h("button", { class: "btn", onclick: () => runBuild(false) }, t("build.noRender")), h("button", { class: "btn primary", onclick: () => runBuild(true) }, t("build.run")))),
+    h("div", { class: "header" }, h("div", null, h("div", { class: "row" }, h("a", { href: "#/projects", class: "muted" }, `← ${t("nav.projects")}`)), h("h1", null, p.title), h("div", { class: "sub row" }, statusPill(data.card.status), p.proof ? h("span", { class: "pill proof" }, "proof") : null, `${id} · look ${typeof p.look === "string" ? p.look : p.look?.id ?? p.look?.extends ?? "ember"} · ${data.card.voice} · ${fmtSec(data.renders.build?.duration_s)}`)), h("div", { class: "row" }, budgetBox, statusSel, voiceBtn, h("button", { class: "btn", onclick: () => runBuild(false) }, t("build.noRender")), h("button", { class: "btn primary", onclick: () => runBuild(true) }, t("build.run")))),
     data.validation.ok ? null : h("div", { class: "banner err" }, h("b", null, t("project.invalid")), " ", data.validation.error),
     jobBox,
-    h("div", { class: "hero" }, h("div", { class: "player" }, data.renders.mp4 ? h("video", { src: data.renders.mp4, controls: true, preload: "metadata", poster: data.publish?.thumbnail ?? undefined }) : h("div", { class: "empty panel" }, t("project.noMp4"))), h("div", { class: "stack" }, data.renders.contact ? h("div", { class: "contact" }, h("h3", null, t("project.contact")), h("img", { src: data.renders.contact, alt: "contact sheet" })) : h("div", { class: "panel muted" }, t("project.noContact")), h("div", { class: "row small muted" }, data.renders.build ? t("project.buildInfo", { s: data.renders.build.build_seconds, d: fmtDate(data.card.builtAt) }) : "", verifyOk === undefined ? "" : verifyOk ? h("span", { class: "pill pill-ok" }, t("verify.green")) : h("span", { class: "pill red" }, t("verify.red"))))),
+    h("div", { class: "hero" }, h("div", { class: "player" }, data.renders.mp4 ? h("video", { src: data.renders.mp4, controls: true, preload: "metadata", poster: data.publish?.thumbnail ?? undefined }) : h("div", { class: "empty panel stack" }, h("div", null, t("project.notBuiltHere")), h("button", { class: "btn primary", onclick: () => runBuild(true) }, t("build.run")))), h("div", { class: "stack" }, data.renders.contact ? h("div", { class: "contact" }, h("h3", null, t("project.contact")), h("img", { src: data.renders.contact, alt: "contact sheet" })) : h("div", { class: "panel muted" }, t("project.noContact")), h("div", { class: "row small muted" }, data.renders.build ? t("project.buildInfo", { s: data.renders.build.build_seconds, d: fmtDate(data.card.builtAt) }) : "", verifyOk === undefined ? "" : verifyOk ? h("span", { class: "pill pill-ok" }, t("verify.green")) : h("span", { class: "pill red" }, t("verify.red"))))),
     h("nav", { class: "tabs" }, TABS.map((k) => h("a", { href: `#/project/${id}/${k}`, class: k === tab ? "on" : "" }, t(`project.tabs.${k}`), counts[k] !== undefined ? h("span", { class: "count" }, counts[k]) : null))),
     body,
   );
@@ -84,7 +101,7 @@ export async function projectScreen(main: HTMLElement, id: string, tab: string):
   else if (tab === "publish") body.appendChild(publishTab(id, data, reload));
   else if (tab === "verify") body.appendChild(verifyTab(data));
   else if (tab === "history") body.appendChild(historyTab(id, data, reload));
-  else if (tab === "director") body.appendChild(await directorTab(id, reload));
+  else if (tab === "dialogs") body.appendChild(dialogsTab(id, data, reload));
   else body.appendChild(beatsTab(id, data, schema, reload));
 }
 
@@ -160,6 +177,68 @@ function historyTab(id: string, data: Dict, reload: () => void): HTMLElement {
     "div",
     { class: "panel" },
     h("div", { class: "muted", style: "margin-bottom:10px" }, t("history.about")),
-    h("table", { class: "plain" }, h("tr", null, h("th", null, t("history.when")), h("th", null, t("history.reason")), h("th", null, t("history.files")), h("th", null, "")), (data.history as Dict[]).map((e) => h("tr", null, h("td", { class: "mono" }, e.at ? fmtDate(e.at) : e.name), h("td", null, e.reason || "—"), h("td", { class: "small muted" }, (e.files as string[]).join(", "), e.sheet ? [" · ", h("a", { href: e.sheet, target: "_blank" }, t("history.sheet"))] : null), h("td", null, e.canRollback ? h("button", { class: "btn small", onclick: () => rollback(id, e.name, reload) }, t("history.rollback")) : null)))),
+    h("table", { class: "plain" }, h("tr", null, h("th", null, t("history.when")), h("th", null, t("history.why")), h("th", null, t("history.files")), h("th", null, "")), (data.history as Dict[]).map((e) => h("tr", null, h("td", { class: "mono" }, e.at ? fmtDate(e.at) : e.name), h("td", null, e.why || e.reason || "—"), h("td", { class: "small muted" }, (e.files as string[]).join(", "), e.sheet ? [" · ", h("a", { href: e.sheet, target: "_blank" }, t("history.sheet"))] : null), h("td", null, e.canRollback ? h("button", { class: "btn small", onclick: () => rollback(id, e.name, reload) }, t("history.rollback")) : null)))),
   );
+}
+
+/** Бюджет ElevenLabs этого ролика в шапке: видно всегда, меняется на месте. */
+function budgetPanel(id: string, data: Dict, reload: () => void): HTMLElement {
+  const b = data.budget as Dict;
+  const box = h("button", { class: "btn ghost", title: t("final.budgetHint") }, t("final.budget", { left: b.left, budget: b.budget }));
+  box.onclick = () => {
+    const inp = h("input", { type: "number", min: 0, step: 100, value: String(b.budget) });
+    modal(t("final.budgetTitle"), h("div", { class: "stack" }, h("div", { class: "muted" }, t("final.budgetText", { spent: b.spent, takes: b.takes })), inp), [
+      { label: t("common.cancel") },
+      {
+        label: t("common.save"),
+        kind: "primary",
+        onClick: async () => {
+          await api(`/api/projects/${id}/budget`, { method: "PUT", body: { budgetChars: Number(inp.value) } });
+          toast(t("final.budgetSaved"));
+          reload();
+        },
+      },
+    ]);
+  };
+  return box;
+}
+
+/** «Финал на ElevenLabs»: сколько реплик, символов, что с бюджетом и какой станет длительность — до подтверждения. */
+function finalDialog(id: string, data: Dict, follow: (job: Dict) => void, reload: () => void): void {
+  const f = data.final as Dict;
+  const delta = f.seconds && f.expectedSeconds ? (f.expectedSeconds - f.seconds).toFixed(1) : null;
+  const rows = [
+    t("final.lines", { n: (f.missing as Dict[]).length, all: (f.lines as Dict[]).length }),
+    t("final.chars", { n: f.chars }),
+    t("final.budgetLine", { left: (f.budget as Dict).left, budget: (f.budget as Dict).budget }),
+    f.seconds ? t("final.duration", { was: f.seconds.toFixed(1), now: f.expectedSeconds.toFixed(1), delta }) : t("final.durationUnknown"),
+  ];
+  const blocked = !f.enough ? t("final.notEnough", { need: f.chars, budget: (f.budget as Dict).left }) : !f.key && (f.missing as Dict[]).length ? t("final.noKey") : null;
+  modal(
+    t("final.title"),
+    h("div", { class: "stack" }, rows.map((r) => h("div", null, r)), blocked ? h("div", { class: "banner err" }, blocked) : h("div", { class: "muted small" }, t("final.hint"))),
+    [
+      { label: t("common.cancel") },
+      {
+        label: t("final.confirm"),
+        kind: blocked ? "" : "primary",
+        onClick: async () => {
+          if (blocked) throw new Error(blocked);
+          follow(await api(`/api/projects/${id}/final`, { body: { confirm: true } }));
+          reload();
+        },
+      },
+    ],
+  );
+}
+
+async function backToKokoro(id: string, reload: () => void): Promise<void> {
+  if (!(await confirmBox(t("final.backTitle"), t("final.backText"), t("final.backToKokoro")))) return;
+  try {
+    await api(`/api/projects/${id}/kokoro`, { method: "POST" });
+    toast(t("final.backDone"));
+    reload();
+  } catch (err) {
+    fail(err);
+  }
 }

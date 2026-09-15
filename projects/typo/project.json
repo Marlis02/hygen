@@ -1,7 +1,7 @@
 {
   "id": "typo",
   "title": "Why is the sky blue? — kinetic type proof",
-  "status": "verified",
+  "status": "draft-kokoro",
   "proof": true,
   "concept": "Светлый лист бумаги, синяя тушь и оранжевый второй цвет: объясняющий ролик, в котором буквы — главный объект кадра. Look `bright-explainer` (светлая бумага, субтитры explainer — pill-karaoke с маркером по звучащему слову), текстура `paper` на трёх битах, переходы — жёсткие склейки. Музыка — `test-beat-100` (100 BPM): половина битов шагает по сетке трека.\n\nАрка: mechanism × rhetorical-question × object × lesson — как белый солнечный свет становится синим небом шаг за шагом.",
   "format": "1080x1920",

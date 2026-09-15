@@ -86,52 +86,54 @@ function readUsage(file: string): Record<string, unknown>[] {
 /** The ElevenLabs budget is spent: this line goes to Kokoro, the rest of the build continues (not a failure of the API). */
 export class BudgetError extends Error {}
 
-/**
- * ELEVENLABS_BUDGET_CHARS in .env against the characters sent since the last reset (.cache/voice/elevenlabs/usage.jsonl and
- * projects/<id>/voice/usage.jsonl; a cached take is not sent and not recorded). `npm run voice -- --reset-budget` appends a reset mark.
- */
-export function budgetState(): { budget: number | null; spent: number; left: number | null; since: string | null } {
-  const raw: unknown = loadEnv().ELEVENLABS_BUDGET_CHARS ?? loadConfig().budgets.elevenlabsChars;
-  const budget = raw !== undefined && raw !== null && raw !== "" && Number.isFinite(Number(raw)) ? Number(raw) : null;
-  let spent = 0;
-  let since: string | null = null;
-  // one timeline: previews and resets from .cache, takes from the projects; a take moved into a project keeps its record once
-  const seen = new Set<string>();
-  const records = [USAGE, ...projectUsageFiles()]
-    .flatMap(readUsage)
-    .filter((r) => {
-      const k = `${r.at}|${r.label ?? ""}|${r.reset ?? ""}`;
-      if (seen.has(k)) return false;
-      seen.add(k);
-      return true;
-    })
-    .sort((a, b) => String(a.at ?? "").localeCompare(String(b.at ?? "")));
-  for (const rec of records) {
-    if (rec.reset) {
-      spent = 0;
-      since = (rec.at as string | undefined) ?? null;
-    } else spent += Number(rec.chars ?? 0);
-  }
-  return { budget, spent, left: budget === null ? null : Math.max(0, budget - spent), since };
+export interface Budget {
+  budget: number;
+  spent: number;
+  left: number;
+  takes: number;
 }
 
-export function resetBudget(): void {
-  ensureDir(ELEVEN_DIR);
-  appendFileSync(USAGE, JSON.stringify({ at: new Date().toISOString(), reset: true }) + "\n");
+/**
+ * The budget of ONE video (ROADMAP S2): project.json → `voice.budgetChars`, else `voice.defaultBudgetChars` of
+ * hygen.config.json. What is spent is read from `projects/<id>/voice/usage.jsonl` — a cached take is never sent
+ * and never recorded, so a rebuild costs nothing. There is no global budget any more.
+ */
+export function projectBudget(projectDir: string): Budget {
+  const spec = existsSync(join(projectDir, "project.json")) ? readJson<{ voice?: { budgetChars?: number } }>(join(projectDir, "project.json")) : {};
+  const own = Number(spec.voice?.budgetChars);
+  const budget = Number.isFinite(own) && own >= 0 ? own : loadConfig().voice.defaultBudgetChars;
+  const records = readUsage(join(projectDir, "voice", "usage.jsonl"));
+  const spent = records.reduce((n, r) => n + Number(r.chars ?? 0), 0);
+  return { budget, spent, left: Math.max(0, budget - spent), takes: records.length };
+}
+
+/** Characters spent on voice previews (`npm run voices`), outside any project — for the «Настройки» screen. */
+export function previewSpend(): number {
+  return readUsage(USAGE).reduce((n, r) => n + Number(r.chars ?? 0), 0);
+}
+
+/** Characters spent by every project, for the «Настройки» screen. */
+export function allProjectSpend(): { project: string; chars: number; takes: number }[] {
+  return projectDirs().map((d) => {
+    const records = readUsage(join(d, "voice", "usage.jsonl"));
+    return { project: basename(d), chars: records.reduce((n, r) => n + Number(r.chars ?? 0), 0), takes: records.length };
+  });
 }
 
 /** Characters promised to requests in flight: three parallel lines must not all pass the same check. */
 let reserved = 0;
 
+/**
+ * The provider of a build. Kokoro is ALWAYS the default (ROADMAP S2): a draft, an edit of a beat and `/short`
+ * cost nothing; ElevenLabs only when project.json asks for it — the panel sets it in «Финал на ElevenLabs».
+ */
 export function resolveVoice(spec: VideoSpec, cli?: string): VoiceChoice {
   const env = loadEnv();
   const v = spec.voice ?? {};
   const own = v.provider ?? v.engine;
   const cfg = loadConfig();
-  // the environment variable still wins (a one-off run); the default voice lives in hygen.config.json, .env holds only keys
-  const fromEnv = process.env.VOICE_PROVIDER || (process.env.ELEVENLABS_LIVE === "1" ? "elevenlabs" : undefined);
-  const provider = cli ?? own ?? fromEnv ?? cfg.voice.provider;
-  const from = cli ? "--voice" : own ? "project.json" : fromEnv ? "VOICE_PROVIDER" : "hygen.config.json";
+  const provider = cli ?? own ?? "kokoro";
+  const from = cli ? "--voice" : own ? "project.json" : "по умолчанию Kokoro";
   if (provider !== "kokoro" && provider !== "elevenlabs") fail(`голос: провайдер kokoro или elevenlabs, а не «${provider}» (${from})`);
   // voiceId and model of project.json belong to its own provider: `--voice elevenlabs` on a Kokoro video takes the .env voice
   const mine = own === provider;
@@ -249,14 +251,16 @@ export async function elevenTake(text: string, voiceId: string, model: string, l
   const alignPath = join(dir, "alignment.json");
   if (projectDir && !existsSync(wav) && moveTake(key, projectDir)) log.info(`${label}: дубль ElevenLabs перенесён из .cache/voice в ${basename(projectDir)}/voice`);
   if (existsSync(wav) && existsSync(alignPath)) return { wav, alignment: readJson<AlignedWord[]>(alignPath), chars: 0, cached: true };
-  // npm run regress rebuilds every video from its cache: a line without a take goes to Kokoro, no characters are spent
-  if (process.env.HYGEN_VOICE_CACHE_ONLY === "1") throw new BudgetError(`нет дубля в кэше проекта, а регрессия символы не тратит (реплике нужно ${text.length})`);
+  // HYGEN_VOICE_CACHE_ONLY=1 — rebuild from the cache only: a line without a take goes to Kokoro, no characters are spent
+  if (process.env.HYGEN_VOICE_CACHE_ONLY === "1") throw new BudgetError(`нет дубля в кэше проекта, а эта сборка символы не тратит (реплике нужно ${text.length})`);
   const apiKey = loadEnv().ELEVENLABS_API_KEY;
   if (!apiKey) throw new Error("нет ELEVENLABS_API_KEY в .env");
   if (!voiceId) throw new Error("нет voiceId: voice.voiceId в project.json или voice.voiceId в hygen.config.json");
-  const budget = budgetState();
-  if (budget.budget !== null && budget.spent + reserved + text.length > budget.budget) {
-    throw new BudgetError(`бюджет ElevenLabs: потрачено ${budget.spent} из ${budget.budget} символов${reserved ? ` (+${reserved} в пути)` : ""}, реплике нужно ${text.length}`);
+  if (projectDir) {
+    const budget = projectBudget(projectDir);
+    if (budget.spent + reserved + text.length > budget.budget) {
+      throw new BudgetError(`бюджет ролика: потрачено ${budget.spent} из ${budget.budget} символов${reserved ? ` (+${reserved} в пути)` : ""}, реплике нужно ${text.length}`);
+    }
   }
   reserved += text.length;
   try {
@@ -387,7 +391,7 @@ export async function makeVoices(spec: VideoSpec, videoDir: string, buildDir: st
   if (wanted.provider === "elevenlabs") {
     try {
       const lines = await eleven(wanted);
-      if (overBudget) log.warn(`ElevenLabs: бюджет кончился — ${overBudget} из ${lines.length} реплик озвучены Kokoro (смешанные голоса; пересоберите после npm run voice -- --reset-budget)`);
+      if (overBudget) log.warn(`ElevenLabs: бюджет ролика кончился — ${overBudget} из ${lines.length} реплик озвучены Kokoro (смешанные голоса; поднимите бюджет в шапке проекта и пересоберите)`);
       return { lines, choice: wanted, chars };
     } catch (err) {
       log.warn(`ElevenLabs: ${err instanceof Error ? err.message : String(err)} — откат на Kokoro, сборка продолжается`);
@@ -396,4 +400,64 @@ export async function makeVoices(spec: VideoSpec, videoDir: string, buildDir: st
     }
   }
   return { lines: await kokoro(wanted), choice: wanted, chars };
+}
+
+// ── «Финал на ElevenLabs» (ROADMAP S2) ────────────────────────────────────────────────────────────────
+
+export interface FinalLine {
+  beat: string;
+  chars: number;
+  cached: boolean;
+  text: string;
+}
+
+export interface FinalPlan {
+  voiceId: string;
+  model: string;
+  lines: FinalLine[];
+  /** Lines with no take in voice/ — only these are sent and paid for. */
+  missing: FinalLine[];
+  chars: number;
+  budget: Budget;
+  enough: boolean;
+  /** Duration of the last build and what it becomes after ElevenLabs (null — the video was never built). */
+  seconds: number | null;
+  expectedSeconds: number | null;
+  provider: VoiceProvider;
+}
+
+/**
+ * ElevenLabs reads faster than Kokoro: the five videos of D7 lost 8 % of their length after re-voicing
+ * (Great Fire 47 → 43 с, Halifax and Krakatoa 45 с). The panel shows the estimate before the money is spent.
+ */
+export const ELEVEN_SPEED = 0.92;
+
+/** What «Финал на ElevenLabs» would send and cost: lines without a take, characters, the budget of THIS video. */
+export function finalPlan(projectDir: string): FinalPlan {
+  const spec = readJson<VideoSpec & { voice?: Record<string, unknown> }>(join(projectDir, "project.json"));
+  const choice = resolveVoice(spec, "elevenlabs");
+  const lines: FinalLine[] = spec.beats.map((beat) => {
+    const { tts } = parseBeatText(beat.text);
+    const key = sha({ provider: "elevenlabs", voiceId: choice.voiceId, model: choice.model, text: tts });
+    return { beat: beat.id, chars: tts.length, cached: existsSync(join(projectDir, "voice", key, "take.wav")), text: tts };
+  });
+  const missing = lines.filter((l) => !l.cached);
+  const chars = missing.reduce((n, l) => n + l.chars, 0);
+  const budget = projectBudget(projectDir);
+  const build = join(projectDir, "renders", `${spec.id}.build.json`);
+  const info = existsSync(build) ? readJson<{ duration_s?: number; voice?: { provider?: string } }>(build) : null;
+  const seconds = info?.duration_s ?? null;
+  const already = info?.voice?.provider === "elevenlabs";
+  return {
+    voiceId: choice.voiceId,
+    model: choice.model,
+    lines,
+    missing,
+    chars,
+    budget,
+    enough: budget.left >= chars,
+    seconds,
+    expectedSeconds: seconds === null ? null : r3(already ? seconds : seconds * ELEVEN_SPEED),
+    provider: resolveVoice(spec).provider,
+  };
 }

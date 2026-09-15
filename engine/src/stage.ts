@@ -212,6 +212,8 @@ interface Ctx {
   dir: string;
   clock: Clock;
   fps: number;
+  /** Сид ролика: зерно film-memory считается от него, а не «как получится» (CLAUDE.md, правило 5). */
+  seed: number;
   prefix: string;
   track: { n: number };
 }
@@ -316,9 +318,9 @@ function prepareMedia(m: Record<string, unknown>, key: string, ctx: Ctx, extraHo
   let videos = 0;
   let still: string | null = null;
   if (!video) {
-    const k = sha({ v: 1, f: fileSha(file), treatment, inks });
+    const k = sha({ v: 2, f: fileSha(file), treatment, inks, seed: ctx.seed });
     const out = join(cacheDir, `${k}.jpg`);
-    if (!existsSync(out)) py(["image", file, out, "--treatment", treatment, "--inks", ...inks]);
+    if (!existsSync(out)) py(["image", file, out, "--treatment", treatment, "--inks", ...inks, "--seed", String(ctx.seed)]);
     still = out;
     const src = copyTo(out, `st-${beat.id}-${key}-${k.slice(0, 8)}.jpg`);
     clips.push({ tag: "img", src, start: 0, dur: D });
@@ -335,10 +337,10 @@ function prepareMedia(m: Record<string, unknown>, key: string, ctx: Ctx, extraHo
     const tOut = Math.min((m.out as number | undefined) ?? trim?.out ?? info.duration, info.duration);
     if (tIn >= tOut - 0.05) fail(`${where}: in ${tIn} с за концом исходника (${info.duration} с)`);
     const rate = (m.rate as number | undefined) ?? 1;
-    const k = sha({ v: 1, f: fileSha(file), tIn, tOut, reverse: m.reverse === true, treatment, inks, fps: ctx.fps });
+    const k = sha({ v: 2, f: fileSha(file), tIn, tOut, reverse: m.reverse === true, treatment, inks, fps: ctx.fps, seed: ctx.seed });
     const baked = join(cacheDir, `${k}.mp4`);
     if (!existsSync(baked)) {
-      const args = ["video", file, baked, "--in", String(tIn), "--out", String(tOut), "--treatment", treatment, "--inks", ...inks, "--fps", String(ctx.fps)];
+      const args = ["video", file, baked, "--in", String(tIn), "--out", String(tOut), "--treatment", treatment, "--inks", ...inks, "--fps", String(ctx.fps), "--seed", String(ctx.seed)];
       if (m.reverse === true) args.push("--reverse");
       py(args);
       log.info(`${beat.id}: видео ${basename(file)} ${tIn}–${tOut} с${m.reverse ? " задом наперёд" : ""}${treatment !== "none" ? ` · ${treatment}` : ""} → кэш`);
@@ -434,7 +436,7 @@ export function writeStageFrame(input: StageFrameInput): StageFrame {
   const rgbOf = (hex: string): string => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)).join(",");
   const regions = (st.regions ?? {}) as Record<string, unknown>;
   const devices = resolveDevices(beat.devices ?? [], beat.dominant, regions, clock, style, beat.id, beat.sync);
-  const ctx: Ctx = { beat, style, videoDir: input.videoDir, dir: input.dir, clock, fps: input.fps, prefix, track: { n: 1 } };
+  const ctx: Ctx = { beat, style, videoDir: input.videoDir, dir: input.dir, clock, fps: input.fps, seed: input.seed, prefix, track: { n: 1 } };
   const events: { t: number; label: string }[] = deviceEvents(devices);
   let stageHtml = "";
   let sharpHtml = "";
