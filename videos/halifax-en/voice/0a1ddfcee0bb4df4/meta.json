@@ -1,0 +1,9 @@
+{
+  "label": "halifax-en/05-richmond",
+  "voiceId": "uju3wxzG5OhpWcoi3SMy",
+  "model": "eleven_multilingual_v2",
+  "output_format": "pcm_24000",
+  "chars": 115,
+  "character_cost": 63,
+  "text": "Nearly everything within eight hundred metres was flattened. At least seventeen hundred and eighty-two people died."
+}

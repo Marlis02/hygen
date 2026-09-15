@@ -1,6 +1,6 @@
-import { appendFileSync, copyFileSync, existsSync, readFileSync, writeFileSync } from "node:fs";
+import { appendFileSync, copyFileSync, cpSync, existsSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
-import { join } from "node:path";
+import { basename, join } from "node:path";
 import type { VideoSpec } from "./spec.ts";
 import { parseBeatText } from "./spec.ts";
 import { ROOT_DIR, ensureDir, fail, hyperframesBin, lastJsonLine, loadEnv, log, pool, pyScript, python, r3, readJson, runAsync, sha, writeJson } from "./lib/util.ts";
@@ -59,34 +59,65 @@ interface LineMeta {
 
 export const ELEVEN_DEFAULT_MODEL = "eleven_multilingual_v2";
 const KOKORO_DEFAULT_VOICE = "am_michael";
+/** Previews of voices and the reset marks of the budget; takes of videos live in `videos/<id>/voice/` (in git, ROADMAP D7). */
 const ELEVEN_DIR = join(ROOT_DIR, ".cache", "voice", "elevenlabs");
 const USAGE = join(ELEVEN_DIR, "usage.jsonl");
+
+/** videos/<id>/voice/usage.jsonl of every project (and _proof) — the budget counts them together with the previews. */
+function projectUsageFiles(): string[] {
+  const out: string[] = [];
+  for (const base of [join(ROOT_DIR, "videos"), join(ROOT_DIR, "videos", "_proof")]) {
+    if (!existsSync(base)) continue;
+    for (const name of readdirSync(base)) {
+      const f = join(base, name, "voice", "usage.jsonl");
+      if (existsSync(f)) out.push(f);
+    }
+  }
+  return out;
+}
+
+function readUsage(file: string): Record<string, unknown>[] {
+  if (!existsSync(file)) return [];
+  const out: Record<string, unknown>[] = [];
+  for (const line of readFileSync(file, "utf8").split("\n")) {
+    if (!line.trim()) continue;
+    try {
+      out.push(JSON.parse(line) as Record<string, unknown>);
+    } catch {
+      // a torn line of an interrupted build
+    }
+  }
+  return out;
+}
 
 /** The ElevenLabs budget is spent: this line goes to Kokoro, the rest of the build continues (not a failure of the API). */
 export class BudgetError extends Error {}
 
 /**
- * ELEVENLABS_BUDGET_CHARS in .env against the characters sent since the last reset (.cache/voice/elevenlabs/usage.jsonl;
- * a cached take is not sent and not recorded). `npm run voice -- --reset-budget` appends a reset mark.
+ * ELEVENLABS_BUDGET_CHARS in .env against the characters sent since the last reset (.cache/voice/elevenlabs/usage.jsonl and
+ * videos/<id>/voice/usage.jsonl; a cached take is not sent and not recorded). `npm run voice -- --reset-budget` appends a reset mark.
  */
 export function budgetState(): { budget: number | null; spent: number; left: number | null; since: string | null } {
   const raw = loadEnv().ELEVENLABS_BUDGET_CHARS;
   const budget = raw !== undefined && raw !== "" && Number.isFinite(Number(raw)) ? Number(raw) : null;
   let spent = 0;
   let since: string | null = null;
-  if (existsSync(USAGE)) {
-    for (const line of readFileSync(USAGE, "utf8").split("\n")) {
-      if (!line.trim()) continue;
-      try {
-        const rec = JSON.parse(line) as { reset?: boolean; at?: string; chars?: number };
-        if (rec.reset) {
-          spent = 0;
-          since = rec.at ?? null;
-        } else spent += Number(rec.chars ?? 0);
-      } catch {
-        // a torn line of an interrupted build
-      }
-    }
+  // one timeline: previews and resets from .cache, takes from the projects; a take moved into a project keeps its record once
+  const seen = new Set<string>();
+  const records = [USAGE, ...projectUsageFiles()]
+    .flatMap(readUsage)
+    .filter((r) => {
+      const k = `${r.at}|${r.label ?? ""}|${r.reset ?? ""}`;
+      if (seen.has(k)) return false;
+      seen.add(k);
+      return true;
+    })
+    .sort((a, b) => String(a.at ?? "").localeCompare(String(b.at ?? "")));
+  for (const rec of records) {
+    if (rec.reset) {
+      spent = 0;
+      since = (rec.at as string | undefined) ?? null;
+    } else spent += Number(rec.chars ?? 0);
   }
   return { budget, spent, left: budget === null ? null : Math.max(0, budget - spent), since };
 }
@@ -168,13 +199,65 @@ export interface ElevenTake {
 let outputFormat = "pcm_44100";
 
 /**
- * One ElevenLabs take with word times (`text-to-speech/{voice}/with-timestamps`), cached in `.cache/voice/elevenlabs`
- * by provider + voice + model + text: a rebuild costs no characters, an edited line re-voices only itself.
+ * A take of the old global cache moves into its project: take.wav, alignment.json, meta.json and its usage record
+ * (the same `at`, so the budget counts it once). Returns false when there is nothing to move.
  */
-export async function elevenTake(text: string, voiceId: string, model: string, label: string): Promise<ElevenTake> {
-  const dir = join(ELEVEN_DIR, sha({ provider: "elevenlabs", voiceId, model, text }));
+export function moveTake(key: string, projectDir: string): boolean {
+  const from = join(ELEVEN_DIR, key);
+  if (!existsSync(join(from, "take.wav")) || !existsSync(join(from, "alignment.json"))) return false;
+  const to = join(ensureDir(join(projectDir, "voice")), key);
+  cpSync(from, to, { recursive: true });
+  const meta = existsSync(join(from, "meta.json")) ? readJson<{ label?: string; chars?: number }>(join(from, "meta.json")) : {};
+  const rec = readUsage(USAGE).filter((r) => !r.reset && r.label === meta.label && r.chars === meta.chars).pop();
+  const projUsage = join(projectDir, "voice", "usage.jsonl");
+  if (rec && !readUsage(projUsage).some((r) => r.at === rec.at && r.label === rec.label)) appendFileSync(projUsage, JSON.stringify(rec) + "\n");
+  rmSync(from, { recursive: true, force: true });
+  return true;
+}
+
+/** The label of a take (`<video id>/<beat>`) → the project folder whose video.json has that id. */
+export function projectOfLabel(label: string): string | null {
+  const id = label.split("/")[0] ?? "";
+  for (const base of [join(ROOT_DIR, "videos"), join(ROOT_DIR, "videos", "_proof")]) {
+    if (!existsSync(base)) continue;
+    for (const name of readdirSync(base)) {
+      const spec = join(base, name, "video.json");
+      if (!existsSync(spec)) continue;
+      try {
+        if (readJson<{ id?: string }>(spec).id === id || name === id) return join(base, name);
+      } catch {
+        // not a video folder
+      }
+    }
+  }
+  return null;
+}
+
+/** Takes left in the global cache: previews (label voices/…) and takes of videos still to move (`npm run voice -- --migrate`). */
+export function globalTakes(): { previews: number; videos: { key: string; label: string }[] } {
+  const res = { previews: 0, videos: [] as { key: string; label: string }[] };
+  if (!existsSync(ELEVEN_DIR)) return res;
+  for (const key of readdirSync(ELEVEN_DIR)) {
+    const meta = join(ELEVEN_DIR, key, "meta.json");
+    if (!existsSync(meta)) continue;
+    const label = readJson<{ label?: string }>(meta).label ?? "";
+    if (label.startsWith("voices/")) res.previews++;
+    else res.videos.push({ key, label });
+  }
+  return res;
+}
+
+/**
+ * One ElevenLabs take with word times (`text-to-speech/{voice}/with-timestamps`), cached by provider + voice + model +
+ * text: a rebuild costs no characters, an edited line re-voices only itself. Takes of a video live in
+ * `videos/<id>/voice/<key>/` and go to git — the voice travels with the project; previews (no project) stay in `.cache`.
+ */
+export async function elevenTake(text: string, voiceId: string, model: string, label: string, projectDir?: string): Promise<ElevenTake> {
+  const key = sha({ provider: "elevenlabs", voiceId, model, text });
+  const dir = projectDir ? join(projectDir, "voice", key) : join(ELEVEN_DIR, key);
   const wav = join(dir, "take.wav");
   const alignPath = join(dir, "alignment.json");
+  if (projectDir && !existsSync(wav) && moveTake(key, projectDir)) log.info(`${label}: дубль ElevenLabs перенесён из .cache/voice в ${basename(projectDir)}/voice`);
   if (existsSync(wav) && existsSync(alignPath)) return { wav, alignment: readJson<AlignedWord[]>(alignPath), chars: 0, cached: true };
   const apiKey = loadEnv().ELEVENLABS_API_KEY;
   if (!apiKey) throw new Error("нет ELEVENLABS_API_KEY в .env");
@@ -185,13 +268,13 @@ export async function elevenTake(text: string, voiceId: string, model: string, l
   }
   reserved += text.length;
   try {
-    return await sendTake(text, voiceId, model, label, apiKey, dir, wav, alignPath);
+    return await sendTake(text, voiceId, model, label, apiKey, dir, wav, alignPath, projectDir ? join(projectDir, "voice", "usage.jsonl") : USAGE);
   } finally {
     reserved -= text.length;
   }
 }
 
-async function sendTake(text: string, voiceId: string, model: string, label: string, apiKey: string, dir: string, wav: string, alignPath: string): Promise<ElevenTake> {
+async function sendTake(text: string, voiceId: string, model: string, label: string, apiKey: string, dir: string, wav: string, alignPath: string, usage: string): Promise<ElevenTake> {
   let res: Response;
   let format: string;
   for (;;) {
@@ -220,7 +303,7 @@ async function sendTake(text: string, voiceId: string, model: string, label: str
   writeJson(alignPath, words);
   const record = { label, voiceId, model, output_format: format, chars: text.length, character_cost: Number.isFinite(cost) ? cost : null };
   writeJson(join(dir, "meta.json"), { ...record, text });
-  appendFileSync(USAGE, JSON.stringify({ at: new Date().toISOString(), ...record }) + "\n");
+  appendFileSync(usage, JSON.stringify({ at: new Date().toISOString(), ...record }) + "\n");
   return { wav, alignment: words, chars: text.length, cached: false };
 }
 
@@ -266,7 +349,7 @@ export async function makeVoices(spec: VideoSpec, videoDir: string, buildDir: st
       const { tts } = parseBeatText(beat.text);
       let take: ElevenTake;
       try {
-        take = await elevenTake(tts, choice.voiceId, choice.model, `${spec.id}/${beat.id}`);
+        take = await elevenTake(tts, choice.voiceId, choice.model, `${spec.id}/${beat.id}`, videoDir);
       } catch (err) {
         if (!(err instanceof BudgetError)) throw err;
         // over the budget: this line only goes to Kokoro, no API call (ROADMAP D6)

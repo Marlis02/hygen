@@ -74,10 +74,7 @@
       "whoosh": "smoke"
     }
   },
-  "voice": {
-    "provider": "elevenlabs",
-    "voice": "bm_george"
-  },
+  "voice": { "provider": "elevenlabs" },
   "arc": {
     "structure": "mechanism",
     "hook": "rhetorical-question",
@@ -90,57 +87,28 @@
       "id": "01-bakery",
       "role": "hook",
       "text": "How does one bakery burn down the heart of London?",
-      "pad": [
-        0.2,
-        0.5
-      ],
-      "intent": "show-evidence",
-      "target": {
-        "x": 3,
-        "y": 35,
-        "w": 94,
-        "h": 14
-      },
-      "at": "how",
-      "data": {
-        "src": "media/plaque-pudding-lane.jpg",
-        "treatment": "none",
-        "label": "PUDDING LANE, 1666",
-        "credit": "PLAQUE BY THE COMPANY OF BAKERS",
-        "explains": "this plaque marks the shop of the King's baker where the Great Fire began in September 1666",
-        "source": "https://en.wikipedia.org/wiki/Great_Fire_of_London"
-      },
+      "pad": [0.2, 0.5],
       "stage": {
         "type": "media",
-        "fit": "contain"
+        "src": "media/plaque-pudding-lane.jpg",
+        "fit": "contain",
+        "crop": { "x": 2, "y": 0, "w": 96, "h": 93 },
+        "pan": { "to": { "x": 68.5, "y": 32.5, "w": 28, "h": 28 }, "at": "how", "dur": 2.6 }
       },
-      "camera": {
-        "reason": "approach",
-        "amplitude": 0.12
-      },
-      "sources": {
-        "text": "https://en.wikipedia.org/wiki/Great_Fire_of_London"
-      }
+      "devices": [{ "type": "focus.spotlight", "target": { "x": 0, "y": 46.5, "w": 100, "h": 7 }, "at": "how", "params": { "shape": "rect", "mode": "dim", "strength": 0.9 } }],
+      "dominant": 0,
+      "sources": { "text": "https://en.wikipedia.org/wiki/Great_Fire_of_London" }
     },
     {
       "id": "02-timber",
       "role": "setup",
       "text": "In [1666|sixteen sixty-six], the City was mostly timber, its upper floors almost touching across narrow lanes.",
-      "pad": [
-        0.2,
-        0.6
-      ],
-      "intent": "reveal",
-      "data": {
-        "src": "media/hollar-london-before-1666.jpg"
-      },
-      "stage": {
-        "type": "media",
-        "fit": "contain"
-      },
-      "sources": {
-        "text": "https://en.wikipedia.org/wiki/Great_Fire_of_London"
-      }
+      "pad": [0.2, 0.6],
+      "stage": { "type": "media", "src": "media/hollar-london-before-1666.jpg", "fit": "contain", "crop": { "x": 28, "y": 33, "w": 40, "h": 40 } },
+      "devices": [],
+      "dominant": "stage",
+      "camera": { "reason": "approach" },
+      "sources": { "text": "https://en.wikipedia.org/wiki/Great_Fire_of_London" }
     },
     {
       "id": "03-mayor",
@@ -234,40 +202,19 @@
       "id": "06-gone",
       "role": "consequence",
       "text": "In four days, at least [13,200|thirteen thousand two hundred] houses were gone.",
-      "pad": [
-        0.2,
-        1.0
-      ],
+      "pad": [0.2, 1.0],
       "intent": "compare",
-      "target": {
-        "x": 50,
-        "y": 23
-      },
+      "target": { "x": 50, "y": 23 },
       "at": "four",
-      "data": {
-        "value": 13200,
-        "display": "13,200",
-        "label": "HOUSES DESTROYED",
-        "source": "https://en.wikipedia.org/wiki/Great_Fire_of_London"
-      },
+      "data": { "value": 13200, "display": "13,200", "label": "HOUSES DESTROYED", "source": "https://en.wikipedia.org/wiki/Great_Fire_of_London" },
       "stage": {
         "type": "split",
-        "a": {
-          "src": "media/hollar-london-before-1666.jpg",
-          "fit": "contain"
-        },
-        "b": {
-          "src": "media/hollar-london-after-1666.jpg",
-          "fit": "contain"
-        },
-        "labels": [
-          "",
-          ""
-        ]
+        "a": { "src": "media/hollar-london-before-1666.jpg", "fit": "contain" },
+        "b": { "src": "media/hollar-london-after-1666.jpg", "fit": "contain" },
+        "labels": ["BEFORE", "AFTER"],
+        "at": "gone"
       },
-      "sources": {
-        "text": "https://en.wikipedia.org/wiki/Great_Fire_of_London"
-      }
+      "sources": { "text": "https://en.wikipedia.org/wiki/Great_Fire_of_London" }
     },
     {
       "id": "07-monument",

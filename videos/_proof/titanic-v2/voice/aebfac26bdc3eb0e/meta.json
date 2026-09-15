@@ -1,0 +1,9 @@
+{
+  "label": "titanic-v2/01-film",
+  "voiceId": "uju3wxzG5OhpWcoi3SMy",
+  "model": "eleven_multilingual_v2",
+  "output_format": "pcm_24000",
+  "chars": 76,
+  "character_cost": 42,
+  "text": "This is the only film of the Titanic itself, shot weeks before she was gone."
+}

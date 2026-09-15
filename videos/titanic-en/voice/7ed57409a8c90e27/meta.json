@@ -1,0 +1,9 @@
+{
+  "label": "titanic-en/05-sinking",
+  "voiceId": "uju3wxzG5OhpWcoi3SMy",
+  "model": "eleven_multilingual_v2",
+  "output_format": "pcm_24000",
+  "chars": 94,
+  "character_cost": 52,
+  "text": "Two hours and forty minutes after the collision, the largest ship afloat broke apart and sank."
+}

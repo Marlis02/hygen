@@ -1,0 +1,7 @@
+{"at":"2026-09-15T05:51:52.454Z","label":"great-fire-en/01-bakery","voiceId":"uju3wxzG5OhpWcoi3SMy","model":"eleven_multilingual_v2","output_format":"pcm_24000","chars":50,"character_cost":28}
+{"at":"2026-09-15T05:51:52.751Z","label":"great-fire-en/03-mayor","voiceId":"uju3wxzG5OhpWcoi3SMy","model":"eleven_multilingual_v2","output_format":"pcm_24000","chars":96,"character_cost":53}
+{"at":"2026-09-15T05:51:52.944Z","label":"great-fire-en/02-timber","voiceId":"uju3wxzG5OhpWcoi3SMy","model":"eleven_multilingual_v2","output_format":"pcm_24000","chars":103,"character_cost":57}
+{"at":"2026-09-15T05:51:55.718Z","label":"great-fire-en/04-bridge","voiceId":"uju3wxzG5OhpWcoi3SMy","model":"eleven_multilingual_v2","output_format":"pcm_24000","chars":104,"character_cost":57}
+{"at":"2026-09-15T05:51:56.325Z","label":"great-fire-en/06-gone","voiceId":"uju3wxzG5OhpWcoi3SMy","model":"eleven_multilingual_v2","output_format":"pcm_24000","chars":70,"character_cost":39}
+{"at":"2026-09-15T05:51:56.515Z","label":"great-fire-en/05-st-pauls","voiceId":"uju3wxzG5OhpWcoi3SMy","model":"eleven_multilingual_v2","output_format":"pcm_24000","chars":91,"character_cost":50}
+{"at":"2026-09-15T05:51:59.295Z","label":"great-fire-en/07-monument","voiceId":"uju3wxzG5OhpWcoi3SMy","model":"eleven_multilingual_v2","output_format":"pcm_24000","chars":92,"character_cost":51}

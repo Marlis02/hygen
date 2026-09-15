@@ -1,0 +1,9 @@
+{
+  "label": "krakatoa-en/04-column",
+  "voiceId": "uju3wxzG5OhpWcoi3SMy",
+  "model": "eleven_multilingual_v2",
+  "output_format": "pcm_24000",
+  "chars": 99,
+  "character_cost": 54,
+  "text": "Artists drew it for the Royal Society. The column of ash rose about eighty kilometers into the sky."
+}

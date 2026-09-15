@@ -1,0 +1,6 @@
+{"at":"2026-09-15T05:46:20.840Z","label":"titanic-en/01-film","voiceId":"uju3wxzG5OhpWcoi3SMy","model":"eleven_multilingual_v2","output_format":"pcm_24000","chars":89,"character_cost":49}
+{"at":"2026-09-15T05:46:20.988Z","label":"titanic-en/03-hull","voiceId":"uju3wxzG5OhpWcoi3SMy","model":"eleven_multilingual_v2","output_format":"pcm_24000","chars":103,"character_cost":57}
+{"at":"2026-09-15T05:46:21.174Z","label":"titanic-en/02-route","voiceId":"uju3wxzG5OhpWcoi3SMy","model":"eleven_multilingual_v2","output_format":"pcm_24000","chars":130,"character_cost":72}
+{"at":"2026-09-15T05:46:24.381Z","label":"titanic-en/04-lifeboats","voiceId":"uju3wxzG5OhpWcoi3SMy","model":"eleven_multilingual_v2","output_format":"pcm_24000","chars":122,"character_cost":67}
+{"at":"2026-09-15T05:46:24.419Z","label":"titanic-en/05-sinking","voiceId":"uju3wxzG5OhpWcoi3SMy","model":"eleven_multilingual_v2","output_format":"pcm_24000","chars":94,"character_cost":52}
+{"at":"2026-09-15T05:46:24.762Z","label":"titanic-en/06-boat","voiceId":"uju3wxzG5OhpWcoi3SMy","model":"eleven_multilingual_v2","output_format":"pcm_24000","chars":82,"character_cost":45}

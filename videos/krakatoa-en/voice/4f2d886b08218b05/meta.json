@@ -1,0 +1,9 @@
+{
+  "label": "krakatoa-en/06-island",
+  "voiceId": "uju3wxzG5OhpWcoi3SMy",
+  "model": "eleven_multilingual_v2",
+  "output_format": "pcm_24000",
+  "chars": 72,
+  "character_cost": 40,
+  "text": "When the ash finally settled, two thirds of the island were simply gone."
+}

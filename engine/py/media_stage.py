@@ -8,12 +8,15 @@ Everything heavy happens once at build time and is cached by the caller; the ren
          trims the source range, optionally reverses it, bakes the treatment, H.264 without sound, even size
   frame  <src.mp4> <out.jpg> --t 3.2             one exact frame (a stop-frame of edit.hold)
   image  <src> <out.jpg> [--treatment engraved] --inks …   a photo with the treatment baked in
+  extent <cutout.png> --fit cover --focus 0.5 0.5  → {"rows": [[y, x0, x1], …]} the figure of a cutout in frame px, every 20 px
   backdrop <src> <out.jpg>                       cover crop 1080×1920, blurred and darkened (under fit: contain)
 
 Treatments are CPU versions of the media-use recipes (no WebGL in the render):
   film-memory  vintage wash: lifted blacks, warm, less saturation, vignette, seeded grain
   engraved     line engraving: luminance → thickness of diagonal lines, cross-hatch in the deep shadows; ink/paper
   two-ink      two spot inks on paper: hero ink in the mids, deep ink in the shadows, 15°/75° halftone screens
+  duotone      the look's two inks: shadows → night, lights → a muted light of text and hero (≤ 72 % bright, so white
+               paper does not glare out of a dark look); bright saturated points (lamps, lights) keep a spot of the fifth ink
 Video versions of engraved and two-ink are tone maps into the same inks (no per-frame line screen).
 """
 import argparse
@@ -106,6 +109,19 @@ def two_ink(arr, ink1, ink2, paper, cell=9.0):
     return out * (1 - m2[..., None]) + (out * ink2 / 255.0) * m2[..., None]
 
 
+def duotone(arr, night, hero, text, spot=None):
+    lum = stretch(luminance(arr))[..., None]
+    light = (text * 0.75 + hero * 0.25) * 0.72
+    out = night + (light - night) * lum
+    if spot is not None:
+        mx, mn = arr.max(axis=2), arr.min(axis=2)
+        sat = (mx - mn) / np.maximum(mx, 1.0)
+        m = np.clip((sat - 0.35) / 0.3, 0, 1) * np.clip((mx / 255.0 - 0.5) / 0.3, 0, 1)
+        m = np.asarray(Image.fromarray((m * 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(1.5)), dtype=np.float32)[..., None] / 255.0
+        out = out * (1 - m) + spot * m
+    return out
+
+
 def fit_size(im, longest=2160):
     s = min(1.0, longest / max(im.width, im.height))
     if s < 1.0:
@@ -114,7 +130,9 @@ def fit_size(im, longest=2160):
 
 
 def treat(arr, a):
-    ink_night, ink_hero, ink_deep, paper = (hex_rgb(c) for c in a.inks)
+    ink_night, ink_hero, ink_deep, paper = (hex_rgb(c) for c in a.inks[:4])
+    if a.treatment == "duotone":
+        return duotone(arr, ink_night, ink_hero, paper, hex_rgb(a.inks[4]) if len(a.inks) > 4 else None)
     if a.treatment == "film-memory":
         return film_memory(arr)
     if a.treatment == "engraved":
@@ -163,13 +181,15 @@ def cmd_video(a):
     vf = [f"scale={even(info['width'] * sc)}:{even(info['height'] * sc)}:flags=lanczos", f"fps={a.fps}"]
     if a.reverse:
         vf.append("reverse")
-    night, hero, deep, paper = (hex_rgb(c) for c in a.inks)
+    night, hero, deep, paper = (hex_rgb(c) for c in a.inks[:4])
     if a.treatment == "film-memory":
         vf += ["eq=contrast=0.86:brightness=0.03:saturation=0.66", "colorchannelmixer=rr=1.05:gg=0.99:bb=0.88", "vignette=angle=PI/4.5", "noise=alls=9:allf=t"]
     elif a.treatment == "engraved":
         vf += ["eq=contrast=1.45", "unsharp=5:5:1.4"] + tone_map([night, (night + paper) / 2, paper])
     elif a.treatment == "two-ink":
         vf += ["eq=contrast=1.25"] + tone_map([deep, hero, paper])
+    elif a.treatment == "duotone":
+        vf += tone_map([night, (night + (paper * 0.75 + hero * 0.25) * 0.72) / 2, (paper * 0.75 + hero * 0.25) * 0.72])
     cmd = ["ffmpeg", "-v", "error", "-y", "-ss", f"{t0:.3f}", "-to", f"{t1:.3f}", "-i", a.src, "-an", "-vf", ",".join(vf + ["format=yuv420p"]),
            "-c:v", "libx264", "-crf", "19", "-preset", "veryfast", "-g", "10", "-movflags", "+faststart", a.out + ".part.mp4"]
     subprocess.run(cmd, check=True)
@@ -184,9 +204,31 @@ def cmd_frame(a):
     print(json.dumps({"t": a.t}))
 
 
+def cmd_extent(a):
+    """Where the figure of a cutout stands in the 1080×1920 frame (same object-fit and object-position as the device)."""
+    im = Image.open(a.src).convert("RGBA")
+    w, h = im.size
+    s = max(W / w, H / h) if a.fit == "cover" else min(W / w, H / h)
+    ox, oy = (W - w * s) * a.focus[0], (H - h * s) * a.focus[1]
+    alpha = np.asarray(im.getchannel("A"), dtype=np.uint8) > 128
+    rows = []
+    for y in range(0, H, 20):
+        sy = int((y + 10 - oy) / s)
+        if sy < 0 or sy >= h:
+            continue
+        band = alpha[max(0, sy - 2):sy + 3].any(axis=0)
+        xs = np.nonzero(band)[0]
+        if len(xs) < 3:
+            continue
+        x0, x1 = max(0.0, xs[0] * s + ox), min(float(W), (xs[-1] + 1) * s + ox)
+        if x1 > 0 and x0 < W:
+            rows.append([y, round(x0), round(x1)])
+    print(json.dumps({"rows": rows}))
+
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("cmd", choices=["probe", "video", "frame", "image", "backdrop"])
+    ap.add_argument("cmd", choices=["probe", "video", "frame", "image", "backdrop", "extent"])
     ap.add_argument("src")
     ap.add_argument("out", nargs="?")
     ap.add_argument("--in", dest="t_in", type=float, default=0.0)
@@ -194,11 +236,16 @@ def main():
     ap.add_argument("--t", type=float, default=0.0)
     ap.add_argument("--reverse", action="store_true")
     ap.add_argument("--treatment", default="none")
-    ap.add_argument("--inks", nargs=4, default=["#0A0A09", "#FF5A1F", "#7A2208", "#ECE7DE"])
+    ap.add_argument("--fit", default="cover")
+    ap.add_argument("--focus", type=float, nargs=2, default=[0.5, 0.5])
+    ap.add_argument("--inks", nargs="+", default=["#0A0A09", "#FF5A1F", "#7A2208", "#ECE7DE"])
     ap.add_argument("--fps", type=int, default=30)
     a = ap.parse_args()
     if a.cmd == "probe":
         print(json.dumps(probe(a.src)))
+        return
+    if a.cmd == "extent":
+        cmd_extent(a)
         return
     os.makedirs(os.path.dirname(os.path.abspath(a.out)), exist_ok=True)
     {"video": cmd_video, "frame": cmd_frame, "image": cmd_image, "backdrop": cmd_backdrop}[a.cmd](a)

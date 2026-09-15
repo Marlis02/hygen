@@ -1,0 +1,9 @@
+{
+  "label": "titanic-en/02-route",
+  "voiceId": "uju3wxzG5OhpWcoi3SMy",
+  "model": "eleven_multilingual_v2",
+  "output_format": "pcm_24000",
+  "chars": 130,
+  "character_cost": 72,
+  "text": "Four days into her maiden voyage from Southampton to New York, she steamed across the North Atlantic on a calm night with no moon."
+}

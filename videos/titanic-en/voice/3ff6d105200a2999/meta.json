@@ -1,0 +1,9 @@
+{
+  "label": "titanic-en/03-hull",
+  "voiceId": "uju3wxzG5OhpWcoi3SMy",
+  "model": "eleven_multilingual_v2",
+  "output_format": "pcm_24000",
+  "chars": 103,
+  "character_cost": 57,
+  "text": "She had sixteen compartments and was designed to stay afloat with four flooded. The iceberg opened six."
+}

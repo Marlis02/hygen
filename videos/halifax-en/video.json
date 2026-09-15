@@ -271,22 +271,12 @@
       "id": "06-tree",
       "role": "ending",
       "text": "Every year since [1971|nineteen seventy-one], Nova Scotia has sent Boston a Christmas tree. It still says thank you.",
-      "pad": [
-        0.3,
-        2.6
-      ],
+      "pad": [0.3, 2.6],
       "intent": "quiet-ending",
-      "data": {
-        "src": "media/boston-tree.jpg"
-      },
-      "stage": {
-        "type": "media",
-        "fit": "cover"
-      },
+      "data": { "src": "media/boston-tree.jpg" },
+      "stage": { "type": "media", "fit": "cover", "treatment": "duotone" },
       "dominant": "stage",
-      "sources": {
-        "text": "https://en.wikipedia.org/wiki/Halifax_Explosion"
-      }
+      "sources": { "text": "https://en.wikipedia.org/wiki/Halifax_Explosion" }
     }
   ],
   "transitions": [],

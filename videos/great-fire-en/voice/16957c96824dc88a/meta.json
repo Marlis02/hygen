@@ -1,0 +1,9 @@
+{
+  "label": "great-fire-en/03-mayor",
+  "voiceId": "uju3wxzG5OhpWcoi3SMy",
+  "model": "eleven_multilingual_v2",
+  "output_format": "pcm_24000",
+  "chars": 96,
+  "character_cost": 53,
+  "text": "The Lord Mayor delayed for hours. Then he cried: the fire overtakes us faster than we can do it."
+}

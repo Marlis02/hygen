@@ -1,0 +1,3 @@
+{"at":"2026-09-14T09:51:50.477Z","label":"titanic-v2/02-hull","voiceId":"uju3wxzG5OhpWcoi3SMy","model":"eleven_multilingual_v2","output_format":"pcm_24000","chars":87,"character_cost":48}
+{"at":"2026-09-14T09:51:50.276Z","label":"titanic-v2/01-film","voiceId":"uju3wxzG5OhpWcoi3SMy","model":"eleven_multilingual_v2","output_format":"pcm_24000","chars":76,"character_cost":42}
+{"at":"2026-09-14T09:51:50.065Z","label":"titanic-v2/03-boat","voiceId":"uju3wxzG5OhpWcoi3SMy","model":"eleven_multilingual_v2","output_format":"pcm_24000","chars":72,"character_cost":40}

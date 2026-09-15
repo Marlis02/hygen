@@ -19,7 +19,7 @@ import { ROOT_DIR, ensureDir, fail, fileSha, hyperframesBin, lastJsonLine, log, 
 // treatments baked once into a cache (engine/py/media_stage.py), crop/pan on an inner wrapper.
 
 export const STAGE_TYPES = ["media", "split", "map", "color"];
-export const TREATMENTS = ["none", "film-memory", "engraved", "two-ink"];
+export const TREATMENTS = ["none", "film-memory", "engraved", "two-ink", "duotone"];
 export const CAMERA_REASONS = ["approach", "reveal", "follow", "tension"];
 
 const VIDEO_RE = /\.(webm|mp4|mov|ogv|mkv)$/i;
@@ -278,7 +278,8 @@ function prepareMedia(m: Record<string, unknown>, key: string, ctx: Ctx, extraHo
   const file = mediaPath(m.src as string, ctx.videoDir);
   const video = VIDEO_RE.test(file);
   const colors = toneColors(style, beat.tone ?? "accent");
-  const inks = [colors.night, colors.hero, colors.heroDeep, colors.text] as string[];
+  // duotone keeps bright saturated points (lamps, lights) in the second tone of the look
+  const inks = [colors.night, colors.hero, colors.heroDeep, colors.text, ...(m.treatment === "duotone" ? [colors.cold ?? colors.hero] : [])] as string[];
   const treatment = (m.treatment as string | undefined) ?? "none";
   const D = clock.duration;
   const cacheDir = ensureDir(join(ctx.videoDir, ".cache", "stage"));
@@ -452,7 +453,11 @@ export function writeStageFrame(input: StageFrameInput): StageFrame {
       const cut = cutoutOf(m.still as string, input.videoDir);
       const cutName = `st-${beat.id}-cut-${basename(cut).slice(0, 8)}.png`;
       copyFileSync(cut, join(ensureDir(join(input.dir, "assets", "media")), cutName));
-      for (const d of behind) Object.assign(d.params, { cutout: `assets/media/${cutName}`, fit: (st.fit as string | undefined) ?? "cover", focus: (st.focus as number[] | undefined) ?? [0.5, 0.5] });
+      const fitMode = (st.fit as string | undefined) ?? "cover";
+      const focus = (st.focus as number[] | undefined) ?? [0.5, 0.5];
+      // where the figure stands across the frame: the word keeps its first and last letters clear of it
+      const extent = py(["extent", cut, "--fit", fitMode, "--focus", String(focus[0]), String(focus[1])]) as { rows: number[][] };
+      for (const d of behind) Object.assign(d.params, { cutout: `assets/media/${cutName}`, fit: fitMode, focus, subject: extent.rows });
     }
     stageHtml = m.html("") + tone("m") + (m.cfg.holds.length ? flash : "");
     videos = m.videos;

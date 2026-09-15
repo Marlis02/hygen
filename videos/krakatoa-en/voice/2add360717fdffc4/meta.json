@@ -1,0 +1,9 @@
+{
+  "label": "krakatoa-en/03-heard",
+  "voiceId": "uju3wxzG5OhpWcoi3SMy",
+  "model": "eleven_multilingual_v2",
+  "output_format": "pcm_24000",
+  "chars": 106,
+  "character_cost": 58,
+  "text": "Four thousand eight hundred kilometers away, on Rodrigues, people heard it and thought it was cannon fire."
+}

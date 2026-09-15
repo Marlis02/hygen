@@ -1,0 +1,9 @@
+{
+  "label": "great-fire-en/01-bakery",
+  "voiceId": "uju3wxzG5OhpWcoi3SMy",
+  "model": "eleven_multilingual_v2",
+  "output_format": "pcm_24000",
+  "chars": 50,
+  "character_cost": 28,
+  "text": "How does one bakery burn down the heart of London?"
+}

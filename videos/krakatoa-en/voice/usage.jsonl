@@ -1,0 +1,6 @@
+{"at":"2026-09-15T05:50:46.266Z","label":"krakatoa-en/01-claim","voiceId":"uju3wxzG5OhpWcoi3SMy","model":"eleven_multilingual_v2","output_format":"pcm_24000","chars":72,"character_cost":40}
+{"at":"2026-09-15T05:50:46.657Z","label":"krakatoa-en/03-heard","voiceId":"uju3wxzG5OhpWcoi3SMy","model":"eleven_multilingual_v2","output_format":"pcm_24000","chars":106,"character_cost":58}
+{"at":"2026-09-15T05:50:46.742Z","label":"krakatoa-en/02-strait","voiceId":"uju3wxzG5OhpWcoi3SMy","model":"eleven_multilingual_v2","output_format":"pcm_24000","chars":116,"character_cost":64}
+{"at":"2026-09-15T05:50:51.415Z","label":"krakatoa-en/04-column","voiceId":"uju3wxzG5OhpWcoi3SMy","model":"eleven_multilingual_v2","output_format":"pcm_24000","chars":99,"character_cost":54}
+{"at":"2026-09-15T05:50:52.753Z","label":"krakatoa-en/06-island","voiceId":"uju3wxzG5OhpWcoi3SMy","model":"eleven_multilingual_v2","output_format":"pcm_24000","chars":72,"character_cost":40}
+{"at":"2026-09-15T05:50:52.770Z","label":"krakatoa-en/05-waves","voiceId":"uju3wxzG5OhpWcoi3SMy","model":"eleven_multilingual_v2","output_format":"pcm_24000","chars":136,"character_cost":75}

@@ -2,7 +2,7 @@ import { existsSync, readdirSync, statfsSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { ENGINE_DIR, ROOT_DIR, VENDOR_SKILLS, loadEnv, python, readJson, run, stripAnsi } from "./lib/util.ts";
-import { budgetState } from "./voice.ts";
+import { budgetState, globalTakes } from "./voice.ts";
 
 const PINNED: Record<string, string> = {
   hyperframes: "0.8.36",
@@ -66,6 +66,10 @@ export function doctor(): boolean {
   add("голос по умолчанию (.env)", provider === "kokoro" || (provider === "elevenlabs" && hasKey), `${provider} · ключ ElevenLabs: ${hasKey ? "есть" : "нет"} · ELEVENLABS_VOICE_ID: ${env.ELEVENLABS_VOICE_ID ? "задан" : "не задан"} · Pexels: ${env.PEXELS_API_KEY ? "ключ есть" : "ключа нет"}`, true);
   const budget = budgetState();
   add("бюджет ElevenLabs", budget.budget === null || (budget.left ?? 0) > 0, budget.budget === null ? `не задан (ELEVENLABS_BUDGET_CHARS) · потрачено ${budget.spent} символов` : `осталось ${budget.left} из ${budget.budget} символов (потрачено ${budget.spent}; сброс — npm run voice -- --reset-budget)`, true);
+  const takes = globalTakes();
+  const inProjects = ["videos", "videos/_proof"].flatMap((b) => (existsSync(join(ROOT_DIR, b)) ? readdirSync(join(ROOT_DIR, b)).map((n) => join(ROOT_DIR, b, n, "voice")) : [])).filter((d) => existsSync(d));
+  const projTakes = inProjects.reduce((n, d) => n + readdirSync(d).filter((k) => existsSync(join(d, k, "take.wav"))).length, 0);
+  add("кэш голоса ElevenLabs", takes.videos.length === 0, `в проектах ${projTakes} дублей (${inProjects.length} папок videos/<id>/voice, в git) · в .cache/voice превью ${takes.previews}${takes.videos.length ? ` · дублей роликов ${takes.videos.length} — npm run voice -- --migrate` : ""}`, true);
   const emoji = run("fc-list", [], { allowFail: true });
   add("эмодзи-шрифт (субтитры emoji-pop)", emoji.status === 0 && /emoji/i.test(emoji.stdout), emoji.status === 0 && /emoji/i.test(emoji.stdout) ? "есть" : "нет цветного эмодзи-шрифта — значки emoji-pop пропадут (apt install fonts-noto-color-emoji)", true);
 

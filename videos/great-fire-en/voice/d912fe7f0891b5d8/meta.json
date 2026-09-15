@@ -1,0 +1,9 @@
+{
+  "label": "great-fire-en/07-monument",
+  "voiceId": "uju3wxzG5OhpWcoi3SMy",
+  "model": "eleven_multilingual_v2",
+  "output_format": "pcm_24000",
+  "chars": 92,
+  "character_cost": 51,
+  "text": "The fire's monument stands two hundred and two feet from the bakery, and it is just as tall."
+}

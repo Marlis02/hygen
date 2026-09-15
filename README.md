@@ -1,98 +1,189 @@
 # hygen
 
-Движок англоязычного faceless-канала: тема → сценарий → голос → сцены с эффектами → субтитры и звук → черновик → финал. Shorts 1080×1920, позже Long 1920×1080.
+Движок англоязычного faceless-канала. Из темы он делает готовый к выкладке Short 1080×1920: исследование с источниками → сценарий → голос → кадры с эффектами → субтитры, звук и музыка → MP4 с автопроверкой → папка `publish/` (названия, описание, теги, SRT, обложка). Long 16:9 — позже.
 
-Правила работы и структура — в [CLAUDE.md](CLAUDE.md). План недели — в [ROADMAP.md](ROADMAP.md). Ловушки рендера — в [TRAPS.md](TRAPS.md), решения — в [DECISIONS.md](DECISIONS.md).
+Режиссёр — навык Claude Code `/short`: он пишет `videos/<id>/video.json`. Движок (`engine/`) собирает из этого файла ролик одной командой. Рендер — [HyperFrames](https://github.com/heygen-com/hyperframes) 0.8.36 (HTML + GSAP → MP4).
 
-## Запуск
+| Документ | Что в нём |
+|---|---|
+| [CLAUDE.md](CLAUDE.md) | правила работы, структура, голос, звук, медиа, секреты |
+| [ROADMAP.md](ROADMAP.md) | единственный план, прогресс и замеры (старые версии — `roadmap/history/`) |
+| [TRAPS.md](TRAPS.md) | ловушки рендера: одна строка — одна проблема и обход |
+| [DECISIONS.md](DECISIONS.md) | принятые решения и почему |
+| [sessions/](sessions/) | отчёты сессий с кадрами и замерами |
+| [engine/scenes/CONTRACT.md](engine/scenes/CONTRACT.md) | формат `video.json`: бит, stage, устройства, текст, голос, звук, publish |
 
-```bash
-npm ci                                # зависимости, версии закреплены
-npm run doctor                        # проверка окружения
-npm run build -- videos/pompeii-en    # весь конвейер до MP4 с автопроверкой
-npm run verify -- videos/pompeii-en   # автопроверка готового MP4 и контактный лист
-npm run scenes                        # библиотека сцен: параметры и якоря
-npm run scene -- counter-title        # превью одной сцены без голоса (.preview/<id>/sheet.jpg)
-npm run scene -- counter-title --look abyss                          # сцена под look ролика
-npm run scene -- map-marker --look storm --beat '{"type":{"count":"stagger"},"camera":"handheld","post":[{"id":"flicker"}]}'
-npm run scene -- fraction-finale --textures '[{"id":"rain"}]'         # текстура поверх сцены
-npm run scene -- --device annotate.box                               # бит v2: устройство на нейтральном stage
-npm run scene -- --stage media --src videos/_proof/titanic-v2/media/titanic-pathe-1912-belfast.webm --text "It was gone" --beat '{"stage":{"fit":"contain"},"devices":[{"type":"edit.hold","at":"gone"}],"dominant":0}'
-npm run scene -- quote-card                                          # JSON-рецепт без HTML
-npm run build -- videos/_proof/titanic-v2                            # proof бита v2: stage + devices + intent
-npm run build -- videos/halifax-en --voice kokoro                    # черновой голос без трат символов (финал — ElevenLabs из video.json)
-npm run voices -- "<реплика>"                                        # одна реплика четырьмя голосами ElevenLabs → videos/_proof/voices/
-npm run publish -- videos/great-fire-en                              # publish/ из готового MP4: названия, описание с источниками и кредитами, теги, SRT, обложка
-```
+Готовые ролики: `videos/pompeii-en` (эталон, Kokoro), `videos/halifax-en`, `videos/great-fire-en`, `videos/titanic-en`, `videos/krakatoa-en`. Proof-ролики возможностей — `videos/_proof/` (`typo` — все режимы текста, `media-ops` — операции с видео, `voices` — превью голосов).
 
-Сравнение и регрессия:
+## 1. Установка на новой машине
+
+Порядок собран по опыту двух машин (ноутбук — D1, компьютер №2 на Ubuntu 24.04 — D3.5 и D7); с нуля одной командой не прогонялся — если что-то не встало, `npm run doctor` скажет, чего не хватает. Видеокарта рендеру не нужна. Около 30–45 минут, большую часть времени занимают скачивания.
 
 ```bash
-python3 engine/py/compare_frames.py <эталон>.contact.jpg <новый>.contact.jpg       # плитка за плиткой: среднее ≤ 3, блок ≤ 40
-python3 engine/py/contact_montage.py videos/_compare/contact-3.jpg \
-  videos/pompeii-en/renders/pompeii-en.contact.jpg:"pompeii-en · ember" …        # листы роликов один под другим
+# 1. Системное
+sudo apt install -y git ffmpeg python3-pip cmake build-essential fonts-noto-color-emoji
+# 2. Node ≥ 22.18 (TypeScript запускается без сборки) — через nvm
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
+. ~/.nvm/nvm.sh && nvm install 22
+# 3. Репозиторий и зависимости (версии закреплены в package-lock.json)
+git clone <repo> hygen && cd hygen
+npm ci
+# 4. Python-пакеты движка и голос Kokoro
+python3 -m pip install --user numpy scipy soundfile pillow kokoro-onnx
+# 5. Ключи
+cp .env.example .env        # и заполнить, см. раздел 2
+# 6. Проверка
+npm run doctor
 ```
 
-Новый ролик от темы: в Claude Code `/short "Halifax Explosion 1917"` — исследование с источниками, концепция мира (look), арка (structure × hook × protagonist × ending), сценарий, для каждого бита «что видит зритель» → intent + target + данные (stage + устройства), медиа командой `npm run media` с ролью, грамматика и снимки до рендера, `videos/<id>/video.json` с блоком `publish` и сборка (`.claude/commands/short.md`, v3.1). Бит v2 — `engine/scenes/CONTRACT.md`, «Бит v2»; голос, звук, музыка и публикация — там же, раздел «D5».
+Что важно знать:
 
-`build` идёт по шагам: голос (ElevenLabs с таймингами слов из API или Kokoro + whisper) → звук по таймингам (гул и ручные удары) → сцены под голос → звуки событий устройств, сцен и переходов → музыка с приглушением под голос → `index.html` с субтитрами и шинами → `hyperframes lint` и `check` → рендер → мастеринг до −14 LUFS → `publish/` → автопроверка MP4.
+- **nvm и неинтерактивный шелл.** Если Node стоит через nvm, в скриптах и у агента `node` и `npm` не видны — перед командами `. ~/.nvm/nvm.sh`.
+- **Модели скачиваются сами** при первой сборке в `~/.cache/hyperframes`: Kokoro (~330 МБ), whisper large-v3-turbo (~1,6 ГБ, whisper.cpp собирается из исходников — нужны `cmake` и компилятор), Chrome для рендера. `npm run doctor` показывает, чего не хватает; строки «скачается при первом …» — предупреждение, не ошибка.
+- **Шрифты, GSAP и скрипты навыков лежат в проекте** (`engine/assets`, `engine/vendor`) — при рендере сеть не нужна.
+- **Голос ElevenLabs едет с проектом:** дубли лежат в `videos/<id>/voice/` и в git, поэтому пересборка ролика на новой машине не тратит символов. Старый глобальный кэш `.cache/voice/elevenlabs` с другой машины переносится в проекты командой `npm run voice -- --migrate`.
+- Первая сборка Помпей на чистой машине — около 6 минут, дальше из кэша — около 4.
+- Финал одного ролика рендерится целиком на одной машине.
+- Навыки HyperFrames для Claude Code — `.agents/skills/`, версии в `skills-lock.json`. Навык-режиссёр — `.claude/commands/short.md`.
 
-Голос: `.env → VOICE_PROVIDER=kokoro|elevenlabs` (+ `ELEVENLABS_API_KEY`, `ELEVENLABS_VOICE_ID`), в ролике `"voice": {"provider": "elevenlabs", "voiceId": "…"}`, флаг `--voice` сильнее всего. Дубли ElevenLabs кэшируются в `.cache/voice/elevenlabs`, расход символов — `usage.jsonl` там же и строка «голос:» в конце сборки; при ошибке API сборка откатывается на Kokoro. Музыка — `engine/assets/music/MUSIC.md`.
+## 2. Настройки: `.env`
 
-Полезные флаги: `--no-render` (остановиться перед рендером), `--quality draft|standard|high`, `--no-check`, `--no-snapshots`.
+`.env` не попадает в git; образец — `.env.example`.
 
-Результаты ролика лежат в `videos/<ролик>/renders/`: `<id>.mp4`, контактный лист `<id>.contact.jpg`, отчёт автопроверки `<id>.verify.json`, тайминги сборки `<id>.build.json`; к выкладке — `videos/<ролик>/publish/` (`title.txt`, `description.md`, `tags.txt`, `subtitles.srt`, `thumbnail.jpg`). Рендеры, кэши голоса и ASR в git не попадают.
+| Переменная | Что |
+|---|---|
+| `VOICE_PROVIDER` | `kokoro` (бесплатный черновой голос) или `elevenlabs` (финал) — голос по умолчанию |
+| `ELEVENLABS_API_KEY` | ключ ElevenLabs; без него сборка откатывается на Kokoro с предупреждением |
+| `ELEVENLABS_VOICE_ID` | голос по умолчанию для всех роликов; выбрать на слух — `videos/_proof/voices/README.md` |
+| `ELEVENLABS_BUDGET_CHARS` | потолок символов с последнего сброса; реплики сверх бюджета озвучиваются Kokoro без запроса к API |
+| `PEXELS_API_KEY` | поиск фото и видео в Pexels (без ключа — только Wikimedia Commons) |
 
-## Поиск медиа
+Выбор голоса: флаг `--voice` > `voice` в `video.json` > `VOICE_PROVIDER` > kokoro. Бюджет: `npm run voice` (потрачено и осталось), `npm run voice -- --reset-budget`.
 
-Только то, что можно брать в ролик: Wikimedia Commons (public domain, CC0, CC BY, CC BY-SA) и Pexels, если в `.env` есть `PEXELS_API_KEY`.
+## 3. Как сделать ролик
 
 ```bash
-npm run media -- "Halifax Explosion 1917" --n 6 --sheet .preview/media-halifax.jpg   # таблица (файл, автор, лицензия, размер, ссылка, описание) и лист миниатюр с номерами
-npm run media -- "Halifax Explosion" --video --n 4                                    # видео с длительностью
-npm run media -- --get "File:Halifax Explosion blast cloud.jpg" halifax-en --as blast-cloud             # videos/halifax-en/media/blast-cloud.jpg + .license.json
-npm run media -- --get "File:Halifax Explosion, W.G. MacLaughlan, 1917-1920, Scene 08.webm" halifax-en --in 12 --out 19   # отрезок без звука, VP9 webm
+# 1. В Claude Code, в корне репозитория:
+/short "Halifax Explosion 1917"
+#    навык исследует тему (цитаты в research.md), выбирает мир (look) и арку, пишет сценарий,
+#    для каждого бита — «что видит зритель» → stage + устройства, ищет медиа с лицензией,
+#    проверяет грамматику и собирает videos/<id>/video.json
+# 2. Сборка — голос, кадры, звук, рендер, мастеринг, publish/, автопроверка:
+npm run build -- videos/halifax-en
+#    черновик без трат символов:            --voice kokoro
+#    остановиться перед рендером:           --no-render
+# 3. Проверка готового MP4 (контактный лист и отчёт):
+npm run verify -- videos/halifax-en
 ```
 
-## Что нужно на машине
+Что получится в папке ролика:
 
-Node ≥ 22.18, Python 3.10+ с `numpy scipy soundfile pillow`, ffmpeg с `ebur128`, Chrome. Локальные модели ставятся один раз:
+| Путь | Что | В git |
+|---|---|---|
+| `video.json` | ролик целиком: биты, текст, stage, устройства, look, голос, музыка, publish | да |
+| `research.md` | источники и дословные цитаты к каждой цифре | да |
+| `media/` | картинки и видео + `<файл>.license.json` на каждый | да |
+| `voice/` | дубли ElevenLabs (`take.wav`, `alignment.json`, `meta.json`) и `usage.jsonl` | да |
+| `renders/<id>.mp4` | итоговый ролик | нет |
+| `renders/<id>.contact.jpg` | контактный лист кадров из MP4 — по нему принимаем | да |
+| `renders/<id>.verify.json` | отчёт автопроверки | нет |
+| `publish/` | `title.txt` (3 названия), `description.md` (с источниками и кредитами медиа), `tags.txt`, `subtitles.srt`, `thumbnail.jpg` | да |
+| `build/`, `.cache/` | сборка HyperFrames и кэши | нет |
+
+Автопроверка (`verify`) смотрит на сам MP4: формат и длительность, громкость (−14 LUFS, пик ≤ −1,5 dBTP), пустые и застывшие сцены, совпадение кадров со снимками, размер (≤ 25 МБ на 10 с), источники у каждой цифры, лицензии, грамматику битов, контраст субтитров, уникальность против других роликов, полноту `publish/`. Последнее слово — за кадрами контактного листа.
+
+Правило движка: всё привязано к словам голоса, а не к секундам. Сменился голос — устройства, шторки и субтитры сдвинулись сами.
+
+## 4. Как устроен бит
+
+Ролик — 5–7 битов. Бит — одна реплика и один кадр:
+
+```json
+{
+  "id": "06-gone",
+  "text": "In four days, at least [13,200|thirteen thousand two hundred] houses were gone.",
+  "stage": { "type": "split", "a": { "src": "media/before.jpg" }, "b": { "src": "media/after.jpg" }, "at": "gone" },
+  "devices": [ { "type": "data.count", "at": "thirteen", "params": { "to": 13200, "label": "HOUSES DESTROYED" }, "source": "https://…" } ],
+  "dominant": 0
+}
+```
+
+- **stage** — база кадра, ровно одна: `media` (фото или видео: `in`/`out`, `rate`, `hold`, `crop`, `pan`, `zoom`, `treatment`), `split` (до/после шторкой), `map` (силуэт, маркеры, маршрут), `color`.
+- **devices** — 0–3 устройства поверх: фокус, аннотации, данные, текст. Время — якорное слово реплики (`"at": "gone"`, `"how+0.4"`).
+- **intent** — готовое намерение (`show-evidence`, `compare`, `locate`…), которое раскрывается в stage + устройства; явные поля бита сильнее.
+- `[показ|произношение]` в тексте — как число выглядит в субтитрах и как его читает голос.
+
+Полный формат — `engine/scenes/CONTRACT.md`. Превью без голоса и рендера ролика — за секунды:
 
 ```bash
-python3 -m pip install --user kokoro-onnx      # голос Kokoro
+npm run scenes                                                        # сцены-рецепты с параметрами
+npm run scene -- counter-title --look abyss                           # сцена под look
+npm run scene -- --device annotate.box                                # устройство на нейтральном stage
+npm run scene -- --device text.caption --preset highlight --look bright-explainer
+npm run scene -- --device text.kinetic --beat '{"devices":[{"type":"text.kinetic","at":0.4,"params":{"mode":"extrude","text":"WAVES"}}],"dominant":0}'
 ```
 
-Модели Kokoro (~330 МБ) и whisper large-v3-turbo (~1,6 ГБ) скачиваются сами при первом прогоне в `~/.cache/hyperframes`, whisper.cpp собирается из исходников (нужны `cmake` и компилятор). `npm run doctor` показывает, чего не хватает.
+## 5. Как расширять библиотеку
 
-## Машины
+### Ассет (картинка, видео)
 
-| Машина | Железо | Что отличалось | Настройка |
+Только источники с лицензией: Wikimedia Commons, Pexels (и NASA, Pixabay — вручную с записью лицензии).
+
+```bash
+npm run media -- "Halifax Explosion 1917" --n 6 --sheet .preview/halifax.jpg   # таблица + лист миниатюр с номерами
+npm run media -- "ocean waves" --provider pexels --video                        # только Pexels, видео
+npm run media -- --get "File:Halifax Explosion blast cloud.jpg" halifax-en --as blast-cloud
+npm run media -- --get "pexels:photo:57884" _proof/media-ops --as harbour --width 2400
+npm run media -- --get "File:<хроника>.webm" halifax-en --in 12 --out 19        # отрезок видео без звука
+```
+
+`--get` кладёт файл в `videos/<id>/media/` и рядом `<имя>.license.json` (источник, автор, лицензия, ссылка). Файл без записи о лицензии сборка не возьмёт. Хронику с водяным знаком (British Pathé) не брать или кадрировать — риск Content ID.
+
+### Look — мир ролика
+
+`engine/looks/<id>/look.json`: палитра (`accent`, `secondary`, `groundTint`, `textColor`, при светлом мире — `colors`), текстуры, камера, типографика, пост-эффекты, переходы, зерно, виньетка, звуковые подсказки, умолчания субтитров (`captions`) и `typography`. Образцы: `ember`, `abyss`, `storm`, `bright-explainer`. Ролик подключает look по имени (`"look": "storm"`) или своим объектом с `extends`. Неизвестное поле — ошибка сборки. Проверка: `npm run scene -- counter-title --look <id>`.
+
+### Пресет субтитров
+
+1. `engine/devices/text.caption/presets/<имя>.js` — `HygenCaptions.define("<имя>", { family, origin, owns: { background, active, entrance }, mount(api, g) { … } })`. Всё анимировать на `api.tl` (paused-таймлайн, без колбэков `onUpdate` и без `Math.random()` — TRAPS.md).
+2. Имя — в семейство в `engine/devices/text.caption/families.json` (calm | explainer | energetic).
+3. Превью: `npm run scene -- --device text.caption --preset <имя>`. Пресет, который сам красит буквы, объявляет `ink: "light"` — по нему меряется контраст.
+
+### Режим кинетического текста
+
+1. Ветка `mode === "<режим>"` в `engine/devices/text.kinetic/device.js`: элементы через `node(...)`, ширину строки — оценкой `fit()`/`measure()` (не замером canvas — TRAPS «Замер текста до загрузки шрифта»), время — `at`, `wordsAt` или `beats`.
+2. Значение в `params.mode.values` и описание в `engine/devices/text.kinetic/device.json`.
+3. Превью через `npm run scene -- --device text.kinetic --beat '…'`, затем бит в `videos/_proof/typo`.
+
+### Устройство
+
+1. Папка `engine/devices/<группа>.<имя>/`: `device.json` (слой `focus | data | annotate | text`, `target`, параметры с типами и умолчаниями, события для звука и проверки) и `device.js` — `HygenDevices.define("<тип>", function (api, dev) { … })`.
+2. Компонент из реестра HyperFrames не вставляется как есть: `npx hyperframes add <компонент>` → копия в `engine/devices/vendor/` с хэшем и версией в `VENDOR.md`, порт на токены look и один таймлайн.
+3. Грамматика бита (≤ 3 устройств, ≤ 1 `data.*`, `explains` у аннотаций) проверяется в `build` и `verify`.
+4. Превью: `npm run scene -- --device <тип>`.
+
+Другие точки расширения: intents — `engine/intents/*.json`, JSON-рецепты — `engine/scenes/recipes/`, арки — `engine/arcs/`, текстуры — `engine/textures/`, переходы — `engine/transitions/`, музыка — `engine/assets/music/` (+ `MUSIC.md` с лицензией).
+
+## 6. Справка по командам
+
+| Команда | Что |
+|---|---|
+| `npm run doctor` | окружение: версии, ffmpeg, Python, ключи, бюджет, кэш голоса, модели, место |
+| `npm run build -- videos/<id>` | весь конвейер до MP4 и `publish/` (`--voice`, `--no-render`, `--quality draft\|standard\|high`, `--no-check`, `--no-snapshots`) |
+| `npm run verify -- videos/<id>` | автопроверка готового MP4 |
+| `npm run publish -- videos/<id>` | пересобрать `publish/` без рендера |
+| `npm run media -- "<запрос>"` | поиск и скачивание медиа с лицензией |
+| `npm run voice [-- --reset-budget \| --migrate]` | бюджет ElevenLabs; перенос старого кэша дублей в проекты |
+| `npm run voices -- "<реплика>"` | одна реплика четырьмя голосами ElevenLabs → `videos/_proof/voices/` |
+| `npm run scene`, `npm run scenes` | превью сцены, устройства, пресета |
+| `npm run typecheck` | проверка типов TypeScript |
+| `python3 engine/py/compare_frames.py <эталон>.contact.jpg <новый>.contact.jpg` | регрессия по контактным листам: плитка за плиткой |
+
+`build` идёт по шагам: голос (ElevenLabs с таймингами слов из API или Kokoro + whisper) → звук по таймингам → кадры под голос → звуки событий устройств и переходов → музыка с приглушением под голос → субтитры с замером контраста → `hyperframes lint` и `check` → рендер → мастеринг до −14 LUFS → `publish/` → автопроверка.
+
+## 7. Машины
+
+| Машина | Железо | Особенности | Скорость |
 |---|---|---|---|
-| Ноутбук (D1–D3) | Ryzen 5 5600H, RTX 3050, 16 ГБ | модели Kokoro и whisper скачаны, whisper.cpp собран в D1 | ≈ 45 мин в D1 |
-| Компьютер №2 (с D3.5) | Intel i5-10400 (6 ядер / 12 потоков), GTX 1650 4 ГБ, 31 ГБ, Ubuntu 24.04 | Node стоит через nvm (`~/.nvm`, v25.6.1): в неинтерактивном шелле `npm` и `node` не видны — перед командами `. ~/.nvm/nvm.sh`. Модели Kokoro, whisper large-v3-turbo и Chrome уже лежали в `~/.cache/hyperframes`, `node_modules` на месте | `npm run doctor` зелёный с первого раза; проверочная сборка Помпей 5 мин 48 с |
-
-Скорость на компьютере №2 (сборка с нуля, кэшей голоса нет): Помпеи 56 с — голос 23 с, тайминги слов 78 с, рендер 95,5 с (4 потока), мастеринг 92 с, всего 5 мин 48 с; Titanic 35 с — 4 мин 15 с; Krakatoa 44 с — 4 мин 53 с. На ноутбуке рендер Помпей шёл 89 с.
-
-## Ролик
-
-Ролик описывается одним файлом `videos/<ролик>/video.json`: биты с текстом на английском, сцена библиотеки на бит, её параметры и якорные слова, оттенок, сид, источники цифр, переходы и звук. Сцены живут в `engine/scenes/` (контракт — [engine/scenes/CONTRACT.md](engine/scenes/CONTRACT.md)), стиль на токенах — в `engine/styles/`.
-
-Каждый ролик — свой мир поверх стиля: `look` (`engine/looks/` — палитра, текстуры, камера, типографика, пост-эффекты, переходы; или свой объект в video.json), текстуры (`engine/textures/`), медиафон бита, motion (`engine/motion/`) и переходы (`engine/transitions/`). Сцены о слоях не знают. Автопроверка `uniqueness` падает, если ролик похож на другой из `videos/` (акцент ближе 30° и тот же набор текстур). MP4 — H.264 crf 18, до 25 МБ на 10 с; автопроверка падает, если у цифры на экране нет ссылки на источник. Всё привязано к словам голоса: сменился голос — сцены и субтитры сдвинулись вместе с ним.
-
-## Текст на экране, ритм и голос (D6)
-
-```bash
-. ~/.nvm/nvm.sh
-npm run scene -- --device text.caption --preset pill-karaoke --look bright-explainer   # превью пресета субтитров (20 пресетов, семейства — engine/devices/text.caption/families.json)
-npm run scene -- --device text.kinetic --beat '{"devices":[{"type":"text.kinetic","at":0.4,"params":{"mode":"stack","text":"BLUE"}}],"dominant":0}'
-npm run scene -- --device data.dots          # вторая волна: data.dots, data.timeline, edit.pip
-npm run voice                                # бюджет ElevenLabs: потрачено и осталось (ELEVENLABS_BUDGET_CHARS в .env)
-npm run voice -- --reset-budget              # сброс счёта символов
-npm run media -- "harbour 1917" --provider pexels   # поиск только в Pexels (all | commons | pexels)
-python3 engine/py/beats.py <трек.wav> --out .cache/beats/x.json                    # сетка битов вручную (сборка делает сама)
-```
-
-- Субтитры — `captions` в video.json и `caption` у бита поверх `look.captions`; старый слой с плашкой и линией убран. Контраст под субтитрами сборка меряет сама до рендера и подкладывает wash/blur.
-- Кинетический текст — устройство `text.kinetic` (12 режимов), ритм устройств — `sync: voice | music | both`, тестовый трек с битом — `engine/assets/music/test-beat-100.wav`.
-- Контракт — `engine/scenes/CONTRACT.md`, раздел «Текст на экране (D6)»; навык `/short` v3.2 — шаг «текст на экране».
-- Proof текстовой системы — `videos/_proof/typo` (look `bright-explainer`).
+| Ноутбук (D1–D5) | Ryzen 5 5600H, RTX 3050, 16 ГБ | модели и whisper.cpp поставлены в D1 (≈ 45 мин) | рендер Помпей 89 с |
+| Компьютер №2 (с D3.5) | i5-10400 (12 потоков), GTX 1650, 31 ГБ, Ubuntu 24.04 | Node через nvm; `.env` и кэш голоса перенесены в D7 | Помпеи 56 с: сборка 4 мин 8 с, рендер 97 с (4 потока) |

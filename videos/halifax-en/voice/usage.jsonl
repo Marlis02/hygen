@@ -1,0 +1,6 @@
+{"at":"2026-09-14T10:38:32.351Z","label":"halifax-en/05-richmond","voiceId":"uju3wxzG5OhpWcoi3SMy","model":"eleven_multilingual_v2","output_format":"pcm_24000","chars":115,"character_cost":63}
+{"at":"2026-09-14T10:42:36.818Z","label":"halifax-en/02-cargo","voiceId":"uju3wxzG5OhpWcoi3SMy","model":"eleven_multilingual_v2","output_format":"pcm_24000","chars":103,"character_cost":57}
+{"at":"2026-09-14T10:42:36.810Z","label":"halifax-en/01-watch","voiceId":"uju3wxzG5OhpWcoi3SMy","model":"eleven_multilingual_v2","output_format":"pcm_24000","chars":116,"character_cost":64}
+{"at":"2026-09-14T10:38:44.987Z","label":"halifax-en/06-tree","voiceId":"uju3wxzG5OhpWcoi3SMy","model":"eleven_multilingual_v2","output_format":"pcm_24000","chars":109,"character_cost":60}
+{"at":"2026-09-14T10:38:18.797Z","label":"halifax-en/04-blast","voiceId":"uju3wxzG5OhpWcoi3SMy","model":"eleven_multilingual_v2","output_format":"pcm_24000","chars":89,"character_cost":49}
+{"at":"2026-09-14T10:38:11.122Z","label":"halifax-en/03-telegraph","voiceId":"uju3wxzG5OhpWcoi3SMy","model":"eleven_multilingual_v2","output_format":"pcm_24000","chars":89,"character_cost":49}

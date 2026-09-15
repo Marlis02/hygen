@@ -1,0 +1,9 @@
+{
+  "label": "halifax-en/06-tree",
+  "voiceId": "uju3wxzG5OhpWcoi3SMy",
+  "model": "eleven_multilingual_v2",
+  "output_format": "pcm_24000",
+  "chars": 109,
+  "character_cost": 60,
+  "text": "Every year since nineteen seventy-one, Nova Scotia has sent Boston a Christmas tree. It still says thank you."
+}

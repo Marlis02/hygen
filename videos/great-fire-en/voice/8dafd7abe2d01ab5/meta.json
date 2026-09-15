@@ -1,0 +1,9 @@
+{
+  "label": "great-fire-en/04-bridge",
+  "voiceId": "uju3wxzG5OhpWcoi3SMy",
+  "model": "eleven_multilingual_v2",
+  "output_format": "pcm_24000",
+  "chars": 104,
+  "character_cost": 57,
+  "text": "The flames took the water wheels under London Bridge. The pipes ran dry, and the east wind did the rest."
+}

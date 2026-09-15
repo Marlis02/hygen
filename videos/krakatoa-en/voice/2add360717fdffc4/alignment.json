@@ -1,0 +1,87 @@
+[
+  {
+    "text": "Four",
+    "start": 0,
+    "end": 0.255
+  },
+  {
+    "text": "thousand",
+    "start": 0.313,
+    "end": 0.685
+  },
+  {
+    "text": "eight",
+    "start": 0.72,
+    "end": 0.859
+  },
+  {
+    "text": "hundred",
+    "start": 0.894,
+    "end": 1.126
+  },
+  {
+    "text": "kilometers",
+    "start": 1.161,
+    "end": 1.695
+  },
+  {
+    "text": "away,",
+    "start": 1.73,
+    "end": 2.183
+  },
+  {
+    "text": "on",
+    "start": 2.31,
+    "end": 2.473
+  },
+  {
+    "text": "Rodrigues,",
+    "start": 2.543,
+    "end": 3.355
+  },
+  {
+    "text": "people",
+    "start": 3.576,
+    "end": 3.878
+  },
+  {
+    "text": "heard",
+    "start": 3.924,
+    "end": 4.133
+  },
+  {
+    "text": "it",
+    "start": 4.18,
+    "end": 4.284
+  },
+  {
+    "text": "and",
+    "start": 4.365,
+    "end": 4.54
+  },
+  {
+    "text": "thought",
+    "start": 4.586,
+    "end": 4.807
+  },
+  {
+    "text": "it",
+    "start": 4.83,
+    "end": 4.888
+  },
+  {
+    "text": "was",
+    "start": 4.923,
+    "end": 5.016
+  },
+  {
+    "text": "cannon",
+    "start": 5.085,
+    "end": 5.445
+  },
+  {
+    "text": "fire.",
+    "start": 5.515,
+    "end": 6.223
+  }
+]

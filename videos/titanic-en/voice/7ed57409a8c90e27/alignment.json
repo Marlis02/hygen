@@ -1,0 +1,82 @@
+[
+  {
+    "text": "Two",
+    "start": 0,
+    "end": 0.232
+  },
+  {
+    "text": "hours",
+    "start": 0.302,
+    "end": 0.615
+  },
+  {
+    "text": "and",
+    "start": 0.65,
+    "end": 0.731
+  },
+  {
+    "text": "forty",
+    "start": 0.813,
+    "end": 1.068
+  },
+  {
+    "text": "minutes",
+    "start": 1.126,
+    "end": 1.405
+  },
+  {
+    "text": "after",
+    "start": 1.44,
+    "end": 1.637
+  },
+  {
+    "text": "the",
+    "start": 1.672,
+    "end": 1.741
+  },
+  {
+    "text": "collision,",
+    "start": 1.776,
+    "end": 2.31
+  },
+  {
+    "text": "the",
+    "start": 2.392,
+    "end": 2.485
+  },
+  {
+    "text": "largest",
+    "start": 2.543,
+    "end": 2.891
+  },
+  {
+    "text": "ship",
+    "start": 2.926,
+    "end": 3.111
+  },
+  {
+    "text": "afloat",
+    "start": 3.158,
+    "end": 3.495
+  },
+  {
+    "text": "broke",
+    "start": 3.576,
+    "end": 3.843
+  },
+  {
+    "text": "apart",
+    "start": 3.878,
+    "end": 4.284
+  },
+  {
+    "text": "and",
+    "start": 4.354,
+    "end": 4.505
+  },
+  {
+    "text": "sank.",
+    "start": 4.598,
+    "end": 5.341
+  }
+]

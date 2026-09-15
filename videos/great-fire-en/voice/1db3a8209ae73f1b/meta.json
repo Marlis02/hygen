@@ -1,0 +1,9 @@
+{
+  "label": "great-fire-en/06-gone",
+  "voiceId": "uju3wxzG5OhpWcoi3SMy",
+  "model": "eleven_multilingual_v2",
+  "output_format": "pcm_24000",
+  "chars": 70,
+  "character_cost": 39,
+  "text": "In four days, at least thirteen thousand two hundred houses were gone."
+}

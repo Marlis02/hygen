@@ -107,11 +107,12 @@
       "dominant": 0
     },
     {
-      "id": "11-look-up", "role": "step",
+      "id": "11-look-up",
+      "role": "step",
       "text": "Look up, and that scattered blue is what you see.",
       "pad": [0.2, 0.8],
-      "stage": { "type": "media", "src": "media/woman-sky.jpg", "fit": "cover", "focus": [0.5, 0.5] },
-      "devices": [{ "type": "text.kinetic", "at": "look", "params": { "mode": "behind-subject", "text": "LOOK UP", "position": "top", "size": "xl" } }],
+      "stage": { "type": "media", "src": "media/woman-sky.jpg", "fit": "contain", "focus": [0.5, 0.5] },
+      "devices": [{ "type": "text.kinetic", "at": "look", "params": { "mode": "behind-subject", "text": "LOOK UP", "position": "center", "size": "xl" } }],
       "dominant": 0
     },
     {

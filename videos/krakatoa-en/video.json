@@ -7,10 +7,7 @@
   "style": "documentary-dark",
   "look": "storm",
   "retells": "krakatoa-v2",
-  "voice": {
-    "provider": "elevenlabs",
-    "voice": "am_michael"
-  },
+  "voice": { "provider": "elevenlabs" },
   "arc": {
     "structure": "mechanism",
     "hook": "counterintuitive-claim",
@@ -23,15 +20,8 @@
       "id": "01-claim",
       "role": "hook",
       "text": "The loudest sound in history was not a war, or a bomb. It was an island.",
-      "pad": [
-        0.2,
-        1.1
-      ],
-      "stage": {
-        "type": "color",
-        "color": "night",
-        "glow": true
-      },
+      "pad": [0.2, 1.1],
+      "stage": { "type": "color", "color": "night", "glow": true },
       "devices": [
         {
           "type": "text.kinetic",
@@ -39,24 +29,14 @@
           "params": {
             "mode": "type-swap",
             "text": "THE LOUDEST SOUND",
-            "words": [
-              "A WAR?",
-              "A BOMB?",
-              "AN ISLAND"
-            ],
-            "wordsAt": [
-              "war",
-              "bomb",
-              "island"
-            ],
-            "size": "m"
+            "words": ["A WAR?", "A BOMB?", "AN ISLAND"],
+            "wordsAt": ["war", "bomb", "island"],
+            "size": "xl"
           }
         }
       ],
       "dominant": 0,
-      "sources": {
-        "text": "https://en.wikipedia.org/wiki/1883_eruption_of_Krakatoa"
-      }
+      "sources": { "text": "https://en.wikipedia.org/wiki/1883_eruption_of_Krakatoa" }
     },
     {
       "id": "02-strait",
@@ -305,33 +285,20 @@
       "id": "06-island",
       "role": "ending",
       "text": "When the ash finally settled, [two-thirds|two thirds] of the island were simply gone.",
-      "pad": [
-        0.6,
-        2.4
-      ],
+      "pad": [0.6, 2.4],
       "stage": {
         "type": "split",
-        "a": {
-          "src": "media/krakatoa-before.jpg"
-        },
-        "b": {
-          "src": "media/krakatoa-after.jpg"
-        },
+        "a": { "src": "media/krakatoa-before.jpg", "treatment": "duotone" },
+        "b": { "src": "media/krakatoa-after.jpg", "treatment": "duotone" },
         "at": "settled",
         "dur": 1.2,
         "direction": "left",
-        "labels": [
-          "BEFORE",
-          "AFTER"
-        ]
+        "labels": ["BEFORE", "AFTER"]
       },
       "devices": [
         {
           "type": "data.count",
-          "target": {
-            "x": 50,
-            "y": 11
-          },
+          "target": { "x": 50, "y": 11 },
           "at": "two",
           "params": {
             "from": 0,

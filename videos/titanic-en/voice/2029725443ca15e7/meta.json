@@ -1,0 +1,9 @@
+{
+  "label": "titanic-en/04-lifeboats",
+  "voiceId": "uju3wxzG5OhpWcoi3SMy",
+  "model": "eleven_multilingual_v2",
+  "output_format": "pcm_24000",
+  "chars": 122,
+  "character_cost": 67,
+  "text": "Her twenty lifeboats could carry eleven hundred and seventy-eight people. There were twenty-two hundred and nine on board."
+}

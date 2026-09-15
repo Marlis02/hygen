@@ -1,0 +1,9 @@
+{
+  "label": "krakatoa-en/05-waves",
+  "voiceId": "uju3wxzG5OhpWcoi3SMy",
+  "model": "eleven_multilingual_v2",
+  "output_format": "pcm_24000",
+  "chars": 136,
+  "character_cost": 75,
+  "text": "More than thirty-six thousand people died, most of them in the tsunamis, and a hundred and sixty-five villages and towns were destroyed."
+}

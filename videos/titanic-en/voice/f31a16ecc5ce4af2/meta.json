@@ -1,0 +1,9 @@
+{
+  "label": "titanic-en/01-film",
+  "voiceId": "uju3wxzG5OhpWcoi3SMy",
+  "model": "eleven_multilingual_v2",
+  "output_format": "pcm_24000",
+  "chars": 89,
+  "character_cost": 49,
+  "text": "Imagine the largest ship afloat. This is the only film of her, weeks before she was gone."
+}

@@ -1,0 +1,9 @@
+{
+  "label": "great-fire-en/05-st-pauls",
+  "voiceId": "uju3wxzG5OhpWcoi3SMy",
+  "model": "eleven_multilingual_v2",
+  "output_format": "pcm_24000",
+  "chars": 91,
+  "character_cost": 50,
+  "text": "On Tuesday night, Saint Paul's caught fire. Within half an hour, its lead roof was melting."
+}

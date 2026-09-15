@@ -22,6 +22,8 @@ HygenDevices.define("text.kinetic", function (api, dev) {
   var cx = area.x + area.w / 2, cy = area.y + area.h / 2;
   var shade = "rgba(" + api.RGB.night + ",";
   var size = T.px("kinetic", P.size, api.sizes);
+  // the safe zone of Shorts across: x 70–1010 (text.schema.json → bands)
+  var safeL = 70, safeR = 1010, safeW = safeR - safeL;
 
   // beats of the device: music / both — the grid after at; voice — a steady step
   var beats = ((dev.grid && dev.grid.beats) || []).filter(function (b) { return b >= at - 0.01 && b < end - 0.05; });
@@ -110,7 +112,8 @@ HygenDevices.define("text.kinetic", function (api, dev) {
       rows.forEach(function (r, j) { tl.set(r, { className: cls + (j === idx ? "-fill" : "-line") }, bt); });
     });
   } else if (mode === "extrude") {
-    var ePx = fit(text, area.w * 0.86, size), depthN = P.depth, ang = (P.angle * Math.PI) / 180, stepPx = Math.max(3, ePx * 0.03);
+    // the word fills ≥ 70 % of the safe width whatever the size (the size only caps a short word), depth steps grow with it
+    var ePx = fit(text, safeW * 0.9, Math.max(size, Math.round(area.h * 0.45))), depthN = P.depth, ang = (P.angle * Math.PI) / 180, stepPx = Math.max(4, ePx * 0.045);
     var wrapE = node("div", { position: "absolute", left: area.x + "px", top: (cy - ePx * 0.55).toFixed(0) + "px", width: area.w + "px", height: (ePx * 1.1).toFixed(0) + "px" }, root);
     var ang2 = ang + (P.angle >= 0 ? -0.9 : 0.9);
     for (var c = depthN; c >= 1; c--) {
@@ -271,14 +274,36 @@ HygenDevices.define("text.kinetic", function (api, dev) {
       // the fixed part on its own line above the slot: both stay large, the slot never jumps sideways
       var prefix = P.words && P.words.length ? text : "";
       var longest = words.reduce(function (l, x) { return x.length > l.length ? x : l; }, "");
-      var tPx2 = Math.min(fit(longest, area.w * 0.9, Math.round(size * 0.9)), prefix ? fit(prefix, area.w * 0.9, Math.round(size * 0.9)) : 9999);
-      var lineH = tPx2 * 1.15, slotTop = prefix ? cy + lineH * 0.05 : cy - tPx2 * 0.5;
-      if (prefix) {
-        var pre = node("div", baseStyle(tPx2, { position: "absolute", left: area.x + "px", width: area.w + "px", textAlign: "center", top: (cy - lineH * 1.05).toFixed(0) + "px" }), root);
-        bg(node("span", { display: "inline-block" }, pre, prefix));
+      var cap = Math.round(size * 0.9), lineW = Math.max(area.w, safeW) * 0.9;
+      var slotPx = fit(longest, lineW, cap);
+      // a long fixed part on one line keeps the whole hook small: try 1–3 balanced lines and take the largest size
+      var pLines = prefix ? [prefix] : [], tPx2 = prefix ? Math.min(slotPx, fit(prefix, lineW, cap)) : slotPx;
+      var pw = prefix ? prefix.split(/\s+/).filter(Boolean) : [];
+      var splits = function (n) {
+        if (n === 1) return [[pw.join(" ")]];
+        var out = [];
+        for (var c1 = 1; c1 < pw.length; c1++) {
+          if (n === 2) out.push([pw.slice(0, c1).join(" "), pw.slice(c1).join(" ")]);
+          else for (var c2 = c1 + 1; c2 < pw.length; c2++) out.push([pw.slice(0, c1).join(" "), pw.slice(c1, c2).join(" "), pw.slice(c2).join(" ")]);
+        }
+        return out;
+      };
+      for (var nl = 2; nl <= Math.min(3, pw.length); nl++) {
+        splits(nl).forEach(function (ls) {
+          var px3 = Math.min(slotPx, Math.floor(area.h / ((ls.length + 1) * 1.15)));
+          ls.forEach(function (l) { px3 = Math.min(px3, fit(l, lineW, cap)); });
+          if (px3 > tPx2 * 1.1) { tPx2 = px3; pLines = ls; }
+        });
       }
+      var lineH = tPx2 * 1.15, blockTop = cy - (lineH * (pLines.length + 1)) / 2, slotTop = blockTop + lineH * pLines.length + (prefix ? lineH * 0.05 : 0);
+      if (!prefix) slotTop = cy - tPx2 * 0.5;
+      var wideL = Math.min(area.x, safeL), wideW = Math.max(area.w, safeW);
+      pLines.forEach(function (l, li) {
+        var pre = node("div", baseStyle(tPx2, { position: "absolute", left: wideL + "px", width: wideW + "px", textAlign: "center", top: (blockTop + li * lineH).toFixed(0) + "px" }), root);
+        bg(node("span", { display: "inline-block" }, pre, l));
+      });
       words.forEach(function (wd, k) {
-        var e = node("div", baseStyle(tPx2, { position: "absolute", left: area.x + "px", width: area.w + "px", textAlign: "center", top: slotTop.toFixed(0) + "px", color: k === words.length - 1 ? hero : col }), root);
+        var e = node("div", baseStyle(tPx2, { position: "absolute", left: wideL + "px", width: wideW + "px", textAlign: "center", top: slotTop.toFixed(0) + "px", color: k === words.length - 1 ? hero : col }), root);
         bg(node("span", { display: "inline-block" }, e, wd), k === words.length - 1 ? hero : col);
         tl.set(e, { opacity: 0 }, 0);
         tl.set(e, { opacity: 1 }, wt[k]);
@@ -286,8 +311,26 @@ HygenDevices.define("text.kinetic", function (api, dev) {
       });
     }
   } else if (mode === "behind-subject") {
-    var bPx = fit(text, 1080 * 0.96, Math.round(size * 1.5));
-    var word = node("div", baseStyle(bPx, { position: "absolute", left: "0px", top: (cy - bPx * 0.5).toFixed(0) + "px", width: "1080px", textAlign: "center", color: col, lineHeight: "1", fontWeight: "900", textShadow: "0 8px 40px " + shade + "0.35)" }), root, text);
+    var drift = 24, bPx = fit(text, (safeW - 2 * drift) / 1.04, Math.round(size * 1.5)), wcx = 540;
+    // the figure across the word's band (P.subject — rows [y, x0, x1] of the cutout, measured by the build): the middle of
+    // the word goes behind it, the first and the last letters stay clear on both sides; no room — a smaller size, never a cut
+    var subj = P.subject || [];
+    var spanAt = function (px) {
+      var a0 = 1e9, a1 = -1e9;
+      subj.forEach(function (r) { if (r[0] + 20 > cy - px * 0.45 && r[0] < cy + px * 0.45) { a0 = Math.min(a0, r[1]); a1 = Math.max(a1, r[2]); } });
+      return a1 > a0 ? [a0, a1] : null;
+    };
+    if (subj.length) {
+      var firstW = function (px) { return measure(text.charAt(0), px, 900) * 1.08; }, lastW = function (px) { return measure(text.charAt(text.length - 1), px, 900) * 1.08; };
+      for (var tryPx = bPx; tryPx >= 48; tryPx = Math.floor(tryPx * 0.96)) {
+        var sp = spanAt(tryPx), Wd = measure(text, tryPx, 900) * 1.04;
+        if (!sp) { bPx = tryPx; break; }
+        var lo = Math.max(safeL + drift + Wd / 2, sp[1] + drift + lastW(tryPx) - Wd / 2);
+        var hi = Math.min(safeR - drift - Wd / 2, sp[0] - drift - firstW(tryPx) + Wd / 2);
+        if (lo <= hi) { bPx = tryPx; wcx = Math.max(lo, Math.min(hi, (sp[0] + sp[1]) / 2)); break; }
+      }
+    }
+    var word = node("div", baseStyle(bPx, { position: "absolute", left: (wcx - 540).toFixed(0) + "px", top: (cy - bPx * 0.5).toFixed(0) + "px", width: "1080px", textAlign: "center", color: col, lineHeight: "1", fontWeight: "900", textShadow: "0 8px 40px " + shade + "0.35)" }), root, text);
     bg(word);
     if (P.cutout) {
       var img = api.el("img", { src: P.cutout, alt: "", style: { position: "absolute", left: "0px", top: "0px", width: "1080px", height: "1920px", objectFit: P.fit || "cover", objectPosition: P.focus ? (P.focus[0] * 100).toFixed(1) + "% " + (P.focus[1] * 100).toFixed(1) + "%" : "50% 50%" } }, root);

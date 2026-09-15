@@ -1,0 +1,9 @@
+{
+  "label": "halifax-en/03-telegraph",
+  "voiceId": "uju3wxzG5OhpWcoi3SMy",
+  "model": "eleven_multilingual_v2",
+  "output_format": "pcm_24000",
+  "chars": 89,
+  "character_cost": 49,
+  "text": "Dispatcher Vince Coleman stayed at his telegraph to stop the trains. He died at his post."
+}
