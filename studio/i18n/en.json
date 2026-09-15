@@ -396,7 +396,8 @@
     "mood": "mood",
     "looks": "fits look",
     "previewsRunning": "Making previews: {done} of {total} · ~{min} min",
-    "previewsDone": "Previews ready: {total}"
+    "previewsDone": "Previews ready: {total}",
+    "previewSoon": "making the preview…"
   },
   "looks": {
     "title": "Look",

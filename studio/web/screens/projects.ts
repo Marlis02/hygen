@@ -58,21 +58,38 @@ export async function projectsScreen(main: HTMLElement): Promise<void> {
   const f = readFilters();
   const grid = h("div", { class: "cards" });
   const count = h("div", { class: "sub" });
+  // карточка живёт, пока жив экран: фильтр переставляет её, а событие с сервера меняет только те строки,
+  // которые изменились, — обложка не перезагружается и сетка не мигает
+  const made = new Map<string, { el: HTMLElement; update: (p: Dict) => void }>();
+  const cardFor = (p: Dict): HTMLElement => {
+    let card = made.get(p.id as string);
+    if (!card) {
+      card = projectCard(p, () => reload());
+      made.set(p.id as string, card);
+    } else card.update(p);
+    return card.el;
+  };
   const draw = (): void => {
     const list = applyFilters(data.projects, f);
     count.textContent = t("projects.sub", { n: list.length, all: data.projects.length });
-    clear(grid, list.length ? list.map((p) => projectCard(p, reload)) : h("div", { class: "empty" }, t("projects.emptyFiltered")));
+    grid.replaceChildren(...(list.length ? list.map(cardFor) : [h("div", { class: "empty" }, t("projects.emptyFiltered"))]));
   };
   const reload = debounce(async () => {
+    if (!grid.isConnected) return;
     try {
-      data.projects = (await api<{ projects: Dict[] }>("/api/projects")).projects;
+      const next = (await api<{ projects: Dict[] }>("/api/projects")).projects;
+      const ids = new Set(next.map((p) => String(p.id)));
+      for (const id of [...made.keys()]) if (!ids.has(id)) made.delete(id);
+      data.projects = next;
       draw();
     } catch {
       // the server may be restarting: the live channel will call again
     }
-  }, 300);
+  }, 500);
   onLive((msg) => {
     if (msg.type === "files" && Object.keys(msg.projects ?? {}).length) reload();
+    // задача шлёт событие только на старте и на конце (этапы идут отдельным типом) — метка «идёт сборка»
+    // появляется сразу, но сетка не дёргается всю сборку
     else if (msg.type === "job" || msg.type === "dialog-start" || msg.type === "dialog-exit") reload();
   });
 
@@ -120,43 +137,55 @@ export async function projectsScreen(main: HTMLElement): Promise<void> {
   draw();
 }
 
-function projectCard(p: Dict, reload: () => void): HTMLElement {
+function projectCard(first: Dict, reload: () => void): { el: HTMLElement; update: (p: Dict) => void } {
+  let p = first;
   const open = (): void => go(`#/project/${p.id}/beats`);
-  return h(
+  const badges = h("div", { class: "badges" });
+  const dur = h("div", { class: "dur" });
+  const thumb = h("div", { class: "thumb", onclick: open }, badges, dur);
+  const title = h("div", { class: "title" });
+  const line1 = h("div", { class: "meta" });
+  const line2 = h("div", { class: "meta" });
+  const line3 = h("div", { class: "meta" });
+  const history = h("button", { class: "btn small ghost", onclick: () => go(`#/project/${p.id}/history`) });
+  const update = (next: Dict): void => {
+    p = next;
+    // обложку переставляем только когда она правда поменялась: иначе браузер перезагружает картинку и карточка мигает
+    const bg = p.thumb ? `url('${p.thumb}')` : "";
+    if (thumb.style.backgroundImage !== bg) thumb.style.backgroundImage = bg;
+    clear(
+      badges,
+      statusPill(p.status),
+      p.proof ? h("span", { class: "pill proof" }, "proof") : null,
+      p.built ? null : h("span", { class: "pill" }, t("projects.notBuilt")),
+      p.dialog ? h("span", { class: "pill pill-running" }, t("projects.dialog")) : null,
+      p.mediaErrors ? h("span", { class: "pill red" }, t("projects.mediaErrors", { n: p.mediaErrors })) : null,
+      p.building ? h("span", { class: "pill pill-running" }, t("projects.building")) : null,
+    );
+    dur.textContent = p.duration ? fmtSec(p.duration) : "";
+    dur.hidden = !p.duration;
+    title.textContent = String(p.title);
+    line1.textContent = `${p.id} · ${t("projects.beats", { n: p.beats })}`;
+    line2.textContent = `${t("projects.voice")}: ${p.voice} · look: ${p.look}`;
+    line3.textContent = p.publishedAt ? t("projects.publishedAt", { d: p.publishedAt }) : p.built ? t("projects.builtAt", { d: fmtDate(p.builtAt) }) : t("projects.notBuiltHere");
+    history.textContent = t("projects.history", { n: p.history });
+  };
+  update(first);
+  const el = h(
     "div",
     { class: "card" },
-    h(
-      "div",
-      { class: "thumb", style: p.thumb ? `background-image:url('${p.thumb}')` : "", onclick: open },
-      h(
-        "div",
-        { class: "badges" },
-        statusPill(p.status),
-        p.proof ? h("span", { class: "pill proof" }, "proof") : null,
-        p.built ? null : h("span", { class: "pill" }, t("projects.notBuilt")),
-        p.dialog ? h("span", { class: "pill pill-running" }, t("projects.dialog")) : null,
-        p.mediaErrors ? h("span", { class: "pill red" }, t("projects.mediaErrors", { n: p.mediaErrors })) : null,
-        p.building ? h("span", { class: "pill pill-running" }, t("projects.building")) : null,
-      ),
-      p.duration ? h("div", { class: "dur" }, fmtSec(p.duration)) : null,
-    ),
-    h(
-      "div",
-      { class: "body" },
-      h("div", { class: "title" }, p.title),
-      h("div", { class: "meta" }, `${p.id} · ${t("projects.beats", { n: p.beats })}`),
-      h("div", { class: "meta" }, `${t("projects.voice")}: ${p.voice} · look: ${p.look}`),
-      h("div", { class: "meta" }, p.publishedAt ? t("projects.publishedAt", { d: p.publishedAt }) : p.built ? t("projects.builtAt", { d: fmtDate(p.builtAt) }) : t("projects.notBuiltHere")),
-    ),
+    thumb,
+    h("div", { class: "body" }, title, line1, line2, line3),
     h(
       "div",
       { class: "actions" },
       h("button", { class: "btn small primary", onclick: open }, t("projects.open")),
       h("button", { class: "btn small", onclick: () => duplicate(p) }, t("projects.duplicate")),
-      h("button", { class: "btn small ghost", onclick: () => go(`#/project/${p.id}/history`) }, t("projects.history", { n: p.history })),
+      history,
       h("button", { class: "btn small danger ghost", onclick: () => removeProject(p, reload) }, t("projects.delete")),
     ),
   );
+  return { el, update };
 }
 
 /** «Удалить проект»: имя вписывают руками — вместе с папкой уходят строка library/index.json и задачи панели. */

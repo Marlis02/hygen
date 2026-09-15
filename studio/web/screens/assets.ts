@@ -83,10 +83,22 @@ function assetRow(id: string, m: Dict, schema: Dict, reload: () => void): HTMLEl
         field("url", { type: "string", description: t("assets.urlHint") }, rec.url || undefined, (v) => (rec.url = v ?? ""), { label: t("assets.url") }),
         field("notes", { type: "text" }, rec.notes, (v) => (rec.notes = v), { label: t("assets.notes") }),
       ),
-      m.kind === "video" ? trimControl(m, rec) : null,
+      m.kind === "video" ? lazyTrim(m, rec) : null,
       h("div", { class: "row", style: "margin-top:8px" }, h("button", { class: "btn primary small", onclick: save }, t("common.save")), status),
     ),
   );
+}
+
+/**
+ * Ползунки обрезки тянут само видео двумя копиями с `preload: auto`: у проекта с тремя роликами это сотни
+ * мегабайт при открытии вкладки. Поэтому они строятся, только когда раздел раскрыли.
+ */
+function lazyTrim(m: Dict, rec: Dict): HTMLElement {
+  const box = h("details", { class: "panel" }, h("summary", { style: "cursor:pointer" }, h("b", null, t("assets.trim"))));
+  box.addEventListener("toggle", () => {
+    if (box.open && box.children.length === 1) box.appendChild(trimControl(m, rec));
+  });
+  return box;
 }
 
 /** in/out sliders over a video with the frames at both ends; saved as media.json → trim. */
@@ -120,7 +132,7 @@ function trimControl(m: Dict, rec: Dict): HTMLElement {
     rec.trim = { in: Number(inR.value), out: Number(outR.value) };
     show();
   };
-  return h("div", { class: "group" }, h("legend", null, t("assets.trim")), h("div", { class: "trim" }, h("div", null, a, h("label", { class: "field-name" }, "in"), inR), h("div", null, b, h("label", { class: "field-name" }, "out"), outR)), label, h("div", { class: "small muted" }, t("assets.trimHint")));
+  return h("div", { class: "group" }, h("div", { class: "trim" }, h("div", null, a, h("label", { class: "field-name" }, "in"), inR), h("div", null, b, h("label", { class: "field-name" }, "out"), outR)), label, h("div", { class: "small muted" }, t("assets.trimHint")));
 }
 
 function searchPanel(id: string, schema: Dict, reload: () => void): HTMLElement {

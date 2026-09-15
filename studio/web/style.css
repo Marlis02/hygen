@@ -230,3 +230,9 @@ table.plain th { color: var(--muted); font-weight: 500; }
 .nav-banner { display: block; margin: 8px 10px 0; padding: 7px 10px; border-radius: 8px; background: #3a2d18; color: #e8c88a; font-size: 12px; text-decoration: none; }
 .nav-banner:hover { background: #4a3a1e; }
 .term-head .hint { font-size: 12px; opacity: .65; }
+
+/* Карточка ждёт своё превью: полоска в ней самой, а не перерисовка галереи (S2.1) */
+.lib-card .preparing { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 12px; }
+.lib-card .preparing .spin { width: 12px; height: 12px; border: 2px solid #3d3731; border-top-color: var(--accent, #e8a33a); border-radius: 50%; animation: hgspin 0.9s linear infinite; }
+@keyframes hgspin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .lib-card .preparing .spin { animation: none; } }

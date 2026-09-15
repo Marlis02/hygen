@@ -38,7 +38,9 @@ let timer: ReturnType<typeof setTimeout> | undefined;
 function note(file: string): void {
   if (isSelf(file)) return;
   const rel = relative(ROOT_DIR, file);
-  if (/(^|[\\/])(build|\.cache|renders[\\/](?!publish)|dialogs)[\\/]/.test(rel) || rel.endsWith(".part.jpg") || rel.endsWith("~")) return;
+  // renders/ целиком, build/, кэши и журналы диалогов не трогают карточки: о результате сборки говорит её задача,
+  // а не файловые события — иначе страница мигает всю сборку
+  if (/(^|[\\/])(build|\.cache|renders|dialogs)[\\/]/.test(rel) || rel.endsWith(".part.jpg") || rel.endsWith("~")) return;
   if (file.startsWith(projectsDir() + sep)) {
     const id = relative(projectsDir(), file).split(sep)[0] as string;
     const list = (pending.projects[id] ??= []);

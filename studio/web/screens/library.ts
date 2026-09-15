@@ -1,4 +1,4 @@
-import { api, clear, fail, go, h, modal, t, toast } from "../lib.ts";
+import { api, clear, fail, go, h, lazyVideo, modal, t, toast } from "../lib.ts";
 import type { Dict } from "../lib.ts";
 import { field, fields } from "../forms.ts";
 import { debounce, onLive } from "../live.ts";
@@ -11,6 +11,18 @@ export async function libraryScreen(main: HTMLElement, section: string): Promise
   if (section === "looks") return go("#/looks");
   const data = await api<{ sections: string[]; items: Dict[]; missing: number; job: Dict | null }>("/api/library");
   const items = data.items.filter((i) => i.section === section);
+  // карточка делается один раз: фильтр и поиск только переставляют готовые узлы, поэтому загруженные превью
+  // не теряются, а экран не мигает
+  const made = new Map<string, HTMLElement>();
+  const cardFor = (i: Dict): HTMLElement => {
+    const key = `${i.section}/${i.id}`;
+    let el = made.get(key);
+    if (!el) {
+      el = section === "music" ? musicCard(i) : itemCard(i);
+      made.set(key, el);
+    }
+    return el;
+  };
   const families = [...new Set(items.map((i) => i.family).filter(Boolean))] as string[];
   const fam = h("select", null, h("option", { value: "" }, t("library.allFamilies")), families.map((f) => h("option", { value: f }, f)));
   const origin = h("select", null, ["", "own", "registry"].map((o) => h("option", { value: o }, t(`library.origin.${o || "all"}`))));
@@ -19,16 +31,16 @@ export async function libraryScreen(main: HTMLElement, section: string): Promise
   const draw = (): void => {
     const q = search.value.trim().toLowerCase();
     const list = items.filter((i) => (!fam.value || i.family === fam.value) && (!origin.value || i.origin === origin.value) && (!q || `${i.id} ${i.name} ${i.description}`.toLowerCase().includes(q)));
-    clear(grid, list.length ? list.map((i) => (section === "music" ? musicCard(i) : itemCard(i))) : h("div", { class: "empty" }, t("library.empty")));
+    grid.replaceChildren(...(list.length ? list.map(cardFor) : [h("div", { class: "empty" }, t("library.empty"))]));
   };
   [fam, origin].forEach((s) => (s.onchange = draw));
   search.oninput = draw;
   const shown = data.items.filter((i) => i.section !== "looks");
-  const withPreview = shown.filter((i) => i.preview || i.audio).length;
-  const bar = previewsBar(main, section, data);
+  const counter = h("div", { class: "sub" }, t("library.sub", { n: shown.length, p: shown.filter((i) => i.preview || i.audio).length }));
+  const bar = previewsBar(grid, counter, section, data);
   clear(
     main,
-    h("div", { class: "header" }, h("div", null, h("h1", null, t("library.title")), h("div", { class: "sub" }, t("library.sub", { n: shown.length, p: withPreview }))), section === "music" ? h("button", { class: "btn primary", onclick: addTrack }, t("library.addTrack")) : null),
+    h("div", { class: "header" }, h("div", null, h("h1", null, t("library.title")), counter), section === "music" ? h("button", { class: "btn primary", onclick: addTrack }, t("library.addTrack")) : null),
     bar,
     h("div", { class: "sections" }, data.sections.filter((s) => s !== "looks").map((s) => h("a", { href: `#/library/${s}`, class: s === section ? "on" : "" }, `${t(`library.sections.${s}`)} · ${data.items.filter((i) => i.section === s).length}`))),
     h("div", { class: "filters" }, families.length ? fam : null, section === "music" ? null : origin, search),
@@ -37,23 +49,28 @@ export async function libraryScreen(main: HTMLElement, section: string): Promise
   draw();
 }
 
+/** Превью карточки: пока его нет — своя полоска «готовится», а не пустой экран и не перерисовка всей галереи. */
+function setThumb(thumb: HTMLElement, preview: string | null, error?: string | null, waiting = false): void {
+  if (preview) {
+    const v = lazyVideo(preview);
+    clear(thumb, v);
+    thumb.onmouseenter = () => v.dispatchEvent(new Event("mouseenter"));
+    thumb.onmouseleave = () => v.dispatchEvent(new Event("mouseleave"));
+    return;
+  }
+  thumb.onmouseenter = null;
+  thumb.onmouseleave = null;
+  clear(thumb, error ? h("div", null, t("library.previewError", { e: error })) : waiting ? h("div", { class: "preparing" }, h("span", { class: "spin" }), t("library.previewSoon")) : h("div", null, t("library.noPreview")));
+}
+
 function itemCard(item: Dict): HTMLElement {
   const thumb = h("div", { class: "thumb" });
-  if (item.preview) {
-    const v = h("video", { src: item.preview, muted: true, loop: true, playsinline: true, preload: "metadata" });
-    // the first frame is often empty (the element enters on its word): stand the card on the middle of the clip
-    v.addEventListener("loadedmetadata", () => {
-      if (v.paused) v.currentTime = (v.duration || 3) * 0.6;
-    });
-    thumb.appendChild(v);
-    thumb.addEventListener("mouseenter", () => void v.play().catch(() => {}));
-    thumb.addEventListener("mouseleave", () => v.pause());
-  } else thumb.appendChild(h("div", null, item.previewError ? t("library.previewError", { e: item.previewError }) : t("library.noPreview")));
+  setThumb(thumb, item.preview ?? null, item.previewError, !item.preview && !item.previewError);
   const facts = item.facts ? Object.entries(item.facts as Dict).filter(([, v]) => v !== undefined && v !== null && !(Array.isArray(v) && !v.length)) : [];
   const params = item.params ? Object.entries(item.params as Dict) : [];
   return h(
     "div",
-    { class: "card lib-card" },
+    { class: "card lib-card", "data-key": `${item.section}/${item.id}` },
     thumb,
     h(
       "div",
@@ -130,11 +147,11 @@ async function addTrack(): Promise<void> {
 }
 
 /**
- * Превью галереи (ROADMAP S2): при открытии считаются недостающие по хэшам и досчитываются задачей сервера —
- * карточки видны сразу, превью появляются по готовности, открытый раздел идёт первым. Закрытие вкладки задачу
- * не останавливает: она живёт на сервере. Это единственная автоматическая сборка в системе.
+ * Превью галереи (ROADMAP S2): при открытии считаются недостающие по хэшам и досчитываются задачей сервера.
+ * Готовое превью встаёт в свою карточку — экран не перерисовывается, чипы разделов и прокрутка не двигаются.
+ * Закрытие вкладки задачу не останавливает: она живёт на сервере. Это единственная автоматическая сборка в системе.
  */
-function previewsBar(main: HTMLElement, section: string, data: Dict): HTMLElement {
+function previewsBar(grid: HTMLElement, counter: HTMLElement, section: string, data: Dict): HTMLElement {
   const box = h("div");
   if (!data.missing && !data.job) return box;
   const line = h("div", { class: "banner info" });
@@ -146,14 +163,38 @@ function previewsBar(main: HTMLElement, section: string, data: Dict): HTMLElemen
     if (!left) setTimeout(() => line.remove(), 4000);
   };
   show(Number(data.job?.done ?? 0), Number(data.job?.total ?? data.missing));
-  const reload = debounce(() => {
-    if (main.isConnected && location.hash.startsWith("#/library")) void libraryScreen(main, section).catch(() => undefined);
-  }, 1500);
+
+  /** Одна лёгкая выборка: готовые превью встают в свои карточки, счётчик в шапке подрастает. */
+  const patch = debounce(async () => {
+    if (!grid.isConnected) return;
+    try {
+      const ready = await api<{ job: Dict | null; items: Record<string, { preview: string | null; error: string | null }> }>("/api/library/ready");
+      let n = 0;
+      for (const card of [...grid.querySelectorAll<HTMLElement>(".lib-card[data-key]")]) {
+        const got = ready.items[card.dataset.key ?? ""];
+        const thumb = card.querySelector(".thumb") as HTMLElement | null;
+        if (!thumb || !got || thumb.querySelector("video")) continue;
+        if (got.preview || got.error) {
+          setThumb(thumb, got.preview, got.error);
+          n++;
+        }
+      }
+      if (n) {
+        const m = /(\d+)\D+(\d+)/.exec(counter.textContent ?? "");
+        if (m) counter.textContent = t("library.sub", { n: m[1], p: Number(m[2]) + n });
+      }
+      if (ready.job) show(Number(ready.job.done ?? 0), Number(ready.job.total ?? data.missing));
+    } catch {
+      // сервер перезапускается — следующее событие позовёт снова
+    }
+  }, 700);
+
   onLive((msg) => {
     if (msg.type === "job" && msg.job?.kind === "previews") {
-      show(Number((msg.job.result as Dict | undefined)?.done ?? 0), Number((msg.job.result as Dict | undefined)?.total ?? data.missing));
-      if (msg.job.status !== "running") reload();
-    } else if (msg.type === "files" && (msg.library as string[] | undefined)?.some((f) => f.startsWith("previews/"))) reload();
+      const r = (msg.job.result as Dict | undefined) ?? {};
+      show(Number(r.done ?? 0), Number(r.total ?? data.missing));
+      patch();
+    } else if (msg.type === "files" && (msg.library as string[] | undefined)?.some((f) => f.startsWith("previews/"))) patch();
   });
   if (!data.job) void api("/api/library/previews", { body: { section } }).catch(() => undefined);
   return box;

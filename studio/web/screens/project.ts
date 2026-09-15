@@ -16,24 +16,32 @@ export function stopProjectWatch(): void {
   unwatch = null;
 }
 
+/** Идёт ли сейчас сборка этого проекта: пока идёт, экран не перечитываем — у сборки свой прогресс. */
+let building = false;
+
 /**
- * Живая панель: project.json или media.json поменял кто-то снаружи (режиссёр в диалоге, редактор) — перечитываем
- * карточки этого проекта. Во время сборки карточки не мигают: у сборки свой прогресс.
+ * Живая панель: экран перечитывается, только когда снаружи поменялись сам сценарий, медиа или их лицензии
+ * (режиссёр в диалоге, редактор). Рендеры, кэши и журналы диалогов сюда не доходят, а во время сборки экран
+ * не трогаем вовсе — иначе он мигал бы все семь минут.
  */
 function watchProject(id: string, reload: () => void): void {
   stopProjectWatch();
-  const soon = debounce(reload, 400);
+  const soon = debounce(reload, 800);
   unwatch = onLive((msg) => {
-    if (msg.type !== "files") return;
-    const files = (msg.projects ?? {})[id] as string[] | undefined;
+    if (msg.type !== "files" || building) return;
+    const files = ((msg.projects ?? {})[id] as string[] | undefined)?.filter((f) => f === "project.json" || f === "media.json" || f.startsWith("media/") || f === "brief.json" || f === "research.md");
     if (!files?.length) return;
     toast(t("project.changedOutside", { files: files.join(", ") }), "info");
     soon();
   });
 }
 
+/** Схема форм меняется только вместе с движком — держим её на экран, а не тянем при каждом перечитывании. */
+let schemaCache: Promise<Dict> | null = null;
+const loadSchema = (): Promise<Dict> => (schemaCache ??= api<Dict>("/api/schema"));
+
 export async function projectScreen(main: HTMLElement, id: string, tab: string): Promise<void> {
-  const [data, schema] = await Promise.all([api<Dict>(`/api/projects/${id}`), api<Dict>("/api/schema")]);
+  const [data, schema] = await Promise.all([api<Dict>(`/api/projects/${id}`), loadSchema()]);
   const p = data.project;
   // a reload keeps the open beat cards and the scroll: after a save, a build or a change of the files from outside
   const reload = (): void => {
@@ -49,7 +57,9 @@ export async function projectScreen(main: HTMLElement, id: string, tab: string):
   watchProject(id, reload);
   const jobBox = h("div");
   const follow = (job: Dict): void => {
+    building = true;
     mountJob(jobBox, job.id, (j) => {
+      building = false;
       toast(j.status === "ok" ? t("build.done") : t("build.failed"), j.status === "ok" ? "ok" : "err");
       if (j.status === "ok") setTimeout(reload, 600);
     });
@@ -67,8 +77,14 @@ export async function projectScreen(main: HTMLElement, id: string, tab: string):
       fail(err);
     }
   };
+  // сборка, начатая до перезагрузки страницы или в другой вкладке, продолжает показывать этапы
   const running = (data.jobs as Dict[]).find((j) => j.kind === "build" && j.status === "running");
-  if (running) mountJob(jobBox, running.id, () => setTimeout(reload, 600));
+  building = Boolean(running);
+  if (running)
+    mountJob(jobBox, running.id, () => {
+      building = false;
+      setTimeout(reload, 600);
+    });
 
   const verifyOk = data.renders.verify?.ok;
   const statusSel = h("select", { style: "width:auto" }, (schema.statuses as string[]).map((s) => h("option", { value: s, selected: s === data.card.status }, t(`status.${s}`))));

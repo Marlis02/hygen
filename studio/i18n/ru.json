@@ -396,7 +396,8 @@
     "mood": "настроение",
     "looks": "подходит к look",
     "previewsRunning": "Готовлю превью: {done} из {total} · ~{min} мин",
-    "previewsDone": "Превью готовы: {total}"
+    "previewsDone": "Превью готовы: {total}",
+    "previewSoon": "готовлю превью…"
   },
   "looks": {
     "title": "Look",

@@ -1,4 +1,4 @@
-import { api, clear, fail, go, h, t, toast } from "../lib.ts";
+import { api, clear, fail, go, h, lazyVideo, t, toast } from "../lib.ts";
 import type { Dict } from "../lib.ts";
 import { field, fields } from "../forms.ts";
 
@@ -12,12 +12,9 @@ export async function looksScreen(main: HTMLElement): Promise<void> {
     const pv = previews.get(id);
     const thumb = h("div", { class: "thumb" });
     if (pv) {
-      const v = h("video", { src: pv, muted: true, loop: true, playsinline: true, preload: "metadata" });
-      v.addEventListener("loadedmetadata", () => {
-        if (v.paused) v.currentTime = (v.duration || 3) * 0.6;
-      });
-      thumb.addEventListener("mouseenter", () => void v.play().catch(() => {}));
-      thumb.addEventListener("mouseleave", () => v.pause());
+      const v = lazyVideo(pv);
+      thumb.addEventListener("mouseenter", () => v.dispatchEvent(new Event("mouseenter")));
+      thumb.addEventListener("mouseleave", () => v.dispatchEvent(new Event("mouseleave")));
       thumb.appendChild(v);
     } else thumb.appendChild(h("div", null, t("library.noPreview")));
     return h(

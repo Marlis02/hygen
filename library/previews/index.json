@@ -308,25 +308,25 @@
   "looks/abyss": {
     "file": "library/previews/looks/abyss.mp4",
     "hash": "6d96695e3820c5df",
-    "seconds": 29.134,
+    "seconds": 11.97,
     "ok": true
   },
   "looks/bright-explainer": {
     "file": "library/previews/looks/bright-explainer.mp4",
     "hash": "d0ae9dd71500e6a1",
-    "seconds": 16.744,
+    "seconds": 11.274,
     "ok": true
   },
   "looks/ember": {
     "file": "library/previews/looks/ember.mp4",
     "hash": "2be780d09b50e47a",
-    "seconds": 23.91,
+    "seconds": 10.564,
     "ok": true
   },
   "looks/storm": {
     "file": "library/previews/looks/storm.mp4",
     "hash": "9ae83c240e0e4907",
-    "seconds": 24.987,
+    "seconds": 10.333,
     "ok": true
   },
   "music/documentary-dark-01": {
@@ -362,43 +362,43 @@
   "scenes/counter-title": {
     "file": "library/previews/scenes/counter-title.mp4",
     "hash": "a5e845344e8548df",
-    "seconds": 17.994,
+    "seconds": 9.405,
     "ok": true
   },
   "scenes/fraction-finale": {
     "file": "library/previews/scenes/fraction-finale.mp4",
     "hash": "1a47aefadd7cf6cc",
-    "seconds": 17.415,
+    "seconds": 12.859,
     "ok": true
   },
   "scenes/map-marker": {
     "file": "library/previews/scenes/map-marker.mp4",
     "hash": "bff0f835fcca40c3",
-    "seconds": 23.107,
+    "seconds": 11.605,
     "ok": true
   },
   "scenes/picture-zoom": {
     "file": "library/previews/scenes/picture-zoom.mp4",
     "hash": "528ca92f44411809",
-    "seconds": 19.362,
+    "seconds": 14.08,
     "ok": true
   },
   "scenes/pyroclastic-flow": {
     "file": "library/previews/scenes/pyroclastic-flow.mp4",
     "hash": "5c4dd4059894713b",
-    "seconds": 25.111,
+    "seconds": 16.968,
     "ok": true
   },
   "scenes/scale-gauge": {
     "file": "library/previews/scenes/scale-gauge.mp4",
     "hash": "d39bb472111ffa5e",
-    "seconds": 29.824,
+    "seconds": 18.992,
     "ok": true
   },
   "scenes/year-odometer": {
     "file": "library/previews/scenes/year-odometer.mp4",
     "hash": "2d5026344dde1317",
-    "seconds": 30.379,
+    "seconds": 15.041,
     "ok": true
   },
   "textures/ash": {

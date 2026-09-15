@@ -751,6 +751,21 @@ route("POST", "/api/library/previews", async ({ req }) => {
   });
 });
 
+/**
+ * Лёгкий опрос галереи: только готовые превью и прогресс задачи. Страница патчит одну карточку, а не
+ * перерисовывает экран — чипы разделов и прокрутка остаются на месте.
+ */
+route("GET", "/api/library/ready", () => {
+  const index = previewIndex();
+  const job = runningJob("previews");
+  const items: Record<string, { preview: string | null; error: string | null }> = {};
+  for (const [key, entry] of Object.entries(index)) {
+    const file = entry.ok ? join(ROOT_DIR, entry.file) : null;
+    items[key] = { preview: file && /\.(mp4|webm)$/.test(file) ? fileUrl(file) : null, error: entry.ok ? null : (entry.error ?? "ошибка") };
+  }
+  return { job: job ? { id: job.id, status: job.status, ...(job.result ?? {}) } : null, items };
+});
+
 route("GET", "/api/library", () => {
   const index = previewIndex();
   const job = runningJob("previews");

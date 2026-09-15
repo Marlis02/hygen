@@ -148,6 +148,45 @@ export function watchJob(id: string, onUpdate: (job: Dict) => void, onDone?: (jo
 }
 
 /** A job box in a container: stages, status, a stop button and a folding log that keeps its scroll. */
+/**
+ * Видео грузится, только когда его видно: девяносто превью разом превращали галерею в слайд-шоу.
+ * Наблюдатель заводится при первом превью — модуль читает и смоук-тест форм, где браузерного API нет.
+ */
+let onScreen: IntersectionObserver | null = null;
+function watchOnScreen(v: HTMLVideoElement): void {
+  if (typeof IntersectionObserver === "undefined") {
+    if (v.dataset.src) v.src = v.dataset.src;
+    return;
+  }
+  onScreen ??= new IntersectionObserver(
+    (entries) => {
+      for (const e of entries) {
+        const el = e.target as HTMLVideoElement;
+        if (!e.isIntersecting || !el.dataset.src) continue;
+        el.src = el.dataset.src;
+        delete el.dataset.src;
+        onScreen?.unobserve(el);
+      }
+    },
+    { rootMargin: "300px" },
+  );
+  onScreen.observe(v);
+}
+
+/** Превью-ролик карточки: грузится по появлению на экране, играет по наведению, стоит на середине клипа. */
+export function lazyVideo(url: string): HTMLVideoElement {
+  const v = h("video", { muted: true, loop: true, playsinline: true, preload: "none" });
+  v.dataset.src = url;
+  // the first frame is often empty (the element enters on its word): stand the card on the middle of the clip
+  v.addEventListener("loadedmetadata", () => {
+    if (v.paused) v.currentTime = (v.duration || 3) * 0.6;
+  });
+  v.addEventListener("mouseenter", () => void v.play().catch(() => undefined));
+  v.addEventListener("mouseleave", () => v.pause());
+  watchOnScreen(v);
+  return v;
+}
+
 export function mountJob(box: HTMLElement, id: string, onDone?: (job: Dict) => void): void {
   const head = h("div", { class: "job-head" });
   const stages = h("div", { class: "stages" });
@@ -155,17 +194,39 @@ export function mountJob(box: HTMLElement, id: string, onDone?: (job: Dict) => v
   const pre = h("pre", { class: "log" });
   const details = h("details", { class: "logbox" }, h("summary", null, t("job.log")), pre);
   clear(box, h("div", { class: "job" }, head, stages, note, details));
+  // сборка идёт минутами, задача опрашивается раз в секунду — перерисовываем только то, что правда изменилось,
+  // а строки лога дописываем, а не переписываем целиком (иначе страница дёргается всю сборку)
+  let shownStatus = "";
+  let shownStages = "";
+  let shownNote = "";
+  let shownLines = 0;
   watchJob(
     id,
     (job) => {
-      clear(head, h("b", null, job.title ?? ""), h("span", { class: `pill pill-${job.status}` }, t(`job.status.${job.status}`)), job.status === "running" ? h("button", { class: "btn small ghost", onclick: () => api(`/api/jobs/${encodeURIComponent(id)}/stop`, { method: "POST" }).catch(fail) }, t("job.stop")) : null);
-      clear(stages, (job.stages ?? []).map((s: Dict) => h("span", { class: `stage st-${s.state}` }, t(`stages.${s.key}`))));
-      stages.hidden = !(job.stages ?? []).length;
-      note.textContent = job.note ? t(`job.notes.${job.note}`) : "";
-      note.hidden = !job.note;
-      const atBottom = pre.scrollTop + pre.clientHeight >= pre.scrollHeight - 24;
-      pre.textContent = (job.log ?? []).slice(-800).join("\n");
-      if (atBottom) pre.scrollTop = pre.scrollHeight;
+      const status = `${job.title ?? ""}|${job.status}`;
+      if (status !== shownStatus) {
+        shownStatus = status;
+        clear(head, h("b", null, job.title ?? ""), h("span", { class: `pill pill-${job.status}` }, t(`job.status.${job.status}`)), job.status === "running" ? h("button", { class: "btn small ghost", onclick: () => api(`/api/jobs/${encodeURIComponent(id)}/stop`, { method: "POST" }).catch(fail) }, t("job.stop")) : null);
+      }
+      const marks = (job.stages ?? []).map((s: Dict) => `${s.key}:${s.state}`).join(",");
+      if (marks !== shownStages) {
+        shownStages = marks;
+        clear(stages, (job.stages ?? []).map((s: Dict) => h("span", { class: `stage st-${s.state}` }, t(`stages.${s.key}`))));
+        stages.hidden = !(job.stages ?? []).length;
+      }
+      if (job.note !== shownNote) {
+        shownNote = job.note ?? "";
+        note.textContent = job.note ? t(`job.notes.${job.note}`) : "";
+        note.hidden = !job.note;
+      }
+      const lines = (job.log ?? []) as string[];
+      if (lines.length !== shownLines) {
+        const atBottom = pre.scrollTop + pre.clientHeight >= pre.scrollHeight - 24;
+        if (lines.length > shownLines && shownLines > 0) pre.appendChild(document.createTextNode((shownLines ? "\n" : "") + lines.slice(shownLines).join("\n")));
+        else pre.textContent = lines.slice(-800).join("\n");
+        shownLines = lines.length;
+        if (atBottom) pre.scrollTop = pre.scrollHeight;
+      }
       if (job.status === "fail") details.open = true;
     },
     onDone,
