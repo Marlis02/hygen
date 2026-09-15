@@ -289,6 +289,24 @@ export function checkDeviceSpec(dev: unknown, i: number, beatId: string, regions
   return def;
 }
 
+/** Moments of a device inside its beat: `at` on its word (sync music | both — on a beat of the track) and `until`; params resolved. */
+export function deviceMoments(dev: DeviceSpec, index: number, params: Record<string, unknown>, clock: Clock, where: string, beatSync?: string): { at: number; until: number | null; sync: string } {
+  const sync = dev.sync ?? beatSync ?? "voice";
+  let at = atSeconds(dev.at, clock, Math.min(clock.speechStart + 0.2 * index, clock.duration - 0.1), `${where}.at`);
+  const grid = clock.grid ?? null;
+  if (sync !== "voice") {
+    if (!grid || !grid.beats.length) fail(`${where}: sync ${sync} — у ролика нет музыки с сеткой битов (project.json music)`);
+    const beats = (grid as { beats: number[] }).beats;
+    const near = beats.reduce((best, b) => (Math.abs(b - at) < Math.abs(best - at) ? b : best), beats[0] as number);
+    // music — the nearest beat of the track; both — the word says what, the nearest beat ≤ 100 ms away says when
+    if (sync === "music" || Math.abs(near - at) <= 0.1) at = r3(Math.min(Math.max(0, near), clock.duration - 0.05));
+  }
+  let until = dev.until === undefined ? null : atSeconds(dev.until, clock, clock.duration, `${where}.until`);
+  if (until !== null && until <= at) fail(`${where}: until (${until} с) раньше at (${at} с)`);
+  if (dev.type === "edit.hold" && until === null) until = r3(Math.min(clock.duration - 0.05, at + Number(params.dur)));
+  return { at, until, sync };
+}
+
 /** Devices of a timed beat → the runtime config (library/devices/runtime.js). */
 export function resolveDevices(devices: DeviceSpec[], dominant: "stage" | number | undefined, regions: Record<string, unknown>, clock: Clock, style: StyleDef, beatId: string, beatSync?: string): ResolvedDevice[] {
   return devices.map((dev, index) => {
@@ -296,19 +314,8 @@ export function resolveDevices(devices: DeviceSpec[], dominant: "stage" | number
     const def = loadDevice(dev.type, where);
     const params = deviceParams(def, dev.params, where);
     const target = resolveTarget(dev.target, def, regions, clock.spoken, style, where);
-    const sync = dev.sync ?? beatSync ?? "voice";
-    let at = atSeconds(dev.at, clock, Math.min(clock.speechStart + 0.2 * index, clock.duration - 0.1), `${where}.at`);
+    const { at, until, sync } = deviceMoments(dev, index, params, clock, where, beatSync);
     const grid = clock.grid ?? null;
-    if (sync !== "voice") {
-      if (!grid || !grid.beats.length) fail(`${where}: sync ${sync} — у ролика нет музыки с сеткой битов (project.json music)`);
-      const beats = (grid as { beats: number[] }).beats;
-      const near = beats.reduce((best, b) => (Math.abs(b - at) < Math.abs(best - at) ? b : best), beats[0] as number);
-      // music — the nearest beat of the track; both — the word says what, the nearest beat ≤ 100 ms away says when
-      if (sync === "music" || Math.abs(near - at) <= 0.1) at = r3(Math.min(Math.max(0, near), clock.duration - 0.05));
-    }
-    let until = dev.until === undefined ? null : atSeconds(dev.until, clock, clock.duration, `${where}.until`);
-    if (until !== null && until <= at) fail(`${where}: until (${until} с) раньше at (${at} с)`);
-    if (dev.type === "edit.hold" && until === null) until = r3(Math.min(clock.duration - 0.05, at + Number(params.dur)));
     // at-params become seconds after the device's own at, so the device adds them to dev.at
     for (const [name, p] of Object.entries(def.params)) if (p.type === "at" && typeof params[name] === "string") params[name] = r3(Math.max(0, atSeconds(params[name] as string, clock, at, `${where}.${name}`) - at));
     // ats: every word → seconds after the device's at (numbers already are offsets)

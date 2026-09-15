@@ -5,10 +5,11 @@ import { claudeEnv } from "./director.ts";
 import { localStamp, loadConfig, readLedger } from "../engine/src/lib/project.ts";
 import { ROOT_DIR, readJson, writeJson } from "../engine/src/lib/util.ts";
 import { broadcast } from "./events.ts";
+import { LogScreen } from "./log-screen.ts";
 
 // Диалог с режиссёром (ROADMAP S2): один живой claude на проект, не больше `studio.maxDialogs` на панель. The shell
 // belongs to the server, so closing the browser tab does not end the dialog — only «Завершить» does. Everything the
-// terminal shows is appended to projects/<id>/dialogs/<stamp>.log, the meta of the run lives next to it in .json, and
+// terminal shows is appended to projects/<id>/dialogs/<stamp>.log as screen text (log-screen.ts: redraws of the TUI folded), the meta of the run lives next to it in .json, and
 // the session id of Claude Code is kept so «Продолжить» can run `claude --resume <id>`.
 
 interface Pty {
@@ -34,6 +35,8 @@ interface Dialog {
   metaPath: string;
   /** Edits of project.json and media.json seen by the file watch while this dialog ran. */
   edits: number;
+  /** What the terminal shows, line by line: the journal gets lines that left the screen. */
+  screen: LogScreen;
 }
 
 const SCROLLBACK = 400_000;
@@ -42,7 +45,6 @@ let lastExit: { project: string; code: number; at: string } | null = null;
 
 export const maxDialogs = (): number => Math.max(1, Number(loadConfig().studio.maxDialogs ?? 2));
 const clamp = (n: unknown, lo: number, hi: number, dflt: number): number => (n !== undefined && n !== null && Number.isFinite(Number(n)) ? Math.min(hi, Math.max(lo, Math.round(Number(n)))) : dflt);
-const stripAnsi = (s: string): string => s.replace(/\x1b\[[0-9;?]*[A-Za-z]/g, "").replace(/\x1b\][^\x07\x1b]*(\x07|\x1b\\)/g, "").replace(/\r(?!\n)/g, "\n");
 
 const dialogsDir = (projectDir: string): string => join(projectDir, "dialogs");
 
@@ -103,12 +105,13 @@ export function dialogContext(projectDir: string): string {
     brief?.seconds ? `Длина: ${brief.seconds} с.` : "",
     brief?.look ? `Look: ${brief.look}.` : brief ? "Look: выбираешь сам." : "",
     brief?.wishes ? `Пожелания: ${brief.wishes}` : "",
-    spec ? `Статус: ${spec.status ?? "draft-kokoro"}, битов ${spec.beats?.length ?? 0}, медиа ${media}, MP4 ${mp4 ? "собран" : "не собран"}.` : "project.json ещё нет — начни с /short.",
+    spec?.beats?.length ? `Статус: ${spec.status ?? "draft-kokoro"}, битов ${spec.beats.length}, медиа ${media}, MP4 ${mp4 ? "собран" : "не собран"}.` : "Битов ещё нет: это бриф, сценарий пишешь ты.",
     last?.summary ? `Итог прошлого диалога: ${last.summary}` : "",
     "Пиши только в свою папку projects/" + id + "; чужие проекты не читай. Библиотеку library/, CONTRACT.md, CLAUDE.md, README и документы движка — читай свободно. Уникальность ролика проверяй по library/index.json.",
-    spec ? "" : `Начни с команды /short ${id}.`,
   ];
-  return parts.filter(Boolean).join(" ");
+  // проект из брифа (S3): первая строка — сама команда навыка, дальше контекст
+  const fresh = !spec?.beats?.length;
+  return `${fresh ? `/short ${id}\n` : ""}${parts.filter(Boolean).join(" ")}`;
 }
 
 export async function startDialog(projectDir: string, opts: { cols?: unknown; rows?: unknown; resume?: string } = {}): Promise<Record<string, unknown>> {
@@ -130,6 +133,7 @@ export async function startDialog(projectDir: string, opts: { cols?: unknown; ro
   const stamp = localStamp();
   mkdirSync(dialogsDir(projectDir), { recursive: true });
   const sessionId = opts.resume ?? randomUUID();
+  const logPath = join(dialogsDir(projectDir), `${stamp}.log`);
   const d: Dialog = {
     project,
     pty: t,
@@ -137,9 +141,16 @@ export async function startDialog(projectDir: string, opts: { cols?: unknown; ro
     startedAt: new Date().toISOString(),
     sessionId,
     resumed: opts.resume ?? null,
-    logPath: join(dialogsDir(projectDir), `${stamp}.log`),
+    logPath,
     metaPath: join(dialogsDir(projectDir), `${stamp}.json`),
     edits: 0,
+    screen: new LogScreen(t.cols, t.rows, (text) => {
+      try {
+        appendFileSync(logPath, text);
+      } catch {
+        // a full disk must not kill the dialog
+      }
+    }),
   };
   dialogs.set(project, d);
   writeJson(d.metaPath, { project, at: d.startedAt, sessionId, resumed: d.resumed, log: basename(d.logPath) });
@@ -147,11 +158,7 @@ export async function startDialog(projectDir: string, opts: { cols?: unknown; ro
   t.onData((data) => {
     d.buffer += data;
     if (d.buffer.length > SCROLLBACK) d.buffer = d.buffer.slice(-SCROLLBACK);
-    try {
-      appendFileSync(d.logPath, stripAnsi(data));
-    } catch {
-      // a full disk must not kill the dialog
-    }
+    d.screen.write(data);
     broadcast({ type: "dialog", project, data });
   });
   t.onExit((e) => {
@@ -174,6 +181,7 @@ function finish(d: Dialog, code: number): void {
   const minutes = Math.round((Date.parse(endedAt) - Date.parse(d.startedAt)) / 60000);
   const summary = `${minutes} мин, правок проекта ${d.edits}${code ? `, выход с кодом ${code}` : ""}`;
   try {
+    d.screen.end();
     writeJson(d.metaPath, { project: d.project, at: d.startedAt, endedAt, sessionId: d.sessionId, resumed: d.resumed, log: basename(d.logPath), exitCode: code, edits: d.edits, summary });
     appendFileSync(d.logPath, `\n── конец ${endedAt} · ${summary}\n`);
   } catch {
@@ -190,7 +198,9 @@ export function writeDialog(project: string, data: unknown): void {
 
 export function resizeDialog(project: string, cols: unknown, rows: unknown): void {
   const d = dialogs.get(project);
-  if (d) d.pty.resize(clamp(cols, 20, 400, d.pty.cols), clamp(rows, 5, 200, d.pty.rows));
+  if (!d) return;
+  d.pty.resize(clamp(cols, 20, 400, d.pty.cols), clamp(rows, 5, 200, d.pty.rows));
+  d.screen.resize(d.pty.cols, d.pty.rows);
 }
 
 export function stopDialog(project: string): Record<string, unknown> {

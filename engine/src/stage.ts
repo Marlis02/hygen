@@ -7,6 +7,7 @@ import { LAYER_Z, atSeconds, boxPx, checkAt, checkDeviceSpec, deviceEvents, devi
 import type { SceneBuild } from "./scenes.ts";
 import type { BeatSpec, VideoSpec } from "./spec.ts";
 import { parseBeatText } from "./spec.ts";
+import { textSchema } from "./text.ts";
 import type { BeatTiming } from "./timeline.ts";
 import { wordTime } from "./timeline.ts";
 import type { BeatWords } from "./words.ts";
@@ -462,7 +463,11 @@ export function writeStageFrame(input: StageFrameInput): StageFrame {
       const focus = (st.focus as number[] | undefined) ?? [0.5, 0.5];
       // where the figure stands across the frame: the word keeps its first and last letters clear of it
       const extent = py(["extent", cut, "--fit", fitMode, "--focus", String(focus[0]), String(focus[1])]) as { rows: number[][] };
-      for (const d of behind) Object.assign(d.params, { cutout: `assets/media/${cutName}`, fit: fitMode, focus, subject: extent.rows });
+      for (const d of behind) {
+        Object.assign(d.params, { cutout: `assets/media/${cutName}`, fit: fitMode, focus, subject: extent.rows });
+        const note = behindSubjectNote(d, extent.rows);
+        if (note) log.warn(`${beat.id}: ${note}`);
+      }
     }
     stageHtml = m.html("") + tone("m") + (m.cfg.holds.length ? flash : "");
     videos = m.videos;
@@ -589,6 +594,54 @@ ${layers}
   return { src, events: inside, settle, devices, videos, videoAtSettle };
 }
 
+/** Width of a line in em by character classes — the table of text.kinetic device.js (an estimate, never a canvas measure). */
+function emWidth(s: string): number {
+  let w = 0;
+  for (const ch of s) {
+    if (ch === " ") w += 0.28;
+    else if (/[MWmw@%]/.test(ch)) w += 0.9;
+    else if (/[IJijl1|.,:;'!]/.test(ch)) w += 0.32;
+    else if (/[A-Z]/.test(ch)) w += 0.7;
+    else if (/[0-9]/.test(ch)) w += 0.64;
+    else if (/[a-z]/.test(ch)) w += 0.57;
+    else w += 0.6;
+  }
+  return w;
+}
+
+/**
+ * text.kinetic behind-subject (ROADMAP S3, блок 5): the word must not be shorter than the figure across its band, or its
+ * middle — or all of it — goes behind the person. The figure is the cutout's extent rows; the word is estimated as
+ * device.js lays it out (size × 1.5, fitted to the safe width, letters by class). Several words the device then puts in
+ * two lines on both sides of the figure; one short word only warns.
+ */
+function behindSubjectNote(d: ResolvedDevice, rows: number[][]): string | null {
+  let text = String(d.params.text || d.word || "").trim();
+  if (!text) return null;
+  if (d.params.case !== "normal") text = text.toUpperCase();
+  const scale = (textSchema().scales as Record<string, Record<string, number>>).kinetic ?? {};
+  const size = scale[String(d.params.size)] ?? 240;
+  const drift = 24;
+  const k = 1.03; // weight ≥ 700
+  const maxW = (940 - 2 * drift) / 1.04;
+  const want = Math.round(size * 1.5);
+  const w0 = emWidth(text) * want * k * 1.08;
+  const px = w0 > maxW ? Math.max(36, Math.floor((want * maxW) / w0)) : want;
+  const box = d.box;
+  const pos = String(d.params.position ?? "center");
+  const cy = box ? box.y + box.h / 2 : pos === "top" ? 530 : pos === "bottom" ? 1050 : 890;
+  const band = rows.filter((r) => (r[0] as number) + 20 > cy - px * 0.45 && (r[0] as number) < cy + px * 0.45);
+  if (!band.length) return null;
+  const x0 = Math.min(...band.map((r) => r[1] as number));
+  const x1 = Math.max(...band.map((r) => r[2] as number));
+  const word = Math.round(emWidth(text) * px * k * 1.04);
+  const need = Math.round(x1 - x0 + 2 * drift + (emWidth(text.charAt(0)) + emWidth(text.charAt(text.length - 1))) * px * k * 1.08);
+  if (word >= need) return null;
+  return `text.kinetic behind-subject: «${text}» ≈ ${word} px при ${px} px кегля — короче фигуры с крайними буквами (${need} px, фигура ${Math.round(x1 - x0)} px): ${
+    /\s/.test(text) ? "устройство разложит строку на две по сторонам фигуры, если по бокам хватит места, иначе середина уйдёт за фигуру" : "середина слова уйдёт за фигуру — возьмите слово длиннее, фото с фигурой уже (fit: contain) или две слова"
+  }`;
+}
+
 /** A v2 beat of a video → its frame and the SceneBuild the rest of the build expects (identity warp, times in seconds). */
 export function writeStageBeat(input: StageFrameInput): SceneBuild {
   const frame = writeStageFrame(input);
@@ -604,6 +657,7 @@ export function writeStageBeat(input: StageFrameInput): SceneBuild {
     video: frame.videoAtSettle,
     events: frame.events.map((e) => ({ ref: e.t, label: e.label })),
     injected: false,
+    devices: frame.devices,
   };
 }
 

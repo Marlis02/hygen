@@ -10,12 +10,25 @@ import type { VoiceLine } from "./voice.ts";
 import type { BeatWords } from "./words.ts";
 import { ROOT_DIR, ensureDir, fail, fileSha, lastJsonLine, log, pyScript, python, r3, readJson, run, sha, writeJson } from "./lib/util.ts";
 
-/** Beat grid of a track (py/beats.py), once per track: .cache/beats/<sha of the file>.json. */
-export function trackBeats(file: string): { bpm: number; beats: number[]; downbeats: number[]; duration: number } {
-  // a library track: library/music/beats/<track>.beats.json, counted once when the track is added (the sha of the file guards it)
+export interface TrackBeats {
+  bpm: number;
+  beats: number[];
+  downbeats: number[];
+  duration: number;
+}
+
+// a library track: library/music/beats/<track>.beats.json, counted once when the track is added (the sha of the file guards it)
+const libraryGridPath = (file: string): string | null => {
   const lib = musicDir();
-  if (resolve(file).startsWith(lib + sep)) {
-    const grid = join(lib, "beats", `${basename(file).replace(/\.[^.]+$/, "")}.beats.json`);
+  return resolve(file).startsWith(lib + sep) ? join(lib, "beats", `${basename(file).replace(/\.[^.]+$/, "")}.beats.json`) : null;
+};
+
+const cacheGridPath = (file: string): string => join(ROOT_DIR, ".cache", "beats", `${sha({ v: 1, file: fileSha(file) })}.json`);
+
+/** Beat grid of a track (py/beats.py), once per track: .cache/beats/<sha of the file>.json. */
+export function trackBeats(file: string): TrackBeats {
+  const grid = libraryGridPath(file);
+  if (grid) {
     const hash = fileSha(file);
     if (!existsSync(grid) || readJson<{ sha?: string }>(grid).sha !== hash) {
       const r = lastJsonLine<{ bpm: number; beats: number }>(run(python(), [pyScript("beats.py"), file, "--out", grid]).stdout);
@@ -24,12 +37,51 @@ export function trackBeats(file: string): { bpm: number; beats: number[]; downbe
     }
     return readJson(grid);
   }
-  const cache = join(ROOT_DIR, ".cache", "beats", `${sha({ v: 1, file: fileSha(file) })}.json`);
+  const cache = cacheGridPath(file);
   if (!existsSync(cache)) {
     const r = lastJsonLine<{ bpm: number; beats: number }>(run(python(), [pyScript("beats.py"), file, "--out", cache]).stdout);
     log.info(`ритм ${relative(ROOT_DIR, file)}: ${r.bpm} BPM, битов ${r.beats} → .cache/beats`);
   }
   return readJson(cache);
+}
+
+/** The grid of a track only if it was already counted (the panel's timeline never runs beats.py). */
+export function cachedTrackBeats(file: string): TrackBeats | null {
+  const grid = libraryGridPath(file) ?? cacheGridPath(file);
+  return existsSync(grid) ? readJson<TrackBeats>(grid) : null;
+}
+
+/** The track of the bed: project.json music.track or the style's first; null — no music (music: false or no track). */
+export function musicTrack(spec: Pick<VideoSpec, "music">, style: StyleDef, videoDir: string): { track: string; file: string } | null {
+  const own = (spec as unknown as { music?: MusicSpec | false }).music;
+  const tok = (style as unknown as { music?: Partial<MusicTokens> }).music;
+  if (own === false || (!own?.track && !tok?.tracks?.length)) return null;
+  const track = own?.track ?? (tok?.tracks?.[0] as string);
+  return { track, file: /[/.]/.test(track) ? join(videoDir, track) : (musicFile(track) ?? join(musicDir(), `${track}.wav`)) };
+}
+
+/** music.in / music.out → seconds of the video (the bed plays start–end). */
+export function musicSpan(spec: Pick<VideoSpec, "music">, timings: BeatTiming[], words: BeatWords[]): { start: number; end: number } {
+  const own = (spec as unknown as { music?: MusicSpec | false }).music || undefined;
+  const last = timings[timings.length - 1] as BeatTiming;
+  const at = (ref: string | undefined, fallback: number): number => (ref === undefined ? fallback : ref === "start" ? 0 : ref === "end" ? last.end : resolveTime(ref, timings, words));
+  return { start: at(own?.in, 0), end: at(own?.out, last.end) };
+}
+
+/** Beats of the track over the bed start–end: loops with a 2 s crossfade, as music_bed.py joins them. */
+export function loopGrid(g: TrackBeats, start: number, end: number): { beats: number[]; strong: number[] } {
+  const xf = Math.min(2, g.duration / 4);
+  const hop = Math.max(0.5, g.duration - xf);
+  const beats: number[] = [];
+  const strong: number[] = [];
+  for (let k = 0; start + k * hop < end && k < 200; k++) {
+    const base = start + k * hop;
+    const lo = k === 0 ? -1 : base + xf / 2;
+    const hi = base + hop + xf / 2;
+    for (const b of g.beats) if (base + b >= lo && base + b < hi && base + b < end) beats.push(r3(base + b));
+    for (const b of g.downbeats) if (base + b >= lo && base + b < hi && base + b < end) strong.push(r3(base + b));
+  }
+  return { beats, strong };
 }
 
 export interface MusicGrid {
@@ -42,29 +94,11 @@ export interface MusicGrid {
 
 /** The bed's beat grid in video seconds for sync: music — the same track, in/out and loops (2 s crossfade) as music_bed.py. */
 export function musicGrid(spec: VideoSpec, style: StyleDef, videoDir: string, timings: BeatTiming[], words: BeatWords[]): MusicGrid | null {
-  const own = (spec as unknown as { music?: MusicSpec | false }).music;
-  const tok = (style as unknown as { music?: Partial<MusicTokens> }).music;
-  if (own === false || (!own?.track && !tok?.tracks?.length)) return null;
-  const track = own?.track ?? (tok?.tracks?.[0] as string);
-  const file = /[/.]/.test(track) ? join(videoDir, track) : (musicFile(track) ?? join(musicDir(), `${track}.wav`));
-  if (!existsSync(file)) return null;
-  const g = trackBeats(file);
-  const last = timings[timings.length - 1] as BeatTiming;
-  const at = (ref: string | undefined, fallback: number): number => (ref === undefined ? fallback : ref === "start" ? 0 : ref === "end" ? last.end : resolveTime(ref, timings, words));
-  const start = at(own?.in, 0);
-  const end = at(own?.out, last.end);
-  const xf = Math.min(2, g.duration / 4);
-  const hop = Math.max(0.5, g.duration - xf);
-  const beats: number[] = [];
-  const strong: number[] = [];
-  for (let k = 0; start + k * hop < end && k < 200; k++) {
-    const base = start + k * hop;
-    const lo = k === 0 ? -1 : base + xf / 2;
-    const hi = base + hop + xf / 2;
-    for (const b of g.beats) if (base + b >= lo && base + b < hi && base + b < end) beats.push(r3(base + b));
-    for (const b of g.downbeats) if (base + b >= lo && base + b < hi && base + b < end) strong.push(r3(base + b));
-  }
-  return { track, bpm: g.bpm, beats, strong };
+  const t = musicTrack(spec, style, videoDir);
+  if (!t || !existsSync(t.file)) return null;
+  const g = trackBeats(t.file);
+  const { start, end } = musicSpan(spec, timings, words);
+  return { track: t.track, bpm: g.bpm, ...loopGrid(g, start, end) };
 }
 
 /** project.json → music: false, or a track of the style (id) or of the video (media/…wav) with dB volume, ducking, fades and in/out. */

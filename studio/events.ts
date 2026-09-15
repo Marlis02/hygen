@@ -93,6 +93,8 @@ export async function attachWebSocket(server: Server, port: number): Promise<boo
   }
   const wss = new WebSocketServer({ noServer: true });
   server.on("upgrade", (req: IncomingMessage, socket: Duplex, head: Buffer) => {
+    // HMR Vite в dev-режиме слушает тот же сервер: его сокет не наш
+    if (String(req.headers["sec-websocket-protocol"] ?? "").includes("vite-hmr")) return;
     // only the page of this panel: same host, no cross-site upgrade
     if (req.url !== "/api/events" || !HOSTS(port).has(String(req.headers.host ?? ""))) {
       socket.destroy();

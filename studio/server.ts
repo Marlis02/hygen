@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 // npm run studio — the local panel of the engine (ROADMAP S1): http://localhost:5177, only on 127.0.0.1.
-// The page is plain TypeScript in studio/web: the server strips the types on the fly (node:module), no bundler.
+// Страница — Preact + Vite (ROADMAP S3): в dev Vite работает middleware этого же сервера (один порт, один процесс),
+// `npm run studio:build` собирает studio/dist/, `npm run studio:dist` отдаёт собранное без Vite.
 import { spawn } from "node:child_process";
-import { createReadStream, existsSync, readFileSync, statSync } from "node:fs";
+import { createReadStream, existsSync, statSync } from "node:fs";
 import { createServer } from "node:http";
 import type { IncomingMessage, ServerResponse } from "node:http";
-import * as nodeModule from "node:module";
 import { extname, join, normalize, resolve, sep } from "node:path";
 import { handleApi } from "./api.ts";
 import { attachWebSocket, startWatching } from "./events.ts";
@@ -14,21 +14,14 @@ import { loadConfig } from "../engine/src/lib/project.ts";
 import { ROOT_DIR } from "../engine/src/lib/util.ts";
 
 const STUDIO = join(ROOT_DIR, "studio");
-
-// stripTypeScriptTypes is marked experimental; its warning would repeat on every page load
-const emit = process.emitWarning.bind(process);
-process.emitWarning = ((warning: string | Error, ...rest: unknown[]) => {
-  if (String(warning).includes("stripTypeScriptTypes")) return;
-  (emit as (...a: unknown[]) => void)(warning, ...rest);
-}) as typeof process.emitWarning;
-const stripTypes = (nodeModule as unknown as { stripTypeScriptTypes: (src: string, o?: { mode: string }) => string }).stripTypeScriptTypes;
+const DIST = join(STUDIO, "dist");
+const useDist = process.argv.includes("--dist");
 
 const TYPES: Record<string, string> = {
   ".html": "text/html; charset=utf-8",
   ".css": "text/css; charset=utf-8",
   ".js": "text/javascript; charset=utf-8",
   ".mjs": "text/javascript; charset=utf-8",
-  ".ts": "text/javascript; charset=utf-8",
   ".json": "application/json; charset=utf-8",
   ".md": "text/markdown; charset=utf-8",
   ".txt": "text/plain; charset=utf-8",
@@ -53,15 +46,6 @@ const TYPES: Record<string, string> = {
 /** Folders the page may read files from (media, renders, previews, fonts); never .env or the rest of the repo. */
 const READABLE = ["projects", "library", ".preview"].map((d) => join(ROOT_DIR, d) + sep);
 
-/** xterm.js for the dialog with the director — straight from node_modules, only these files. */
-const VENDOR: Record<string, string> = {
-  "/vendor/xterm/xterm.mjs": join(ROOT_DIR, "node_modules", "@xterm", "xterm", "lib", "xterm.mjs"),
-  "/vendor/xterm/xterm.css": join(ROOT_DIR, "node_modules", "@xterm", "xterm", "css", "xterm.css"),
-  "/vendor/xterm/addon-fit.mjs": join(ROOT_DIR, "node_modules", "@xterm", "addon-fit", "lib", "addon-fit.mjs"),
-};
-
-const tsCache = new Map<string, { mtime: number; js: string }>();
-
 function sendFile(req: IncomingMessage, res: ServerResponse, file: string, download?: string): void {
   const st = statSync(file);
   const type = TYPES[extname(file).toLowerCase()] ?? "application/octet-stream";
@@ -85,36 +69,10 @@ function sendFile(req: IncomingMessage, res: ServerResponse, file: string, downl
 }
 
 function serveStatic(req: IncomingMessage, res: ServerResponse, path: string): boolean {
-  if (path === "/" || path === "/index.html") {
-    sendFile(req, res, join(STUDIO, "web", "index.html"));
-    return true;
-  }
   const i18n = /^\/i18n\/(ru|en)\.json$/.exec(path);
   if (i18n) {
     const file = join(STUDIO, "i18n", `${i18n[1]}.json`);
     if (!existsSync(file)) return false;
-    sendFile(req, res, file);
-    return true;
-  }
-  const vendor = VENDOR[path];
-  if (vendor) {
-    if (!existsSync(vendor)) return false;
-    sendFile(req, res, vendor);
-    return true;
-  }
-  if (path.startsWith("/web/")) {
-    const file = resolve(STUDIO, "web", normalize(decodeURIComponent(path.slice(5))));
-    if (!file.startsWith(join(STUDIO, "web") + sep) || !existsSync(file)) return false;
-    if (file.endsWith(".ts")) {
-      const mtime = statSync(file).mtimeMs;
-      let hit = tsCache.get(file);
-      if (!hit || hit.mtime !== mtime) {
-        hit = { mtime, js: stripTypes(readFileSync(file, "utf8"), { mode: "strip" }) };
-        tsCache.set(file, hit);
-      }
-      res.writeHead(200, { "Content-Type": TYPES[".ts"] as string, "Cache-Control": "no-cache" }).end(hit.js);
-      return true;
-    }
     sendFile(req, res, file);
     return true;
   }
@@ -126,6 +84,13 @@ function serveStatic(req: IncomingMessage, res: ServerResponse, path: string): b
     return true;
   }
   return false;
+}
+
+/** studio/dist: файл сборки или index.html (роутер страницы живёт в hash, но пусть и прямая ссылка откроется). */
+function serveDist(req: IncomingMessage, res: ServerResponse, path: string): void {
+  const file = resolve(DIST, normalize(decodeURIComponent(path.slice(1))));
+  if (file.startsWith(DIST + sep) && existsSync(file) && statSync(file).isFile()) sendFile(req, res, file);
+  else sendFile(req, res, join(DIST, "index.html"));
 }
 
 const port = Number(process.env.STUDIO_PORT ?? loadConfig().studio.port ?? 5177);
@@ -140,6 +105,9 @@ function foreign(req: IncomingMessage): string | null {
   if (origin && !HOSTS.has(origin.replace(/^https?:\/\//, ""))) return `чужой Origin ${origin}`;
   return null;
 }
+
+type Middleware = (req: IncomingMessage, res: ServerResponse, next: (err?: unknown) => void) => void;
+let pages: Middleware | null = null;
 
 const server = createServer((req, res) => {
   const url = new URL(req.url ?? "/", "http://localhost");
@@ -160,11 +128,31 @@ const server = createServer((req, res) => {
       }, done);
       return;
     }
-    if (!serveStatic(req, res, url.pathname)) res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" }).end("не найдено");
+    if (serveStatic(req, res, url.pathname)) return;
+    if (useDist) return serveDist(req, res, url.pathname);
+    if (!pages) {
+      res.writeHead(503, { "Content-Type": "text/plain; charset=utf-8" }).end("Vite ещё запускается — обновите страницу");
+      return;
+    }
+    pages(req, res, (err) => (err ? done(err) : res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" }).end("не найдено")));
   } catch (err) {
     done(err);
   }
 });
+
+let mode = "";
+if (useDist) {
+  if (!existsSync(join(DIST, "index.html"))) {
+    console.error("нет studio/dist — сначала npm run studio:build");
+    process.exit(1);
+  }
+  mode = "страница из studio/dist";
+} else {
+  const { createServer: createVite } = await import("vite");
+  const vite = await createVite({ configFile: join(STUDIO, "vite.config.ts"), appType: "spa", server: { middlewareMode: true, hmr: { server } } });
+  pages = vite.middlewares as unknown as Middleware;
+  mode = "страница: Vite dev (Preact)";
+}
 
 server.listen(port, "127.0.0.1", async () => {
   const address = `http://localhost:${port}`;
@@ -172,7 +160,7 @@ server.listen(port, "127.0.0.1", async () => {
   const live = await attachWebSocket(server, port);
   const watching = await startWatching();
   console.log(`hygen studio — ${address}  (остановить: Ctrl+C)`);
-  console.log(`  ${live ? "живые обновления: WebSocket /api/events" : "без WebSocket: ws не установлен"} · ${watching}${restored ? ` · задач из прошлого запуска: ${restored}` : ""}`);
+  console.log(`  ${mode} · ${live ? "живые обновления: WebSocket /api/events" : "без WebSocket: ws не установлен"} · ${watching}${restored ? ` · задач из прошлого запуска: ${restored}` : ""}`);
   if (!process.argv.includes("--no-open") && (process.env.DISPLAY || process.env.WAYLAND_DISPLAY)) {
     const opener = spawn("xdg-open", [address], { stdio: "ignore", detached: true });
     opener.on("error", () => {});

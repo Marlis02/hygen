@@ -1,6 +1,8 @@
 import { createHash } from "node:crypto";
 import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, statSync } from "node:fs";
+import { homedir, hostname } from "node:os";
 import { basename, dirname, join, relative, resolve, sep } from "node:path";
+import { ASR_MODEL } from "../words.ts";
 import { LIBRARY_DIR, ROOT_DIR, engineCommit, fail, readJson, writeJson, writeJsonIfChanged } from "./util.ts";
 
 // Project storage (ROADMAP S1): hygen.config.json in the root (no secrets), projects/<id>/ with project.json and
@@ -9,7 +11,7 @@ import { LIBRARY_DIR, ROOT_DIR, engineCommit, fail, readJson, writeJson, writeJs
 
 export interface HygenConfig {
   /** Kokoro is always the default provider (S2); voiceId and model belong to ElevenLabs, defaultBudgetChars is the budget a new video starts with. */
-  voice: { voiceId: string; model: string; kokoroVoice: string; defaultBudgetChars: number };
+  voice: { voiceId: string; model: string; kokoroVoice: string; defaultBudgetChars: number; charsPerSecond: { kokoro: number; elevenlabs: number } };
   look: string;
   bitrate: { crf: number; preset: string; maxrate: string; bufsize: string };
   short: { targetSeconds: number; minSeconds: number; maxSeconds: number };
@@ -21,7 +23,8 @@ export interface HygenConfig {
 export const CONFIG_PATH = join(ROOT_DIR, "hygen.config.json");
 
 export const DEFAULT_CONFIG: HygenConfig = {
-  voice: { voiceId: "", model: "eleven_multilingual_v2", kokoroVoice: "am_michael", defaultBudgetChars: 1200 },
+  // charsPerSecond — characters of a line per second of speech: the estimate of a line never voiced (build/timeline.json)
+  voice: { voiceId: "", model: "eleven_multilingual_v2", kokoroVoice: "am_michael", defaultBudgetChars: 1200, charsPerSecond: { kokoro: 14.4, elevenlabs: 16.8 } },
   look: "ember",
   bitrate: { crf: 18, preset: "slow", maxrate: "16M", bufsize: "32M" },
   short: { targetSeconds: 45, minSeconds: 35, maxSeconds: 59 },
@@ -45,6 +48,10 @@ export function loadConfig(): HygenConfig {
   for (const key of Object.keys(raw)) if (key !== "$schema" && key !== "about" && !(key in DEFAULT_CONFIG)) fail(`hygen.config.json: неизвестный раздел «${key}»; есть: ${Object.keys(DEFAULT_CONFIG).join(", ")}`);
   const cfg = merge(DEFAULT_CONFIG, raw);
   if (!Number.isFinite(cfg.voice.defaultBudgetChars) || cfg.voice.defaultBudgetChars < 0) fail("hygen.config.json: voice.defaultBudgetChars — число символов ElevenLabs, с которым начинается новый ролик");
+  for (const p of ["kokoro", "elevenlabs"] as const) {
+    const cps = cfg.voice.charsPerSecond?.[p];
+    if (typeof cps !== "number" || !Number.isFinite(cps) || cps <= 0) fail(`hygen.config.json: voice.charsPerSecond.${p} — символов реплики в секунду речи, число > 0`);
+  }
   if (!Number.isFinite(cfg.bitrate.crf)) fail("hygen.config.json: bitrate.crf — число");
   return cfg;
 }
@@ -244,6 +251,69 @@ export function inputReason(was: Partial<ProjectInput> | null, now: ProjectInput
   return parts.join(", ");
 }
 
+/** Where a snapshot was taken (S3): the host and what voices and times the words there — read from files only, no network, no python. */
+export interface MachineInfo {
+  host: string;
+  hyperframes: string | null;
+  /** whisper.cpp of `hyperframes transcribe`: the model of words.ts, the version of its CMakeLists and its commit. */
+  whisper: { model: string; version: string | null; commit: string | null };
+  /** Kokoro of `hyperframes tts`: the model file in the cache and the kokoro-onnx package of the python it runs. */
+  kokoro: { model: string | null; package: string | null };
+}
+
+const tryRead = <T>(fn: () => T): T | null => {
+  try {
+    return fn();
+  } catch {
+    return null;
+  }
+};
+
+/** The commit of a git checkout by its files (.git/HEAD → loose ref or packed-refs), without running git. */
+function gitHead(repo: string): string | null {
+  return tryRead(() => {
+    const head = readFileSync(join(repo, ".git", "HEAD"), "utf8").trim();
+    if (!head.startsWith("ref: ")) return head.slice(0, 7);
+    const ref = head.slice(5);
+    if (existsSync(join(repo, ".git", ref))) return readFileSync(join(repo, ".git", ref), "utf8").trim().slice(0, 7);
+    const line = readFileSync(join(repo, ".git", "packed-refs"), "utf8").split("\n").find((l) => l.endsWith(` ${ref}`));
+    return line ? line.slice(0, 7) : null;
+  });
+}
+
+/** kokoro-onnx of HYPERFRAMES_PYTHON's venv, the user's or the system's python: the version in its dist-info folder. */
+function kokoroPackage(): string | null {
+  const py = process.env.HYPERFRAMES_PYTHON;
+  const roots = [py ? join(dirname(dirname(py)), "lib") : "", join(homedir(), ".local", "lib"), "/usr/local/lib", "/usr/lib"].filter(Boolean);
+  for (const root of roots) {
+    for (const ver of tryRead(() => readdirSync(root).filter((n) => n.startsWith("python3")).sort()) ?? []) {
+      for (const site of ["site-packages", "dist-packages"]) {
+        const hit = tryRead(() => readdirSync(join(root, ver, site)).find((n) => /^kokoro_onnx-[\d.]+\.dist-info$/.test(n)));
+        if (hit) return /-([\d.]+)\.dist-info$/.exec(hit)?.[1] ?? null;
+      }
+    }
+  }
+  return null;
+}
+
+export function machineInfo(): MachineInfo {
+  const cache = join(homedir(), ".cache", "hyperframes");
+  const cpp = join(cache, "whisper", "whisper.cpp");
+  return {
+    host: hostname(),
+    hyperframes: tryRead(() => readJson<{ version?: string }>(join(ROOT_DIR, "node_modules", "hyperframes", "package.json")).version ?? null),
+    whisper: {
+      model: ASR_MODEL,
+      version: tryRead(() => /\bVERSION\s+(\d+\.\d+\.\d+)/.exec(readFileSync(join(cpp, "CMakeLists.txt"), "utf8"))?.[1] ?? null),
+      commit: existsSync(cpp) ? gitHead(cpp) : null,
+    },
+    kokoro: {
+      model: tryRead(() => readdirSync(join(cache, "tts", "models")).find((n) => /^kokoro.*\.onnx$/.test(n))?.replace(/\.onnx$/, "") ?? null),
+      package: kokoroPackage(),
+    },
+  };
+}
+
 /**
  * history/<date>/: project.json and media.json before a rebuild or a rollback — only when the input of the build
  * really changed (project.json, media.json, files of media/, takes of voice/ or the commit of the engine), so ten
@@ -264,7 +334,8 @@ export function snapshotHistory(projectDir: string, reason: string): string | nu
   mkdirSync(dir, { recursive: true });
   for (const f of files) copyFileSync(join(projectDir, f), join(dir, f));
   const why = inputReason(wasInput, input);
-  writeJson(join(dir, "snapshot.json"), { at: new Date().toISOString(), reason, why, digest, input, engine: input.engine });
+  // machine is a note for the reader, never input: a new host or whisper does not make a build a new one (rule 13)
+  writeJson(join(dir, "snapshot.json"), { at: new Date().toISOString(), reason, why, digest, input, engine: input.engine, machine: machineInfo() });
   return dir;
 }
 

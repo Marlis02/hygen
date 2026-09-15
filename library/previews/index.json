@@ -235,74 +235,74 @@
   },
   "kinetic/behind-subject": {
     "file": "library/previews/kinetic/behind-subject.mp4",
-    "hash": "39291331ff1a61e0",
-    "seconds": 22.909,
+    "hash": "ed22308ec2e10474",
+    "seconds": 8.075,
     "ok": true
   },
   "kinetic/center-build": {
     "file": "library/previews/kinetic/center-build.mp4",
-    "hash": "013e51dd4ae1a3ef",
-    "seconds": 13.089,
+    "hash": "6e26f0b7ed076193",
+    "seconds": 7.338,
     "ok": true
   },
   "kinetic/extrude": {
     "file": "library/previews/kinetic/extrude.mp4",
-    "hash": "6f24649cbb7b45b0",
-    "seconds": 8.659,
+    "hash": "ce7a452388a78e37",
+    "seconds": 9.348,
     "ok": true
   },
   "kinetic/marquee": {
     "file": "library/previews/kinetic/marquee.mp4",
-    "hash": "b54b65e62d859a4f",
-    "seconds": 19.964,
+    "hash": "db27ad2fb6467461",
+    "seconds": 7.613,
     "ok": true
   },
   "kinetic/outline": {
     "file": "library/previews/kinetic/outline.mp4",
-    "hash": "86234adee4e7d973",
-    "seconds": 8.309,
+    "hash": "1f09066a0de81dcf",
+    "seconds": 7.443,
     "ok": true
   },
   "kinetic/scramble": {
     "file": "library/previews/kinetic/scramble.mp4",
-    "hash": "f6391d6123554518",
-    "seconds": 15.07,
+    "hash": "601bf22dff504039",
+    "seconds": 7.533,
     "ok": true
   },
   "kinetic/slam": {
     "file": "library/previews/kinetic/slam.mp4",
-    "hash": "2f434cd754dbb752",
-    "seconds": 15.945,
+    "hash": "08828bb649717ef9",
+    "seconds": 7.269,
     "ok": true
   },
   "kinetic/stack": {
     "file": "library/previews/kinetic/stack.mp4",
-    "hash": "9243f787268d8aa3",
-    "seconds": 8.675,
+    "hash": "773151e91cfae3bb",
+    "seconds": 9.357,
     "ok": true
   },
   "kinetic/texture": {
     "file": "library/previews/kinetic/texture.mp4",
-    "hash": "a02b8a12326bf4fb",
-    "seconds": 19.82,
+    "hash": "94c187eecf16c699",
+    "seconds": 7.539,
     "ok": true
   },
   "kinetic/tilt": {
     "file": "library/previews/kinetic/tilt.mp4",
-    "hash": "db31d48ce9114d30",
-    "seconds": 8.318,
+    "hash": "6378985aad860b1b",
+    "seconds": 7.281,
     "ok": true
   },
   "kinetic/type-swap": {
     "file": "library/previews/kinetic/type-swap.mp4",
-    "hash": "5cf0f9ffad516a48",
-    "seconds": 12.557,
+    "hash": "3e30783583d04c85",
+    "seconds": 7.445,
     "ok": true
   },
   "kinetic/weight-morph": {
     "file": "library/previews/kinetic/weight-morph.mp4",
-    "hash": "de92758577102985",
-    "seconds": 8.44,
+    "hash": "677da72e4fbb1b28",
+    "seconds": 7.541,
     "ok": true
   },
   "looks/abyss": {

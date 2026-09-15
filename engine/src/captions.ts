@@ -169,6 +169,18 @@ export interface CaptionPlan {
   warnings: string[];
 }
 
+/** A group stays until the next one starts or its last word + 0.3 s; a gap shorter than 0.15 s closes. */
+export function closeCaptionGroups(groups: { start: number; end: number; words: { end: number }[] }[], total: number): void {
+  groups.forEach((g, k) => {
+    const next = groups[k + 1];
+    const last = g.words[g.words.length - 1] as { end: number };
+    const limit = next ? next.start : total;
+    let end = Math.min(limit, last.end + 0.3);
+    if (limit - end < 0.15) end = limit;
+    g.end = r3(Math.min(limit, Math.max(g.start + 0.05, end)));
+  });
+}
+
 export function planCaptions(input: { spec: Pick<VideoSpec, "id" | "beats" | "captions">; look: LookDef; style: StyleDef; timings: BeatTiming[]; words: BeatWords[]; total: number; hits: number[] }): CaptionPlan {
   const { spec, look, style, timings, words, total, hits } = input;
   const S = textSchema();
@@ -228,15 +240,7 @@ export function planCaptions(input: { spec: Pick<VideoSpec, "id" | "beats" | "ca
     }
     beats.push({ id: beat.id, style: st, family: familyOf(st.preset), groups: parts.length, contrast: null, forced: null, near: !!target });
   });
-  // a group stays until the next one starts or its last word + 0.3 s; a gap shorter than 0.15 s closes
-  groups.forEach((g, k) => {
-    const next = groups[k + 1];
-    const last = g.words[g.words.length - 1] as Tok;
-    const limit = next ? next.start : total;
-    let end = Math.min(limit, last.end + 0.3);
-    if (limit - end < 0.15) end = limit;
-    g.end = r3(Math.min(limit, Math.max(g.start + 0.05, end)));
-  });
+  closeCaptionGroups(groups, total);
   const accent = toneColors(style, "accent");
   return {
     cfg: {

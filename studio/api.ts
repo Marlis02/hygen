@@ -16,6 +16,7 @@ import { trackBeats } from "../engine/src/music.ts";
 import { isHtmlScene, loadSpec, parseBeatText } from "../engine/src/spec.ts";
 import type { BeatSpec, VideoSpec } from "../engine/src/spec.ts";
 import { CAMERA_REASONS, STAGE_TYPES, TREATMENTS } from "../engine/src/stage.ts";
+import { readTimeline, timelineChanged } from "../engine/src/lib/timeline.ts";
 import { ELEVEN_SPEED, finalPlan, projectBudget, resolveVoice } from "../engine/src/voice.ts";
 import { dialogBuffer, dialogContext, dialogState, findClaude, listDialogs, maxDialogs, noteEdit, resizeDialog, runningProjects, startDialog, stopDialog, writeDialog } from "./dialogs.ts";
 import { markSelfWrite, setProjectEditHook } from "./events.ts";
@@ -35,10 +36,13 @@ const ASSET_RE = /\.(jpe?g|png|webp|gif|mp4|webm|mov|ogv|wav|mp3|flac|ogg)$/i;
 /** Жанры брифа (ROADMAP S2): по жанру навык берёт свои правила исследования. */
 export const GENRES = ["history", "science", "facts", "entertainment", "explainer"];
 
-export const STATUSES = ["draft-kokoro", "final-elevenlabs", "published", "waiting-library"];
+/** brief (S3) — проект из формы «Новый ролик»: бриф и скелет project.json без битов, до первого диалога. */
+export const STATUSES = ["brief", "draft-kokoro", "final-elevenlabs", "published", "waiting-library"];
 export const STATUS_OF_OLD: Record<string, string> = { draft: "draft-kokoro", built: "draft-kokoro", verified: "draft-kokoro", published: "published" };
 export const statusOf = (p: Record<string, any>): string => {
   const raw = String(p.status ?? "draft-kokoro");
+  // режиссёр написал биты, а статус остался от брифа — это уже черновик
+  if (raw === "brief" && (p.beats?.length ?? 0) > 0) return "draft-kokoro";
   if (STATUSES.includes(raw)) return raw;
   const mapped = STATUS_OF_OLD[raw] ?? "draft-kokoro";
   // a video voiced by ElevenLabs was a final long before the statuses of S2 existed
@@ -188,6 +192,8 @@ function card(dir: string): Record<string, unknown> {
     publishedAt: p.publishedAt ?? null,
     building: Boolean(runningJob("build", name)),
     dialog: runningProjects().includes(name),
+    // «изменено, пересоберите»: project.json уже не тот, из которого собрана карта build/timeline.json
+    changed: timelineChanged(dir),
   };
 }
 
@@ -247,6 +253,40 @@ const jobView = (j: Job, from = 0): Record<string, unknown> => ({ ...j, log: j.l
 
 route("GET", "/api/projects", () => ({ projects: projectDirs().map(card), statuses: STATUSES }));
 
+// ── композиция на паузе (S3, блок 3): build/index.html в iframe редактора, время двигает курсор, без рендера ──
+
+/** Рантайм HyperFrames, который превью-сервер подмешивает в страницу: грузит подкомпозиции и отдаёт window.__player.renderSeek. */
+const HF_RUNTIME = join(ROOT_DIR, "node_modules", "hyperframes", "dist", "hyperframe.runtime.iife.js");
+const compositionUrl = (dir: string): string | null => {
+  const index = join(dir, "build", "index.html");
+  return existsSync(index) ? `/api/projects/${basename(dir)}/composition?v=${Math.round(statSync(index).mtimeMs)}` : null;
+};
+
+route("GET", "/api/hyperframes/runtime.js", ({ res }) => {
+  if (!existsSync(HF_RUNTIME)) throw new HttpError(404, "нет node_modules/hyperframes — npm install");
+  res.writeHead(200, { "Content-Type": "text/javascript; charset=utf-8", "Cache-Control": "no-cache" }).end(readFileSync(HF_RUNTIME));
+});
+
+route("GET", "/api/projects/:id/composition", ({ res, m }) => {
+  const dir = projectDir(m[1] as string);
+  const index = join(dir, "build", "index.html");
+  if (!existsSync(index)) {
+    res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" }).end("композиции нет — проект не собирался");
+    return;
+  }
+  const id = basename(dir);
+  // звук не нужен: всё медиа немое ещё до того, как рантайм его тронет (и то, что придёт с подкомпозициями)
+  const mute =
+    "<script>window.__timelines=window.__timelines||{};(function(){var q=function(r){r.querySelectorAll&&r.querySelectorAll('video,audio').forEach(function(e){e.muted=true;e.defaultMuted=true;})};" +
+    "new MutationObserver(function(l){l.forEach(function(x){x.addedNodes.forEach(function(n){if(n.nodeType===1){if(/^(VIDEO|AUDIO)$/.test(n.tagName)){n.muted=true;n.defaultMuted=true}q(n)}})})}).observe(document.documentElement,{childList:true,subtree:true});" +
+    "document.addEventListener('play',function(e){e.target.muted=true},true);})();</script>";
+  const html = readFileSync(index, "utf8")
+    .replace(/<base\b[^>]*>/gi, "")
+    .replace(/<head([^>]*)>/i, `<head$1>\n<base href="/files/projects/${id}/build/">\n${mute}`)
+    .replace(/<\/head>/i, `<script data-hyperframes-preview-runtime="1" src="/api/hyperframes/runtime.js"></script>\n</head>`);
+  res.writeHead(200, { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-cache" }).end(html);
+});
+
 route("GET", "/api/projects/:id", ({ m }) => {
   const dir = projectDir(m[1] as string);
   const p = readProject(dir);
@@ -263,6 +303,7 @@ route("GET", "/api/projects/:id", ({ m }) => {
       blind: fileUrl(join(renders, "blind", `${p.id}.contact.jpg`)),
       verify: readOpt(join(renders, `${p.id}.verify.json`)),
       build: readOpt(join(renders, `${p.id}.build.json`)),
+      composition: compositionUrl(dir),
     },
     publish: publishOf(dir),
     history: historyOf(dir),
@@ -577,6 +618,9 @@ route("POST", "/api/projects/:id/build", async ({ req, m }) => {
 });
 
 // ── бюджет и финал на ElevenLabs (ROADMAP S2) ───────────────────────────────────────────────────────
+
+/** Карта ролика для «Редактора»: build/timeline.json, перепроекция на изменённый project.json или оценка без сборки. */
+route("GET", "/api/projects/:id/timeline", ({ m }) => readTimeline(projectDir(m[1] as string)));
 
 route("GET", "/api/projects/:id/final", ({ m }) => {
   const dir = projectDir(m[1] as string);
@@ -956,14 +1000,20 @@ route("POST", "/api/doctor", () => startJob({ kind: "doctor", title: "doctor", c
 
 route("GET", "/api/director", () => ({ claude: findClaude(), looks: lookIds(), config: loadConfig(), genres: GENRES, dialogs: dialogState(), max: maxDialogs() }));
 
+/**
+ * «Создать» в «Новом ролике» (S3, блок 0.5): brief.json + скелет project.json (статус brief, Kokoro, бюджет озвучки
+ * из формы, без битов) + пустой media.json. Только файлы: ни диалога, ни исследования, ни поиска медиа, ни сборки.
+ */
 route("POST", "/api/brief", async ({ req }) => {
-  const b = await body<{ id: string; topic: string; genre?: string; look?: string; seconds?: number; wishes?: string; arc?: string; avoid?: string; mustShow?: string }>(req);
+  const b = await body<{ id: string; topic: string; genre?: string; look?: string; seconds?: number; budgetChars?: number; wishes?: string; arc?: string; avoid?: string; mustShow?: string }>(req);
   if (!ID_RE.test(b.id ?? "")) throw new HttpError(400, "id ролика — строчная латиница, цифры и дефис, например tunguska-en");
   if (!b.topic?.trim()) throw new HttpError(400, "нужна тема");
   const dir = join(projectsDir(), b.id);
   if (existsSync(join(dir, "project.json"))) throw new HttpError(409, `projects/${b.id} уже есть — выберите другой id`);
   if (b.look && b.look !== "director" && !lookIds().includes(b.look)) throw new HttpError(400, `нет look ${b.look}`);
   if (!GENRES.includes(b.genre ?? "")) throw new HttpError(400, `жанр — ${GENRES.join(", ")}`);
+  const budget = Number(b.budgetChars);
+  if (b.budgetChars === undefined || b.budgetChars === null || !Number.isFinite(budget) || budget < 0) throw new HttpError(400, "нужен бюджет ElevenLabs — целое число символов, 0 и больше");
   mkdirSync(dir, { recursive: true });
   const cfg = loadConfig();
   const brief = {
@@ -972,14 +1022,19 @@ route("POST", "/api/brief", async ({ req }) => {
     genre: b.genre,
     look: b.look && b.look !== "director" ? b.look : null,
     seconds: Number(b.seconds) || cfg.short.targetSeconds,
+    budgetChars: Math.round(budget),
     wishes: (b.wishes ?? "").trim(),
     arc: (b.arc ?? "").trim() || null,
     avoid: (b.avoid ?? "").trim() || null,
     mustShow: (b.mustShow ?? "").trim() || null,
     createdAt: new Date().toISOString(),
   };
+  const project = { id: b.id, title: brief.topic, status: "brief", format: "1080x1920", fps: 30, language: "en", style: "documentary-dark", look: brief.look ?? cfg.look ?? "ember", voice: { provider: "kokoro", budgetChars: brief.budgetChars }, beats: [] };
+  markSelf(dir);
   writeJson(join(dir, "brief.json"), brief);
-  return { brief, command: `/short ${b.id}` };
+  writeProject(dir, project);
+  if (!existsSync(join(dir, "media.json"))) writeLedger(join(dir, "media.json"), {});
+  return { brief, project: b.id, command: `/short ${b.id}` };
 });
 
 route("GET", "/api/brief/:id", ({ m }) => {

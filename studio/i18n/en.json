@@ -30,7 +30,8 @@
     "published": "published",
     "draft-kokoro": "draft (Kokoro)",
     "final-elevenlabs": "final (ElevenLabs)",
-    "waiting-library": "waiting for the library"
+    "waiting-library": "waiting for the library",
+    "brief": "brief"
   },
   "stages": {
     "voice": "voice",
@@ -128,7 +129,8 @@
       "publish": "Publish",
       "verify": "Verify",
       "history": "History",
-      "dialogs": "Dialogs"
+      "dialogs": "Dialogs",
+      "editor": "Editor"
     },
     "invalid": "project.json doesn't build:",
     "noMp4": "No MP4 yet — click “Build”",
@@ -202,7 +204,8 @@
     "revoiceGo": "Spend {n} characters",
     "remove": "Delete beat",
     "removeTitle": "Delete {id}?",
-    "removeText": "A snapshot of project.json from before the deletion will stay in history/."
+    "removeText": "A snapshot of project.json from before the deletion will stay in history/.",
+    "emptyBrief": "No beats yet: the director writes them on «Dialogs», or add a beat by hand."
   },
   "assets": {
     "drop": "Drop images, video, or audio here —",
@@ -468,7 +471,7 @@
   },
   "newvideo": {
     "title": "New video",
-    "sub": "A brief with a genre → «Create» opens the project and the dialog with the director → assets → beats → build → publish",
+    "sub": "Brief with genre and budget → «Create» makes the project → «Open dialog» → assets → beats → build → publish",
     "brief": "Brief",
     "topic": "topic",
     "topicPlaceholder": "Tunguska event 1908",
@@ -483,9 +486,13 @@
     "avoid": "what to avoid",
     "mustShow": "a shot that must be there (text or a Commons link)",
     "howTitle": "What happens next",
-    "how": "«Create» saves the brief to projects/<id>/brief.json, opens the project on the «Dialogs» tab and starts a dialog with /short <id>. The director works in its own folder; the panel re-reads the cards after every edit it makes.",
+    "how": "«Create» only writes files: projects/<id>/brief.json, a skeleton project.json with the status «brief» and an empty media.json — and opens the project on «Dialogs». Nothing starts by itself: «Open dialog» calls the director (first line /short <id>), «Build» builds.",
     "genreHint": "The genre sets the research rules: history — Wikipedia plus a second link for the figures of the hook and the ending; science — NASA, NOAA, universities; facts and lists — a source for every item; entertainment — a hypothesis is called a hypothesis; explainer — the mechanism arc.",
-    "create": "Create"
+    "create": "Create",
+    "budget": "ElevenLabs budget, characters",
+    "budgetHint": "How many characters this video may spend on «Final on ElevenLabs». Kokoro drafts are free. Change it later in the project header.",
+    "budgetRequired": "Set the ElevenLabs budget — a whole number of characters, 0 or more",
+    "created": "project {id} created"
   },
   "director": {
     "sub": "{n} of {max} dialogs running",
@@ -540,7 +547,10 @@
     "journal": "journal",
     "noneYet": "no dialogs yet",
     "since": "since {at}",
-    "contextHint": "The first line claude gets is the context: the id and topic of the project, the genre and wishes of the brief, the status, what is built, the result of the last dialog and the rule «write only into your own folder; read the library and the documents of the engine; uniqueness — library/index.json»."
+    "contextHint": "The first line claude gets is the context: the id and topic of the project, the genre and wishes of the brief, the status, what is built, the result of the last dialog and the rule «write only into your own folder; read the library and the documents of the engine; uniqueness — library/index.json».",
+    "stoppedToast": "dialog {project} stopped",
+    "openNew": "New dialog",
+    "briefHint": "No beats yet — this is a brief. «Open dialog» starts the director with {command}. Nothing starts by itself."
   },
   "genre": {
     "history": "history",
@@ -548,5 +558,49 @@
     "facts": "facts and lists",
     "entertainment": "entertainment",
     "explainer": "explainer"
+  },
+  "editor": {
+    "title": "Editor",
+    "changed": "changed, rebuild",
+    "changedHint": "project.json was edited after the last build: the MP4 and the timeline are old — press «Build»",
+    "composition": "Composition",
+    "compositionNone": "no composition — the project was not built",
+    "notBuilt": "not built: no MP4, the contact sheet is shown. Build with «Build» in the header.",
+    "estimated": "estimate",
+    "estimatedHint": "the timeline was rebuilt from project.json without a build: real word timings kept, edits estimated",
+    "noBeats": "No beats — nothing to edit. The director writes the script on «Dialogs».",
+    "noMusic": "no music",
+    "undo": "Undo",
+    "redo": "Redo",
+    "undoHint": "Ctrl+Z / Ctrl+Shift+Z — undo and redo edits of this screen ({n} in the stack)",
+    "fit": "Whole video",
+    "close": "Close",
+    "help": "Click a lane to seek. Ctrl+wheel zooms. Click a beat to open its form. Drag: the beat edge — pause after the line (0–3 s), the left edge of a device — its moment snapped to a word of its beat, the music lane — shift on the track's beat grid. Every edit writes project.json and marks «changed, rebuild»; nothing builds by itself.",
+    "holdSaved": "pause after {id}: {v} s",
+    "holdTitle": "pause after the line {v} s",
+    "holdDrag": "drag: pause after the line, 0–3 s",
+    "deviceSaved": "{type} in {bit}: on the word «{word}»",
+    "deviceDrag": "drag: device moment, snaps to a word",
+    "musicSaved": "music starts at {v} s",
+    "musicDrag": "drag: shift the music on the beat grid",
+    "undone": "undone: {what}",
+    "redone": "redone: {what}",
+    "savedInvalid": "saved, but project.json does not validate: {e}",
+    "lanes": {
+      "beats": "beats",
+      "words": "voice",
+      "captions": "captions",
+      "devices": "devices",
+      "transitions": "transitions",
+      "music": "music"
+    },
+    "seekMs": "frame in {ms} ms",
+    "scrub": "drag along the ruler to scrub; hover shows a frame of the contact sheet"
+  },
+  "composition": {
+    "loading": "Loading composition…",
+    "missing": "No composition — the project has not been built",
+    "timeout": "HyperFrames runtime did not start within 20 s",
+    "failed": "Could not open the composition"
   }
 }

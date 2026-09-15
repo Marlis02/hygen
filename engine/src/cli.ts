@@ -8,6 +8,7 @@ import { checkPublish, writePublish } from "./publish.ts";
 import { loadSpec } from "./spec.ts";
 import { BuildError } from "./lib/util.ts";
 import { projectPath } from "./lib/project.ts";
+import { buildTimeline, readTimeline, timelineSummary } from "./lib/timeline.ts";
 
 const USAGE = `hygen — движок faceless-канала
 
@@ -17,6 +18,8 @@ const USAGE = `hygen — движок faceless-канала
       publish/ из готовой сборки и MP4: 3 названия, описание с источниками и кредитами, теги, SRT фразами, обложка
   hygen verify <projects/<id> или id> [--mp4 <файл>] [--no-snapshots]
       автопроверка готового MP4 и контактный лист
+  hygen timeline <projects/<id> или id> [--read] [--json]
+      карта ролика из готового build/ → build/timeline.json без пересборки; --read — как панель (оценка, если project.json изменился), без записи; --json — вся карта
   hygen scene <id сцены> [--params '{json}'] [--tone accent|cold] [--seed n] [--at t1,t2] [--look id|'{json}'] [--textures '[{"id":"rain"}]'] [--beat '{"type":"stagger","camera":"handheld","post":[{"id":"bloom"}]}']
       быстрый просмотр сцены без голоса: lint + снимки + .preview/<id>/sheet.jpg; --transition <id> — сцена дважды с этим переходом на стыке
   hygen scene --device <тип> [--params '{json}'] | --stage <тип> --src <файл> | <рецепт> [--look id] [--text "…"] [--dur с] [--beat '{json}'] [--preset <субтитры>]
@@ -56,6 +59,11 @@ async function main(argv: string[]): Promise<number> {
     return chk.ok ? 0 : 1;
   }
   if (cmd === "verify" && dir) return verifyOnly(dir, value("--mp4"), !flags.has("--no-snapshots")) ? 0 : 1;
+  if (cmd === "timeline" && dir) {
+    const tl = flags.has("--read") ? readTimeline(dir) : buildTimeline(dir);
+    console.log(flags.has("--json") ? JSON.stringify(tl, null, 2) : `${timelineSummary(tl)}${flags.has("--read") ? "" : "\n→ build/timeline.json"}`);
+    return 0;
+  }
   const num = (name: string): number | undefined => {
     const v = value(name);
     if (v === undefined) return undefined;

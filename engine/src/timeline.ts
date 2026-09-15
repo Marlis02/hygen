@@ -20,7 +20,7 @@ export interface Warp {
 }
 
 /** Scenes follow each other; a scene lasts exactly as long as its voice clip. */
-export function beatTimings(voices: VoiceLine[]): BeatTiming[] {
+export function beatTimings(voices: Pick<VoiceLine, "beatId" | "duration" | "speechStart" | "speechEnd">[]): BeatTiming[] {
   let acc = 0;
   return voices.map((v, i) => {
     const timing = {

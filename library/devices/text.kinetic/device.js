@@ -312,32 +312,56 @@ HygenDevices.define("text.kinetic", function (api, dev) {
     }
   } else if (mode === "behind-subject") {
     var drift = 24, bPx = fit(text, (safeW - 2 * drift) / 1.04, Math.round(size * 1.5)), wcx = 540;
-    // the figure across the word's band (P.subject — rows [y, x0, x1] of the cutout, measured by the build): the middle of
-    // the word goes behind it, the first and the last letters stay clear on both sides; no room — a smaller size, never a cut
+    // the figure across a band (P.subject — rows [y, x0, x1] of the cutout, measured by the build)
     var subj = P.subject || [];
-    var spanAt = function (px) {
+    var spanAt = function (px, y) {
       var a0 = 1e9, a1 = -1e9;
-      subj.forEach(function (r) { if (r[0] + 20 > cy - px * 0.45 && r[0] < cy + px * 0.45) { a0 = Math.min(a0, r[1]); a1 = Math.max(a1, r[2]); } });
+      subj.forEach(function (r) { if (r[0] + 20 > y - px * 0.45 && r[0] < y + px * 0.45) { a0 = Math.min(a0, r[1]); a1 = Math.max(a1, r[2]); } });
       return a1 > a0 ? [a0, a1] : null;
     };
+    // the word is not shorter than the figure: its middle goes behind it, the first and the last letters stay clear on both
+    // sides; no room — a smaller size, never a cut
+    var placed = !subj.length;
     if (subj.length) {
       var firstW = function (px) { return measure(text.charAt(0), px, 900) * 1.08; }, lastW = function (px) { return measure(text.charAt(text.length - 1), px, 900) * 1.08; };
       for (var tryPx = bPx; tryPx >= 48; tryPx = Math.floor(tryPx * 0.96)) {
-        var sp = spanAt(tryPx), Wd = measure(text, tryPx, 900) * 1.04;
-        if (!sp) { bPx = tryPx; break; }
+        var sp = spanAt(tryPx, cy), Wd = measure(text, tryPx, 900) * 1.04;
+        if (!sp) { bPx = tryPx; placed = true; break; }
         var lo = Math.max(safeL + drift + Wd / 2, sp[1] + drift + lastW(tryPx) - Wd / 2);
         var hi = Math.min(safeR - drift - Wd / 2, sp[0] - drift - firstW(tryPx) + Wd / 2);
-        if (lo <= hi) { bPx = tryPx; wcx = Math.max(lo, Math.min(hi, (sp[0] + sp[1]) / 2)); break; }
+        if (lo <= hi) { bPx = tryPx; wcx = Math.max(lo, Math.min(hi, (sp[0] + sp[1]) / 2)); placed = true; break; }
       }
     }
-    var word = node("div", baseStyle(bPx, { position: "absolute", left: (wcx - 540).toFixed(0) + "px", top: (cy - bPx * 0.5).toFixed(0) + "px", width: "1080px", textAlign: "center", color: col, lineHeight: "1", fontWeight: "900", textShadow: "0 8px 40px " + shade + "0.35)" }), root, text);
-    bg(word);
+    // a line shorter than the figure (ROADMAP S3, блок 5): two lines on both sides of it — the first half ends left of the
+    // figure a little higher, the second starts right of it a little lower; only when both sides hold a readable size
+    var lines = [[text, wcx, cy]], lPx = bPx, parts = text.split(/\s+/);
+    if (!placed && parts.length > 1) {
+      var cut = 1, best = 1e9;
+      for (var q = 1; q < parts.length; q++) { var dq = Math.abs(parts.slice(0, q).join(" ").length - parts.slice(q).join(" ").length); if (dq < best) { best = dq; cut = q; } }
+      var la = parts.slice(0, cut).join(" "), lb = parts.slice(cut).join(" ");
+      for (var p2 = Math.round(size * 1.5); p2 >= 72; p2 = Math.floor(p2 * 0.94)) {
+        var ya = cy - p2 * 0.55, yb = cy + p2 * 0.55, sa = spanAt(p2, ya) || [540, 540], sb = spanAt(p2, yb) || [540, 540];
+        var wa = measure(la, p2, 900) * 1.04, wb = measure(lb, p2, 900) * 1.04;
+        if (sa[0] - 2 * drift - wa >= safeL + drift && sb[1] + 2 * drift + wb <= safeR - drift) {
+          lines = [[la, sa[0] - 2 * drift - wa / 2, ya], [lb, sb[1] + 2 * drift + wb / 2, yb]];
+          lPx = p2;
+          break;
+        }
+      }
+    }
+    var els = lines.map(function (ln) {
+      var el = node("div", baseStyle(lPx, { position: "absolute", left: (ln[1] - 540).toFixed(0) + "px", top: (ln[2] - lPx * 0.5).toFixed(0) + "px", width: "1080px", textAlign: "center", color: col, lineHeight: "1", fontWeight: "900", textShadow: "0 8px 40px " + shade + "0.35)" }), root, ln[0]);
+      bg(el);
+      return el;
+    });
     if (P.cutout) {
       var img = api.el("img", { src: P.cutout, alt: "", style: { position: "absolute", left: "0px", top: "0px", width: "1080px", height: "1920px", objectFit: P.fit || "cover", objectPosition: P.focus ? (P.focus[0] * 100).toFixed(1) + "% " + (P.focus[1] * 100).toFixed(1) + "%" : "50% 50%" } }, root);
       img.setAttribute("data-layout-ignore", "");
     }
-    entrance(word, at, { from: { opacity: 0, y: 170 }, to: { opacity: 1, y: 0 } });
-    if (end - at - 0.6 > 0.4) tl.fromTo(word, { x: -24 }, { x: 24, duration: end - at - 0.6, ease: "sine.inOut", immediateRender: false }, at + 0.6);
-    beats.slice(1).forEach(function (bt) { tl.fromTo(word, { scale: 1.04 }, { scale: 1, duration: 0.22, ease: "power2.out", immediateRender: false }, bt); });
+    els.forEach(function (word, k) {
+      entrance(word, at + k * 0.12, { from: { opacity: 0, y: 170 }, to: { opacity: 1, y: 0 } });
+      if (end - at - 0.6 > 0.4) tl.fromTo(word, { x: -24 }, { x: 24, duration: end - at - 0.6, ease: "sine.inOut", immediateRender: false }, at + 0.6);
+      beats.slice(1).forEach(function (bt) { tl.fromTo(word, { scale: 1.04 }, { scale: 1, duration: 0.22, ease: "power2.out", immediateRender: false }, bt); });
+    });
   }
 });

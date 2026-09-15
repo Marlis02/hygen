@@ -188,6 +188,11 @@ export function parseBeatText(text: string): { tts: string; tokens: Token[] } {
   return { tts: tts.join(" "), tokens };
 }
 
+/** Сборка и автопроверка проекта без битов: человеческий отказ вместо трейса где-то в конвейере. */
+export function requireBeats(spec: VideoSpec): void {
+  if (!spec.beats.length) fail(`у проекта ${spec.id} нет битов — это пока бриф: откройте диалог с режиссёром (/short ${spec.id}), он напишет сценарий`);
+}
+
 export function loadSpec(videoDir: string): VideoSpec {
   const path = join(videoDir, "project.json");
   if (!existsSync(path)) fail(`нет ${path}`);
@@ -199,7 +204,8 @@ export function loadSpec(videoDir: string): VideoSpec {
   need(/^\d+x\d+$/.test(spec.format ?? ""), "format вида 1080x1920");
   need(Number.isInteger(spec.fps) && spec.fps > 0, "fps — целое число");
   need(spec.voice === undefined || (typeof spec.voice === "object" && [undefined, "kokoro", "elevenlabs"].includes(spec.voice.provider ?? spec.voice.engine)), "voice: {provider: kokoro | elevenlabs, voiceId, model} (старая форма {engine: kokoro, voice, speed} тоже работает)");
-  need(Array.isArray(spec.beats) && spec.beats.length > 0, "нет битов");
+  // проект из брифа (S3) живёт без битов, пока режиссёр их не напишет; сборка и проверка отказывают словами (noBeats)
+  need(Array.isArray(spec.beats), "beats — массив битов");
   spec.language = spec.language ?? "en";
   spec.style = spec.style ?? "documentary-dark";
   need(existsSync(join(LIBRARY_DIR, "styles", spec.style, "style.json")) && existsSync(join(LIBRARY_DIR, "styles", spec.style, "frame.md")), `нет стиля library/styles/${spec.style} (style.json и frame.md)`);
@@ -232,7 +238,9 @@ export function loadSpec(videoDir: string): VideoSpec {
     need(typeof tr.duration === "number" && tr.duration > 0, `переход ${tr.from} → ${tr.to}: duration > 0`);
     tr.ease = tr.ease ?? "power2.inOut";
   }
-  need(spec.sound?.drone, "sound.drone обязателен");
+  // звук привязан к битам: у проекта-брифа (без битов) его ещё нет
+  need(spec.sound?.drone || !spec.beats.length, "sound.drone обязателен");
+  spec.sound = spec.sound ?? ({ hits: [] } as unknown as VideoSpec["sound"]);
   spec.sound.hits = spec.sound.hits ?? [];
   return spec;
 }

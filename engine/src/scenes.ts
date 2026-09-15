@@ -2,6 +2,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import type { SceneDef, StyleDef } from "./contract.ts";
 import { beatCues, evalCondition, loadScene, renderTemplate, resolveParams, sceneTemplate } from "./contract.ts";
+import type { ResolvedDevice } from "./devices.ts";
 import type { VideoSpec } from "./spec.ts";
 import type { BeatTiming, Warp } from "./timeline.ts";
 import { warpKnots } from "./timeline.ts";
@@ -30,6 +31,8 @@ export interface SceneBuild {
   events: SceneEvent[];
   /** Type presets or text parallax were injected (the root must load the motion runtime). */
   injected: boolean;
+  /** Devices of a stage beat with their moments (build/timing.json → the timeline map). */
+  devices?: ResolvedDevice[];
 }
 
 export function warpHelper(warp: { ref: number[]; act: number[] }): string {

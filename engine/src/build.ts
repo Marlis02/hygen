@@ -14,7 +14,7 @@ import { makeEventSounds, makeGrain, makeSound, planEventSounds, planSound } fro
 import { planTransitions } from "./layers.ts";
 import { makeMusic, musicGrid } from "./music.ts";
 import { checkCaptionFields, probeCaptionContrast } from "./captions.ts";
-import { loadSpec } from "./spec.ts";
+import { loadSpec, requireBeats } from "./spec.ts";
 import { beatTimings } from "./timeline.ts";
 import { verifyVideo } from "./verify.ts";
 import type { VerifyResult } from "./verify.ts";
@@ -22,6 +22,7 @@ import { makeVoices, resolveVoice } from "./voice.ts";
 import { writePublish } from "./publish.ts";
 import { alignWords } from "./words.ts";
 import { checkProjectMedia, snapshotHistory, updateLibraryIndex } from "./lib/project.ts";
+import { buildTimeline, projectHashOf, timelineSummary, writeTimingRecord } from "./lib/timeline.ts";
 import { ROOT_DIR, Timer, ensureDir, fail, log, writeJson } from "./lib/util.ts";
 
 export interface BuildOptions {
@@ -36,6 +37,9 @@ export interface BuildOptions {
 /** project.json → voice → word timings → sound → scenes → index.html → lint/check → render → master → autocheck. */
 export async function build(videoDir: string, opts: BuildOptions): Promise<boolean> {
   const spec = loadSpec(videoDir);
+  requireBeats(spec);
+  // the project.json this build reads: build/timeline.json is current while the file keeps this hash
+  const projectHash = projectHashOf(videoDir);
   const media = checkProjectMedia(videoDir);
   if (media.errors.length) fail(`медиа проекта — у каждого файла запись с лицензией в media.json:\n  ${media.errors.join("\n  ")}`);
   const snap = snapshotHistory(videoDir, "build");
@@ -93,6 +97,13 @@ export async function build(videoDir: string, opts: BuildOptions): Promise<boole
   );
   await timer.step("субтитры: контраст под текстом (снимки)", () => probeCaptionContrast(buildDir, captions, style));
   for (const w of captions.warnings) log.warn(`субтитры: ${w}`);
+  // the map of the video for the «Редактор» screen: build/timing.json + the files above → build/timeline.json (no render change)
+  try {
+    writeTimingRecord(buildDir, { projectHash, spec, voice, words, scenes, grid });
+    log.info(timelineSummary(buildTimeline(videoDir)));
+  } catch (err) {
+    log.warn(`карта ролика build/timeline.json не записана: ${err instanceof Error ? err.message : String(err)} — панель покажет оценку`);
+  }
   await timer.step("hyperframes lint", () => lintProject(buildDir));
   const checkOk = opts.check ? await timer.step("hyperframes check", () => checkProject(buildDir)) : null;
 
@@ -140,6 +151,7 @@ export async function build(videoDir: string, opts: BuildOptions): Promise<boole
 
 export function verifyOnly(videoDir: string, mp4: string | undefined, snapshots: boolean): boolean {
   const spec = loadSpec(videoDir);
+  requireBeats(spec);
   const result = verifyVideo(videoDir, spec, { mp4, snapshots });
   console.log(result.ok ? "\n✓ автопроверка пройдена" : "\n✗ автопроверка НЕ пройдена");
   return result.ok;

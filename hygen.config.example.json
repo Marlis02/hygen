@@ -4,7 +4,11 @@
     "voiceId": "",
     "model": "eleven_multilingual_v2",
     "kokoroVoice": "am_michael",
-    "defaultBudgetChars": 3000
+    "defaultBudgetChars": 3000,
+    "charsPerSecond": {
+      "kokoro": 14.4,
+      "elevenlabs": 16.8
+    }
   },
   "look": "ember",
   "bitrate": {
