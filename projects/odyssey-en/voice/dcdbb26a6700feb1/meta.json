@@ -1,0 +1,9 @@
+{
+  "label": "odyssey-en/04-scar",
+  "voiceId": "uju3wxzG5OhpWcoi3SMy",
+  "model": "eleven_multilingual_v2",
+  "output_format": "pcm_24000",
+  "chars": 66,
+  "character_cost": 36,
+  "text": "His old nurse washes his feet and finds the scar a wild boar left."
+}

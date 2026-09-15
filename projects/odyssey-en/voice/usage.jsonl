@@ -1,0 +1,7 @@
+{"at":"2026-09-15T08:22:42.521Z","label":"odyssey-en/01-beggar","voiceId":"uju3wxzG5OhpWcoi3SMy","model":"eleven_multilingual_v2","output_format":"pcm_24000","chars":58,"character_cost":32}
+{"at":"2026-09-15T08:22:42.646Z","label":"odyssey-en/02-suitors","voiceId":"uju3wxzG5OhpWcoi3SMy","model":"eleven_multilingual_v2","output_format":"pcm_24000","chars":76,"character_cost":42}
+{"at":"2026-09-15T08:22:42.661Z","label":"odyssey-en/03-argos","voiceId":"uju3wxzG5OhpWcoi3SMy","model":"eleven_multilingual_v2","output_format":"pcm_24000","chars":58,"character_cost":32}
+{"at":"2026-09-15T08:22:45.869Z","label":"odyssey-en/04-scar","voiceId":"uju3wxzG5OhpWcoi3SMy","model":"eleven_multilingual_v2","output_format":"pcm_24000","chars":66,"character_cost":36}
+{"at":"2026-09-15T08:22:46.163Z","label":"odyssey-en/06-bed","voiceId":"uju3wxzG5OhpWcoi3SMy","model":"eleven_multilingual_v2","output_format":"pcm_24000","chars":87,"character_cost":48}
+{"at":"2026-09-15T08:22:46.170Z","label":"odyssey-en/05-bow","voiceId":"uju3wxzG5OhpWcoi3SMy","model":"eleven_multilingual_v2","output_format":"pcm_24000","chars":95,"character_cost":52}
+{"at":"2026-09-15T08:22:48.902Z","label":"odyssey-en/07-embrace","voiceId":"uju3wxzG5OhpWcoi3SMy","model":"eleven_multilingual_v2","output_format":"pcm_24000","chars":69,"character_cost":38}

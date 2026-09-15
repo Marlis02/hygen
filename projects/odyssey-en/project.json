@@ -1,0 +1,414 @@
+{
+  "id": "odyssey-en",
+  "title": "Twenty years gone: how Odysseus proved he was the king",
+  "status": "built",
+  "concept": "Настроение: «винно-тёмное море» Гомера на листах старого офорта — медленно, тихо, как чтение при лампе; ветер странствий тянет через кадр, внизу стелется морская дымка. Ключевой цвет: тёмное вино на чёрной туши (акцент #C23C66, земля #140A0E, бумага #F0E6D8), второй тон — эгейская бирюза #6FB3C4. Look: свой `wine-dark` поверх `ember` — текстуры fog (фон) и wind (передний план), офорты ван Тюльдена 1633 года в duotone, заголовки mask-wipe, подписи slide, bloom 0,25, переход на ударах iris, субтитры calm · editorial-emphasis. Арка: mystery × rhetorical-question × person × callback — нищий в собственном доме, улики (пёс, шрам), ложный след (лук), разгадка (кровать на живой оливе), финал возвращается к двадцати годам хука.",
+  "format": "1080x1920",
+  "fps": 30,
+  "language": "en",
+  "style": "documentary-dark",
+  "look": {
+    "extends": "ember",
+    "id": "wine-dark",
+    "name": "Винно-тёмное море",
+    "about": {
+      "mood": "Homer's wine-dark sea on the sheets of an old etching: slow and quiet, like reading by a lamp; a wind of wandering drifts across the frame and a sea haze lies low.",
+      "topics": "Myths, epics and ancient literature told through etchings, drawings and vase paintings.",
+      "avoid": "Modern footage, bright saturated colours, fast cuts and heavy shake."
+    },
+    "palette": {
+      "accent": "#C23C66",
+      "secondary": "#6FB3C4",
+      "groundTint": "#140A0E",
+      "temperature": "warm",
+      "textColor": "#F0E6D8"
+    },
+    "textures": [
+      {
+        "id": "fog",
+        "density": 0.3,
+        "speed": 0.3,
+        "height": 0.4,
+        "layers": 2,
+        "opacity": 0.3,
+        "depth": "bg"
+      },
+      {
+        "id": "wind",
+        "density": 0.18,
+        "speed": 0.45,
+        "angle": 4,
+        "gust": 0.5,
+        "direction": "left",
+        "opacity": 0.22,
+        "depth": "fg"
+      }
+    ],
+    "motion": {
+      "camera": {
+        "preset": "none"
+      },
+      "parallax": {
+        "enabled": false
+      },
+      "type": {
+        "number": "count-roll",
+        "title": "mask-wipe",
+        "label": "slide"
+      },
+      "post": [
+        {
+          "id": "bloom",
+          "strength": 0.25
+        }
+      ]
+    },
+    "transitions": {
+      "default": "hard-cut",
+      "hit": "iris"
+    },
+    "grain": 1,
+    "vignette": {
+      "alpha": 0.62,
+      "clear": 54
+    },
+    "sound": {
+      "hit": "thud",
+      "whoosh": "water"
+    },
+    "captions": {
+      "family": "calm",
+      "preset": "editorial-emphasis"
+    },
+    "typography": {
+      "kinetic": false
+    }
+  },
+  "voice": {
+    "provider": "elevenlabs"
+  },
+  "arc": {
+    "structure": "mystery",
+    "hook": "rhetorical-question",
+    "protagonist": "person",
+    "ending": "callback",
+    "why": "A beggar in his own house must prove he is Odysseus: a dog and a scar are clues, the bow is a false lead that a god could match, the olive-tree bed is the answer, and the ending returns to the twenty years of the hook."
+  },
+  "beats": [
+    {
+      "id": "01-beggar",
+      "role": "hook",
+      "text": "[20|Twenty] years gone. How does a beggar prove he is the king?",
+      "sees": "Зритель видит нищего старика, сидящего на земле у двери дворца; его обводит рукописный овал с подписью «ODYSSEUS · KING OF ITHACA · 20 YEARS AWAY».",
+      "pad": [
+        0.2,
+        0.7
+      ],
+      "intent": "identify",
+      "stage": {
+        "type": "media",
+        "src": "media/beggar-at-the-door.jpg",
+        "fit": "cover",
+        "focus": [
+          0.92,
+          0.5
+        ],
+        "treatment": "duotone"
+      },
+      "devices": [
+        {
+          "type": "annotate.label",
+          "target": {
+            "x": 18,
+            "y": 36,
+            "w": 68,
+            "h": 36
+          },
+          "at": "twenty",
+          "params": {
+            "text": "ODYSSEUS",
+            "sub": "KING OF ITHACA · 20 YEARS AWAY",
+            "side": "top"
+          },
+          "explains": "the ragged old man at the door is Odysseus himself, home after twenty years",
+          "source": "https://en.wikipedia.org/wiki/Odysseus"
+        }
+      ],
+      "dominant": 0,
+      "camera": {
+        "reason": "approach",
+        "amplitude": 0.3
+      },
+      "sources": {
+        "text": "https://en.wikipedia.org/wiki/Odysseus"
+      }
+    },
+    {
+      "id": "02-suitors",
+      "role": "question",
+      "text": "In his hall, [108|a hundred and eight] suitors court his wife, Penelope. Who in this house will know him?",
+      "sees": "Зритель видит, как на тёмном поле выстраиваются 108 точек-женихов и на слове «wife» все разом загораются винным цветом.",
+      "pad": [
+        0.3,
+        0.7
+      ],
+      "stage": {
+        "type": "color",
+        "color": "night",
+        "glow": true
+      },
+      "devices": [
+        {
+          "type": "data.dots",
+          "target": {
+            "x": 14,
+            "y": 24,
+            "w": 72,
+            "h": 34
+          },
+          "at": "hundred",
+          "params": {
+            "count": 108,
+            "mark": 108,
+            "mode": "color",
+            "markAt": "wife",
+            "label": "108 SUITORS"
+          },
+          "source": "https://en.wikipedia.org/wiki/Odyssey"
+        }
+      ],
+      "dominant": 0,
+      "sources": {
+        "text": "https://en.wikipedia.org/wiki/Odyssey"
+      }
+    },
+    {
+      "id": "03-argos",
+      "role": "clue",
+      "text": "His old dog Argos, long neglected, knows him at once, and dies on the spot.",
+      "sees": "Зритель видит старого пса, который тянется мордой к Одиссею; свет выхватывает пса, подпись «ARGOS · HIS OLD DOG».",
+      "pad": [
+        0.3,
+        0.7
+      ],
+      "intent": "show-detail",
+      "target": {
+        "x": 40,
+        "y": 47,
+        "w": 28,
+        "h": 26
+      },
+      "at": "argos",
+      "data": {
+        "src": "media/argos-recognizes.jpg",
+        "label": "ARGOS",
+        "sub": "HIS OLD DOG",
+        "explains": "the old dog is the first in the house to recognise his master",
+        "source": "https://en.wikipedia.org/wiki/Odyssey"
+      },
+      "stage": {
+        "type": "media",
+        "fit": "cover",
+        "focus": [
+          0.587,
+          0.5
+        ],
+        "treatment": "duotone"
+      },
+      "sources": {
+        "text": "https://en.wikisource.org/wiki/The_Odyssey_(Butler)/Book_XVII"
+      }
+    },
+    {
+      "id": "04-scar",
+      "role": "clue",
+      "text": "His old nurse, Eurycleia, washes his feet. Her hand stops on the scar a wild boar left.",
+      "sees": "Зритель видит, как нянька держит ногу гостя над тазом, и кадр медленно съезжает к её руке на его колене — туда, где шрам.",
+      "pad": [
+        0.3,
+        0.8
+      ],
+      "stage": {
+        "type": "media",
+        "src": "media/euryclea-scar.jpg",
+        "fit": "cover",
+        "focus": [
+          0.5,
+          0.5
+        ],
+        "treatment": "duotone",
+        "crop": {
+          "x": 0,
+          "y": 0,
+          "w": 100,
+          "h": 100
+        },
+        "pan": {
+          "to": {
+            "x": 22,
+            "y": 24,
+            "w": 64,
+            "h": 64
+          },
+          "at": "washes",
+          "dur": 2.8
+        }
+      },
+      "devices": [],
+      "dominant": "stage",
+      "sources": {
+        "text": "https://en.wikipedia.org/wiki/Odysseus"
+      }
+    },
+    {
+      "id": "05-bow",
+      "role": "false-lead",
+      "text": "He strings the bow no suitor could, and shoots through [12|twelve] axes. Even then, Penelope fears a god in disguise.",
+      "sees": "Зритель видит весь офорт: Одиссей натягивает лук, перед ним ряд колец, над листом счёт до «12 · AXES, ONE ARROW».",
+      "pad": [
+        0.3,
+        0.8
+      ],
+      "stage": {
+        "type": "media",
+        "src": "media/bow-twelve-rings.jpg",
+        "fit": "contain",
+        "treatment": "duotone"
+      },
+      "devices": [
+        {
+          "type": "data.count",
+          "target": {
+            "x": 50,
+            "y": 17
+          },
+          "at": "twelve",
+          "params": {
+            "to": 12,
+            "label": "AXES, ONE ARROW",
+            "size": "hero",
+            "countDur": 0.9
+          },
+          "source": "https://en.wikipedia.org/wiki/Odysseus"
+        }
+      ],
+      "dominant": 0,
+      "sources": {
+        "text": "https://en.wikipedia.org/wiki/Odysseus"
+      }
+    },
+    {
+      "id": "06-bed",
+      "role": "reveal",
+      "text": "So she tests him: move our bed. It cannot move. One of its legs is a living olive tree.",
+      "sees": "Зритель видит на тёмной карточке, как по словам появляются слова Одиссея у Батлера: «There was a young olive growing within the precincts of the house… I built my room round this».",
+      "pad": [
+        0.3,
+        1.1
+      ],
+      "scene": "quote-card",
+      "at": "bed",
+      "data": {
+        "text": "There was a young olive growing within the precincts of the house… I built my room round this",
+        "author": "Odysseus, Odyssey XXIII",
+        "year": "tr. 1900",
+        "size": "medium",
+        "source": "https://en.wikisource.org/wiki/The_Odyssey_(Butler)/Book_XXIII"
+      },
+      "sources": {
+        "text": "https://en.wikipedia.org/wiki/Odysseus"
+      }
+    },
+    {
+      "id": "07-embrace",
+      "role": "ending",
+      "text": "After [20|twenty] years, a king was proven not by his bow, but by his bed.",
+      "sees": "Зритель видит, как Одиссей и Пенелопа обнимаются, а над листом в тишине встаёт «20 · YEARS».",
+      "pad": [
+        0.4,
+        2.6
+      ],
+      "intent": "quiet-ending",
+      "target": {
+        "x": 50,
+        "y": 16
+      },
+      "at": "twenty",
+      "data": {
+        "src": "media/penelope-embrace.jpg",
+        "value": 20,
+        "label": "YEARS",
+        "size": "hero",
+        "source": "https://en.wikipedia.org/wiki/Odysseus"
+      },
+      "stage": {
+        "type": "media",
+        "fit": "contain",
+        "treatment": "duotone"
+      },
+      "dominant": 0,
+      "sources": {
+        "text": "https://en.wikipedia.org/wiki/Odysseus"
+      }
+    }
+  ],
+  "transitions": [],
+  "sound": {
+    "drone": {
+      "peak": "06-bed:olive",
+      "cut": "07-embrace:start",
+      "volume": 0.4,
+      "carve": 0.65
+    },
+    "hits": [
+      {
+        "at": "02-suitors:start",
+        "volume": 0.4
+      },
+      {
+        "at": "03-argos:start",
+        "volume": 0.42
+      },
+      {
+        "at": "05-bow:start",
+        "volume": 0.45
+      },
+      {
+        "at": "06-bed:living",
+        "heavy": true,
+        "volume": 0.58,
+        "carve": 0.75
+      },
+      {
+        "at": "07-embrace:start",
+        "volume": 0.38
+      }
+    ]
+  },
+  "music": {
+    "track": "documentary-dark-01"
+  },
+  "publish": {
+    "titles": [
+      "Twenty years gone: how Odysseus proved he was the king",
+      "Not the bow, the bed: how Penelope knew Odysseus after 20 years",
+      "108 suitors, one beggar: who recognised Odysseus first?"
+    ],
+    "description": "After twenty years away, Odysseus comes home to Ithaca disguised as a beggar, while 108 suitors court his wife. His old dog Argos knows him, his nurse finds the scar from a boar hunt, and he shoots through twelve axes — yet Penelope still fears a god in disguise. The proof is their bed: one of its legs is a living olive tree.",
+    "tags": [
+      "odyssey",
+      "homer",
+      "odysseus",
+      "penelope",
+      "greek mythology",
+      "ithaca",
+      "argos the dog",
+      "ancient greece",
+      "epic poetry",
+      "classics",
+      "theodoor van thulden",
+      "history shorts",
+      "mythology shorts"
+    ]
+  }
+}

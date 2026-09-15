@@ -1,0 +1,9 @@
+{
+  "label": "odyssey-en/06-bed",
+  "voiceId": "uju3wxzG5OhpWcoi3SMy",
+  "model": "eleven_multilingual_v2",
+  "output_format": "pcm_24000",
+  "chars": 87,
+  "character_cost": 48,
+  "text": "So she tests him: move our bed. It cannot move. One of its legs is a living olive tree."
+}

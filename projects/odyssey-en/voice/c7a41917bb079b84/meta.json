@@ -1,0 +1,9 @@
+{
+  "label": "odyssey-en/01-beggar",
+  "voiceId": "uju3wxzG5OhpWcoi3SMy",
+  "model": "eleven_multilingual_v2",
+  "output_format": "pcm_24000",
+  "chars": 58,
+  "character_cost": 32,
+  "text": "Twenty years gone. How does a beggar prove he is the king?"
+}

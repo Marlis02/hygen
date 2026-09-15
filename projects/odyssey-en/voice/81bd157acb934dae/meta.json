@@ -1,0 +1,9 @@
+{
+  "label": "odyssey-en/05-bow",
+  "voiceId": "uju3wxzG5OhpWcoi3SMy",
+  "model": "eleven_multilingual_v2",
+  "output_format": "pcm_24000",
+  "chars": 95,
+  "character_cost": 52,
+  "text": "He strings his bow and shoots through twelve axes. Even then, Penelope fears a god in disguise."
+}
