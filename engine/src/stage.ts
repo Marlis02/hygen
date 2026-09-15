@@ -34,7 +34,7 @@ const STAGE_KEYS: Record<string, string[]> = {
 
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
 const NUM = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v);
-const mediaPath = (v: string, videoDir: string): string => (isAbsolute(v) ? v : v.startsWith("engine/") || v.startsWith("videos/") ? join(ROOT_DIR, v) : join(videoDir, v));
+const mediaPath = (v: string, videoDir: string): string => (isAbsolute(v) ? v : /^(engine|projects|library)\//.test(v) ? join(ROOT_DIR, v) : join(videoDir, v));
 
 export const spokenOf = (beat: BeatSpec): string[] => parseBeatText(beat.text).tokens.flatMap((t) => t.spoken);
 

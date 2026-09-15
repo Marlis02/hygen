@@ -1,0 +1,9 @@
+{
+  "label": "molasses-flood-en/06-smell",
+  "voiceId": "uju3wxzG5OhpWcoi3SMy",
+  "model": "eleven_multilingual_v2",
+  "output_format": "pcm_24000",
+  "chars": 101,
+  "character_cost": 56,
+  "text": "The tank was never rebuilt. For decades, on hot summer days, the North End still smelled of molasses."
+}

@@ -2,8 +2,8 @@
 """Contact sheets of several videos one under another, each with its id and look — to see at a glance whether
 they read as different videos (ROADMAP D3.5).
 
-    python3 engine/py/contact_montage.py videos/_compare/contact-3.jpg \
-        videos/pompeii-en/renders/pompeii-en.contact.jpg:"pompeii-en · ember" …
+    python3 engine/py/contact_montage.py sessions/compare-d3.5/contact-3.jpg \
+        projects/pompeii-en/renders/pompeii-en.contact.jpg:"pompeii-en · ember" …
 """
 import sys
 

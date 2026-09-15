@@ -8,6 +8,7 @@ import { allMissingSources } from "./stage.ts";
 import { checkUniqueness } from "./uniqueness.ts";
 import { checkPublish } from "./publish.ts";
 import type { VideoSpec } from "./spec.ts";
+import { checkProjectMedia } from "./lib/project.ts";
 import { fail, hyperframesBin, log, pyScript, python, readJson, run, writeJson } from "./lib/util.ts";
 
 export interface VerifyOptions {
@@ -53,19 +54,24 @@ export function verifyVideo(videoDir: string, spec: VideoSpec, opts: VerifyOptio
   const sourcesOk = missing.length === 0;
   const detail = sourcesOk ? "у всех цифр на экране есть источник" : `нет источника: ${missing.join("; ")}`;
   log.info(`${sourcesOk ? "✓" : "✗"} sources   ${detail}`);
+  const rep0 = checkProjectMedia(videoDir);
+  const mediaOk = rep0.errors.length === 0;
+  const mDetail = mediaOk ? `файлов в media/ ${rep0.files}, у всех запись с лицензией в media.json` : rep0.errors.join("; ");
+  log.info(`${mediaOk ? "✓" : "✗"} media     ${mDetail}`);
   const rep = readJson<{ ok: boolean; checks: { check: string; ok: boolean; detail: string }[]; palette?: { hue: number | null } }>(report);
   rep.checks.push({ check: "sources", ok: sourcesOk, detail });
+  rep.checks.push({ check: "media", ok: mediaOk, detail: mDetail });
   // grammar of the beats and the arc (ROADMAP D4): errors fail, warnings are reported
   const grammar = checkGrammar(spec, loadLook(spec.look), videoDir);
   const grammarOk = grammar.errors.length === 0;
   const gDetail = `${grammarOk ? "ошибок нет" : grammar.errors.join("; ")} · плотность ${grammar.density.join(" ")}${grammar.warnings.length ? ` · предупреждения: ${grammar.warnings.join("; ")}` : ""}`;
   log.info(`${grammarOk ? "✓" : "✗"} grammar   ${gDetail}`);
   rep.checks.push({ check: "grammar", ok: grammarOk, detail: gDetail });
-  // the resolver: the same video.json and tables give the same beats.expanded.json as the build wrote
+  // the resolver: the same project.json and tables give the same beats.expanded.json as the build wrote
   const exp = checkExpanded(videoDir, spec);
   log.info(`${exp.ok ? "✓" : "✗"} expanded  ${exp.detail}`);
   rep.checks.push({ check: "expanded", ok: exp.ok, detail: exp.detail });
-  // uniqueness among the videos in videos/: accent hue (look and settle frames) or texture set (ROADMAP D3.5)
+  // uniqueness among the projects in projects/: accent hue (look and settle frames) or texture set (ROADMAP D3.5)
   const uniq = checkUniqueness(spec, videoDir, rep.palette?.hue ?? null);
   log.info(`${uniq.ok ? "✓" : "✗"} uniqueness ${uniq.detail}`);
   for (const w of uniq.warnings) log.warn(w);
@@ -80,7 +86,7 @@ export function verifyVideo(videoDir: string, spec: VideoSpec, opts: VerifyOptio
   const tDetail = text.detail + (textWarn.length ? ` · предупреждения: ${textWarn.join("; ")}` : "");
   log.info(`${text.ok ? "✓" : "✗"} text      ${tDetail}`);
   rep.checks.push({ check: "text", ok: text.ok, detail: tDetail });
-  rep.ok = rep.ok && sourcesOk && uniq.ok && grammarOk && exp.ok && pub.ok && text.ok;
+  rep.ok = rep.ok && mediaOk && sourcesOk && uniq.ok && grammarOk && exp.ok && pub.ok && text.ok;
   writeJson(report, rep);
-  return { ok: r.status === 0 && sourcesOk && uniq.ok && grammarOk && exp.ok && pub.ok && text.ok, report, sheet };
+  return { ok: r.status === 0 && mediaOk && sourcesOk && uniq.ok && grammarOk && exp.ok && pub.ok && text.ok, report, sheet };
 }

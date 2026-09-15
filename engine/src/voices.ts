@@ -1,8 +1,9 @@
 #!/usr/bin/env node
-/** npm run voices -- "<реплика>" [--out videos/_proof/voices] [--model eleven_multilingual_v2] — одна реплика четырьмя голосами ElevenLabs, выбор на слух. */
+/** npm run voices -- "<реплика>" [--out library/voices] [--model eleven_multilingual_v2] — одна реплика четырьмя голосами ElevenLabs, выбор на слух. */
 import { writeFileSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
 import { ELEVEN_DEFAULT_MODEL, elevenTake } from "./voice.ts";
+import { libraryDir } from "./lib/project.ts";
 import { ROOT_DIR, ensureDir, lastJsonLine, loadEnv, pyScript, python, run } from "./lib/util.ts";
 
 const PRESETS = [
@@ -19,7 +20,7 @@ async function main(argv: string[]): Promise<number> {
   };
   const text = argv.find((a, i) => !a.startsWith("--") && !["--out", "--model"].includes(argv[i - 1] ?? ""));
   if (!text) {
-    console.log('npm run voices -- "<реплика>" [--out videos/_proof/voices] [--model eleven_multilingual_v2]');
+    console.log('npm run voices -- "<реплика>" [--out library/voices] [--model eleven_multilingual_v2]');
     return 2;
   }
   const env = loadEnv();
@@ -27,7 +28,7 @@ async function main(argv: string[]): Promise<number> {
     console.error("✗ нет ELEVENLABS_API_KEY в .env");
     return 1;
   }
-  const out = ensureDir(resolve(opt("--out") ?? join(ROOT_DIR, "videos", "_proof", "voices")));
+  const out = ensureDir(resolve(opt("--out") ?? join(libraryDir(), "voices")));
   const model = opt("--model") ?? env.ELEVENLABS_MODEL ?? ELEVEN_DEFAULT_MODEL;
   const presets = PRESETS.map((p, i) => (i === 0 ? { ...p, id: env.ELEVENLABS_VOICE_ID ?? "" } : p)).filter((p) => p.id);
   const rows: string[] = [];
@@ -58,7 +59,7 @@ async function main(argv: string[]): Promise<number> {
       "|---|---|---|---|---|",
       ...rows,
       "",
-      "Как выбрать: послушать, взять voiceId и поставить его в `.env` (`ELEVENLABS_VOICE_ID=…`) — голос по умолчанию для всех роликов на ElevenLabs, или в `video.json` ролика: `\"voice\": {\"provider\": \"elevenlabs\", \"voiceId\": \"…\"}`.",
+      "Как выбрать: послушать, взять voiceId и поставить его в `hygen.config.json` (`voice.voiceId`) — голос по умолчанию для всех роликов на ElevenLabs, или в `project.json` ролика: `\"voice\": {\"provider\": \"elevenlabs\", \"voiceId\": \"…\"}`.",
       "",
     ].join("\n"),
   );

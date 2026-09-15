@@ -213,7 +213,7 @@ export interface PlannedTransition {
   to: string;
   at: number;
   list: string[];
-  /** Length of each transition of the cut, s (flash — video.json duration or the default). */
+  /** Length of each transition of the cut, s (flash — project.json duration or the default). */
   durs: Record<string, number>;
   /** The longest of them. */
   dur: number;
@@ -223,7 +223,7 @@ export interface PlannedTransition {
 export const transitionDuration = (id: string): number => readJson<{ duration: number }>(join(ENGINE_DIR, "transitions", id, "transition.json")).duration;
 
 /**
- * Every cut gets a transition: video.json transitions → the beat's own (transition) → the look's hit transition
+ * Every cut gets a transition: project.json transitions → the beat's own (transition) → the look's hit transition
  * when a heavy hit lands on the cut → the look's default. hard-cut is nothing.
  */
 export function planTransitions(spec: VideoSpec, look: LookDef, timings: { start: number }[], heavyHits: number[]): PlannedTransition[] {
@@ -275,7 +275,7 @@ export interface BackgroundPlan {
 const mixHex = (a: string, b: string, t: number): string =>
   "#" + [1, 3, 5].map((i) => Math.round(parseInt(a.slice(i, i + 2), 16) * (1 - t) + parseInt(b.slice(i, i + 2), 16) * t).toString(16).padStart(2, "0")).join("").toUpperCase();
 
-const mediaPath = (v: string, videoDir: string): string => (isAbsolute(v) ? v : v.startsWith("engine/") ? join(ROOT_DIR, v) : join(videoDir, v));
+const mediaPath = (v: string, videoDir: string): string => (isAbsolute(v) ? v : /^(engine|projects|library)\//.test(v) ? join(ROOT_DIR, v) : join(videoDir, v));
 
 export function checkBackground(beat: Pick<BeatSpec, "id" | "background">, videoDir: string): { file: string; video: boolean; treatment: string[] } {
   const where = `${beat.id}: background`;

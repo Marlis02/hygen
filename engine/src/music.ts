@@ -1,5 +1,6 @@
 import { copyFileSync, existsSync } from "node:fs";
-import { join, relative } from "node:path";
+import { basename, join, relative, resolve, sep } from "node:path";
+import { musicDir, musicFile } from "./lib/project.ts";
 import type { StyleDef } from "./contract.ts";
 import { checkLicense } from "./contract.ts";
 import type { VideoSpec } from "./spec.ts";
@@ -7,10 +8,22 @@ import type { BeatTiming } from "./timeline.ts";
 import { resolveTime } from "./timeline.ts";
 import type { VoiceLine } from "./voice.ts";
 import type { BeatWords } from "./words.ts";
-import { ENGINE_DIR, ROOT_DIR, ensureDir, fail, fileSha, lastJsonLine, log, pyScript, python, r3, readJson, run, sha, writeJson } from "./lib/util.ts";
+import { ROOT_DIR, ensureDir, fail, fileSha, lastJsonLine, log, pyScript, python, r3, readJson, run, sha, writeJson } from "./lib/util.ts";
 
 /** Beat grid of a track (py/beats.py), once per track: .cache/beats/<sha of the file>.json. */
 export function trackBeats(file: string): { bpm: number; beats: number[]; downbeats: number[]; duration: number } {
+  // a library track: library/music/beats/<track>.beats.json, counted once when the track is added (the sha of the file guards it)
+  const lib = musicDir();
+  if (resolve(file).startsWith(lib + sep)) {
+    const grid = join(lib, "beats", `${basename(file).replace(/\.[^.]+$/, "")}.beats.json`);
+    const hash = fileSha(file);
+    if (!existsSync(grid) || readJson<{ sha?: string }>(grid).sha !== hash) {
+      const r = lastJsonLine<{ bpm: number; beats: number }>(run(python(), [pyScript("beats.py"), file, "--out", grid]).stdout);
+      writeJson(grid, { sha: hash, ...readJson<Record<string, unknown>>(grid) });
+      log.info(`ритм ${relative(ROOT_DIR, file)}: ${r.bpm} BPM, битов ${r.beats} → ${relative(ROOT_DIR, grid)}`);
+    }
+    return readJson(grid);
+  }
   const cache = join(ROOT_DIR, ".cache", "beats", `${sha({ v: 1, file: fileSha(file) })}.json`);
   if (!existsSync(cache)) {
     const r = lastJsonLine<{ bpm: number; beats: number }>(run(python(), [pyScript("beats.py"), file, "--out", cache]).stdout);
@@ -33,7 +46,7 @@ export function musicGrid(spec: VideoSpec, style: StyleDef, videoDir: string, ti
   const tok = (style as unknown as { music?: Partial<MusicTokens> }).music;
   if (own === false || (!own?.track && !tok?.tracks?.length)) return null;
   const track = own?.track ?? (tok?.tracks?.[0] as string);
-  const file = /[/.]/.test(track) ? join(videoDir, track) : join(ENGINE_DIR, "assets", "music", `${track}.wav`);
+  const file = /[/.]/.test(track) ? join(videoDir, track) : (musicFile(track) ?? join(musicDir(), `${track}.wav`));
   if (!existsSync(file)) return null;
   const g = trackBeats(file);
   const last = timings[timings.length - 1] as BeatTiming;
@@ -54,9 +67,11 @@ export function musicGrid(spec: VideoSpec, style: StyleDef, videoDir: string, ti
   return { track, bpm: g.bpm, beats, strong };
 }
 
-/** video.json → music: false, or a track of the style (id) or of the video (media/…wav) with dB volume, ducking, fades and in/out. */
+/** project.json → music: false, or a track of the style (id) or of the video (media/…wav) with dB volume, ducking, fades and in/out. */
 export interface MusicSpec {
   track?: string;
+  /** dB of the bed (project.json); `volume` — the old name. */
+  gain?: number;
   volume?: number;
   duck?: number;
   fadeIn?: number;
@@ -84,7 +99,7 @@ export interface MusicPlan {
 }
 
 /**
- * Music bed (engine/assets/music/MUSIC.md): the style's track or the video's own, looped to length, faded,
+ * Music bed (library/music/MUSIC.md): the style's track or the video's own, looped to length, faded,
  * ducked under the voice by `duck` dB — baked by py/music_bed.py into build/assets/music/bed.wav.
  */
 export function makeMusic(spec: VideoSpec, style: StyleDef, videoDir: string, buildDir: string, voices: VoiceLine[], timings: BeatTiming[], words: BeatWords[]): MusicPlan | null {
@@ -92,12 +107,12 @@ export function makeMusic(spec: VideoSpec, style: StyleDef, videoDir: string, bu
   const tok = (style as unknown as { music?: Partial<MusicTokens> }).music;
   if (own === false || (!own?.track && !tok?.tracks?.length)) return null;
   const track = own?.track ?? (tok?.tracks?.[0] as string);
-  const file = /[/.]/.test(track) ? join(videoDir, track) : join(ENGINE_DIR, "assets", "music", `${track}.wav`);
+  const file = /[/.]/.test(track) ? join(videoDir, track) : (musicFile(track) ?? join(musicDir(), `${track}.wav`));
   if (!existsSync(file)) fail(`музыка: нет файла ${relative(ROOT_DIR, file)}`);
   checkLicense(file, "музыка");
   const last = timings[timings.length - 1] as BeatTiming;
   const at = (ref: string | undefined, fallback: number): number => (ref === undefined || ref === "start" ? (ref === "start" ? 0 : fallback) : ref === "end" ? last.end : resolveTime(ref, timings, words));
-  const plan: MusicPlan = { track, file: relative(ROOT_DIR, file), volume: own?.volume ?? tok?.volume ?? -4, duck: own?.duck ?? tok?.duck ?? -12, start: r3(at(own?.in, 0)), end: r3(at(own?.out, last.end)) };
+  const plan: MusicPlan = { track, file: relative(ROOT_DIR, file), volume: own?.gain ?? own?.volume ?? tok?.volume ?? -4, duck: own?.duck ?? tok?.duck ?? -12, start: r3(at(own?.in, 0)), end: r3(at(own?.out, last.end)) };
   const fadeIn = own?.fadeIn ?? tok?.fadeIn ?? 1.5;
   const fadeOut = own?.fadeOut ?? tok?.fadeOut ?? 2;
   const speech = timings.map((t, i) => [r3(t.start + (voices[i] as VoiceLine).speechStart), r3(t.start + (voices[i] as VoiceLine).speechEnd)]);

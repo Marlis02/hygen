@@ -22,7 +22,7 @@ export interface SoundTimeline {
 }
 
 export interface SfxCue {
-  /** thud | thud-heavy | ash-fall (video.json sound) or ev-<family> (engine events: devices, scenes, transitions). */
+  /** thud | thud-heavy | ash-fall (project.json sound) or ev-<family> (engine events: devices, scenes, transitions). */
   kind: string;
   file: string;
   at: number;
@@ -140,7 +140,7 @@ export interface EventSoundInput {
   timings: BeatTiming[];
   scenes: SceneBuild[];
   transitions: PlannedTransition[];
-  /** Times of the explicit hits of video.json: an event right on a hit stays silent. */
+  /** Times of the explicit hits of project.json: an event right on a hit stays silent. */
   hits: number[];
 }
 

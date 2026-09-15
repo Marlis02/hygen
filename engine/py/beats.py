@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Beat grid of a music track — once per track, cached by the build in .cache/beats/<sha>.json (devices with sync: music).
 
-    python3 beats.py engine/assets/music/test-beat-100.wav --out .cache/beats/<sha>.json
+    python3 beats.py library/music/test-beat-100.wav --out library/music/beats/test-beat-100.beats.json
 
 Deterministic, numpy + scipy (librosa is not a dependency of the engine):
   onset strength  log-compressed spectral flux (STFT 2048 / hop 256 at 22.05 kHz, positive differences over 48 bands,

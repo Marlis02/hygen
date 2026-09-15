@@ -1,8 +1,13 @@
-import { existsSync, readdirSync, statfsSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, statfsSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { ENGINE_DIR, ROOT_DIR, VENDOR_SKILLS, loadEnv, python, readJson, run, stripAnsi } from "./lib/util.ts";
 import { budgetState, globalTakes } from "./voice.ts";
+import { CONFIG_PATH, loadConfig, projectDirs } from "./lib/project.ts";
+import type { HygenConfig } from "./lib/project.ts";
+
+/** What .env may hold: secrets only (ROADMAP S1); everything else lives in hygen.config.json. */
+export const SECRET_KEYS = ["ELEVENLABS_API_KEY", "PEXELS_API_KEY"];
 
 const PINNED: Record<string, string> = {
   hyperframes: "0.8.36",
@@ -61,15 +66,25 @@ export function doctor(): boolean {
 
   // the key itself is never printed
   const env = loadEnv();
-  const provider = env.VOICE_PROVIDER || (env.ELEVENLABS_LIVE === "1" ? "elevenlabs" : "kokoro");
+  let cfg: HygenConfig | null = null;
+  try {
+    cfg = loadConfig();
+    add("hygen.config.json", existsSync(CONFIG_PATH), existsSync(CONFIG_PATH) ? `голос ${cfg.voice.provider} · look ${cfg.look} · бюджет ${cfg.budgets.elevenlabsChars ?? "—"} · crf ${cfg.bitrate.crf} · Short ${cfg.short.targetSeconds} с · проекты ${cfg.paths.projects}/` : "нет — cp hygen.config.example.json hygen.config.json (пока умолчания)", true);
+  } catch (err) {
+    add("hygen.config.json", false, err instanceof Error ? err.message : String(err));
+  }
+  const extra = Object.keys(env).filter((k) => !SECRET_KEYS.includes(k) && existsSync(join(ROOT_DIR, ".env")) && readFileSync(join(ROOT_DIR, ".env"), "utf8").includes(`${k}=`));
+  add(".env — только ключи", extra.length === 0, extra.length ? `не секреты в .env: ${extra.join(", ")} — перенести в hygen.config.json` : `ключи: ${SECRET_KEYS.map((k) => `${k} ${env[k] ? "есть" : "нет"}`).join(" · ")}`, true);
+  const provider = process.env.VOICE_PROVIDER || cfg?.voice.provider || "kokoro";
   const hasKey = Boolean(env.ELEVENLABS_API_KEY);
-  add("голос по умолчанию (.env)", provider === "kokoro" || (provider === "elevenlabs" && hasKey), `${provider} · ключ ElevenLabs: ${hasKey ? "есть" : "нет"} · ELEVENLABS_VOICE_ID: ${env.ELEVENLABS_VOICE_ID ? "задан" : "не задан"} · Pexels: ${env.PEXELS_API_KEY ? "ключ есть" : "ключа нет"}`, true);
+  const voiceId = cfg?.voice.voiceId || env.ELEVENLABS_VOICE_ID;
+  add("голос по умолчанию", provider === "kokoro" || (provider === "elevenlabs" && hasKey && Boolean(voiceId)), `${provider} · ключ ElevenLabs: ${hasKey ? "есть" : "нет"} · voice.voiceId: ${voiceId ? "задан" : "не задан"} · Pexels: ${env.PEXELS_API_KEY ? "ключ есть" : "ключа нет"}`, true);
   const budget = budgetState();
-  add("бюджет ElevenLabs", budget.budget === null || (budget.left ?? 0) > 0, budget.budget === null ? `не задан (ELEVENLABS_BUDGET_CHARS) · потрачено ${budget.spent} символов` : `осталось ${budget.left} из ${budget.budget} символов (потрачено ${budget.spent}; сброс — npm run voice -- --reset-budget)`, true);
+  add("бюджет ElevenLabs", budget.budget === null || (budget.left ?? 0) > 0, budget.budget === null ? `не задан (budgets.elevenlabsChars в hygen.config.json) · потрачено ${budget.spent} символов` : `осталось ${budget.left} из ${budget.budget} символов (потрачено ${budget.spent}; сброс — npm run voice -- --reset-budget)`, true);
   const takes = globalTakes();
-  const inProjects = ["videos", "videos/_proof"].flatMap((b) => (existsSync(join(ROOT_DIR, b)) ? readdirSync(join(ROOT_DIR, b)).map((n) => join(ROOT_DIR, b, n, "voice")) : [])).filter((d) => existsSync(d));
+  const inProjects = projectDirs().map((d) => join(d, "voice")).filter((d) => existsSync(d));
   const projTakes = inProjects.reduce((n, d) => n + readdirSync(d).filter((k) => existsSync(join(d, k, "take.wav"))).length, 0);
-  add("кэш голоса ElevenLabs", takes.videos.length === 0, `в проектах ${projTakes} дублей (${inProjects.length} папок videos/<id>/voice, в git) · в .cache/voice превью ${takes.previews}${takes.videos.length ? ` · дублей роликов ${takes.videos.length} — npm run voice -- --migrate` : ""}`, true);
+  add("кэш голоса ElevenLabs", takes.videos.length === 0, `в проектах ${projTakes} дублей (${inProjects.length} папок projects/<id>/voice, в git) · в .cache/voice превью ${takes.previews}${takes.videos.length ? ` · дублей роликов ${takes.videos.length} — npm run voice -- --migrate` : ""}`, true);
   const emoji = run("fc-list", [], { allowFail: true });
   add("эмодзи-шрифт (субтитры emoji-pop)", emoji.status === 0 && /emoji/i.test(emoji.stdout), emoji.status === 0 && /emoji/i.test(emoji.stdout) ? "есть" : "нет цветного эмодзи-шрифта — значки emoji-pop пропадут (apt install fonts-noto-color-emoji)", true);
 

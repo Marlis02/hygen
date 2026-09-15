@@ -1,0 +1,9 @@
+{
+  "label": "molasses-flood-en/03-burst",
+  "voiceId": "uju3wxzG5OhpWcoi3SMy",
+  "model": "eleven_multilingual_v2",
+  "output_format": "pcm_24000",
+  "chars": 85,
+  "character_cost": 47,
+  "text": "Just after noon, the tank burst. Its rivets shot out with a sound like a machine gun."
+}

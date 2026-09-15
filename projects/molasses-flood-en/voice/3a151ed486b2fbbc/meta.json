@@ -1,0 +1,9 @@
+{
+  "label": "molasses-flood-en/02-warm",
+  "voiceId": "uju3wxzG5OhpWcoi3SMy",
+  "model": "eleven_multilingual_v2",
+  "output_format": "pcm_24000",
+  "chars": 108,
+  "character_cost": 59,
+  "text": "The day before, the air had warmed from two to forty-one degrees, and a fresh load of warm molasses went in."
+}

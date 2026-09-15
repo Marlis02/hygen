@@ -1,0 +1,6 @@
+{"at":"2026-09-15T07:44:36.469Z","label":"molasses-flood-en/03-burst","voiceId":"uju3wxzG5OhpWcoi3SMy","model":"eleven_multilingual_v2","output_format":"pcm_24000","chars":85,"character_cost":47}
+{"at":"2026-09-15T07:44:36.649Z","label":"molasses-flood-en/01-tank","voiceId":"uju3wxzG5OhpWcoi3SMy","model":"eleven_multilingual_v2","output_format":"pcm_24000","chars":103,"character_cost":57}
+{"at":"2026-09-15T07:44:36.680Z","label":"molasses-flood-en/02-warm","voiceId":"uju3wxzG5OhpWcoi3SMy","model":"eleven_multilingual_v2","output_format":"pcm_24000","chars":108,"character_cost":59}
+{"at":"2026-09-15T07:44:41.726Z","label":"molasses-flood-en/04-wave","voiceId":"uju3wxzG5OhpWcoi3SMy","model":"eleven_multilingual_v2","output_format":"pcm_24000","chars":86,"character_cost":47}
+{"at":"2026-09-15T07:44:43.071Z","label":"molasses-flood-en/05-trapped","voiceId":"uju3wxzG5OhpWcoi3SMy","model":"eleven_multilingual_v2","output_format":"pcm_24000","chars":122,"character_cost":67}
+{"at":"2026-09-15T07:44:43.335Z","label":"molasses-flood-en/06-smell","voiceId":"uju3wxzG5OhpWcoi3SMy","model":"eleven_multilingual_v2","output_format":"pcm_24000","chars":101,"character_cost":56}

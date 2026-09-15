@@ -53,7 +53,7 @@ export interface Point {
   y: number;
 }
 
-/** A device in video.json (after the intent resolver). */
+/** A device in project.json (after the intent resolver). */
 export interface DeviceSpec {
   type: string;
   /** {x, y, w, h} or {x, y} in % of the frame, a region name of the stage, or a word of the line. */
@@ -300,7 +300,7 @@ export function resolveDevices(devices: DeviceSpec[], dominant: "stage" | number
     let at = atSeconds(dev.at, clock, Math.min(clock.speechStart + 0.2 * index, clock.duration - 0.1), `${where}.at`);
     const grid = clock.grid ?? null;
     if (sync !== "voice") {
-      if (!grid || !grid.beats.length) fail(`${where}: sync ${sync} — у ролика нет музыки с сеткой битов (video.json music)`);
+      if (!grid || !grid.beats.length) fail(`${where}: sync ${sync} — у ролика нет музыки с сеткой битов (project.json music)`);
       const beats = (grid as { beats: number[] }).beats;
       const near = beats.reduce((best, b) => (Math.abs(b - at) < Math.abs(best - at) ? b : best), beats[0] as number);
       // music — the nearest beat of the track; both — the word says what, the nearest beat ≤ 100 ms away says when

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Procedural test track with a clear beat for sync: music — engine/assets/music/test-beat-100.wav (CC0).
+"""Procedural test track with a clear beat for sync: music — library/music/test-beat-100.wav (CC0).
 
-    python3 engine/py/make_test_beat.py engine/assets/music/test-beat-100.wav
+    python3 engine/py/make_test_beat.py library/music/test-beat-100.wav
 
 100 BPM, 30 bars of 4/4 (72 s — longer than a Short, so the bed never loops and the grid stays whole): a kick on every
 beat (the downbeat louder, with a low bass note), a clap on 2 and 4, closed hats on eighths, a soft pad on a four-chord

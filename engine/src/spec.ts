@@ -59,6 +59,8 @@ export interface BeatSpec {
   caption?: Record<string, unknown>;
   /** Rhythm of the beat's devices: voice (the words, default) | music (beats of the track) | both. */
   sync?: string;
+  /** What the viewer must see — one sentence of the director before the intent (research.md «Beats»). */
+  sees?: string;
 }
 
 export interface TransitionSpec {
@@ -119,6 +121,13 @@ export interface VoiceSpec {
 export interface VideoSpec {
   id: string;
   title: string;
+  /** draft | built | verified | published — the card of the project in the studio. */
+  status?: string;
+  /** A proof project (capabilities, not for upload). */
+  proof?: boolean;
+  /** Concept of the director: mood, key colour, look, textures (research.md «Concept»). */
+  concept?: string;
+  publishedAt?: string;
   arc?: ArcSpec;
   /** Id of the video this one re-tells in the same world (a proof or a remake): colour uniqueness is not checked against it. */
   retells?: string;
@@ -135,8 +144,8 @@ export interface VideoSpec {
   transitions: TransitionSpec[];
   /** events: false — only the hand-set hits of this file (Pompeii, the reference); default — sounds from device, scene and transition events too. */
   sound: { drone: DroneSpec; ash?: AshSpec; hits: HitSpec[]; events?: boolean };
-  /** Music bed: false — none (Pompeii); absent — the style's first track; or {track, volume, duck, fadeIn, fadeOut, in, out} (engine/assets/music/MUSIC.md). */
-  music?: false | { track?: string; volume?: number; duck?: number; fadeIn?: number; fadeOut?: number; in?: string; out?: string };
+  /** Music bed: false — none (Pompeii); absent — the style's first track; or {track, volume, duck, fadeIn, fadeOut, in, out} (library/music/MUSIC.md). */
+  music?: false | { track?: string; gain?: number; volume?: number; duck?: number; fadeIn?: number; fadeOut?: number; in?: string; out?: string };
 }
 
 export interface Token {
@@ -175,11 +184,11 @@ export function parseBeatText(text: string): { tts: string; tokens: Token[] } {
 }
 
 export function loadSpec(videoDir: string): VideoSpec {
-  const path = join(videoDir, "video.json");
+  const path = join(videoDir, "project.json");
   if (!existsSync(path)) fail(`нет ${path}`);
   const spec = readJson<VideoSpec>(path);
   const need = (cond: unknown, msg: string): void => {
-    if (!cond) fail(`video.json: ${msg}`);
+    if (!cond) fail(`project.json: ${msg}`);
   };
   need(typeof spec.id === "string" && /^[a-z0-9-]+$/.test(spec.id), "id — строчная латиница, цифры и дефис");
   need(/^\d+x\d+$/.test(spec.format ?? ""), "format вида 1080x1920");
@@ -199,7 +208,7 @@ export function loadSpec(videoDir: string): VideoSpec {
     need(typeof beat.text === "string" && beat.text.trim().length > 0, `${beat.id}: пустой text`);
     need(beat.tone === undefined || beat.tone === "accent" || beat.tone === "cold", `${beat.id}: tone — accent или cold`);
     need(beat.seed === undefined || Number.isInteger(beat.seed), `${beat.id}: seed — целое`);
-    const known = new Set(["id", "scene", "text", "pad", "tone", "seed", "params", "anchors", "cues", "sources", "textures", "background", "type", "camera", "post", "transition", "intent", "stage", "devices", "dominant", "target", "at", "data", "role", "caption", "sync"]);
+    const known = new Set(["id", "scene", "text", "pad", "tone", "seed", "params", "anchors", "cues", "sources", "textures", "background", "type", "camera", "post", "transition", "intent", "stage", "devices", "dominant", "target", "at", "data", "role", "caption", "sync", "sees"]);
     for (const key of Object.keys(beat)) need(known.has(key), `${beat.id}: неизвестное поле «${key}»`);
     beat.pad = beat.pad ?? [0.2, 0.4];
   }

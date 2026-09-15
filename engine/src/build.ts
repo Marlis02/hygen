@@ -21,6 +21,7 @@ import type { VerifyResult } from "./verify.ts";
 import { makeVoices, resolveVoice } from "./voice.ts";
 import { writePublish } from "./publish.ts";
 import { alignWords } from "./words.ts";
+import { checkProjectMedia, snapshotHistory } from "./lib/project.ts";
 import { ROOT_DIR, Timer, ensureDir, fail, log, writeJson } from "./lib/util.ts";
 
 export interface BuildOptions {
@@ -28,19 +29,23 @@ export interface BuildOptions {
   check: boolean;
   quality: string;
   snapshots: boolean;
-  /** kokoro | elevenlabs — over video.json `voice` and `.env` VOICE_PROVIDER. */
+  /** kokoro | elevenlabs — over project.json `voice` and `.env` VOICE_PROVIDER. */
   voice?: string;
 }
 
-/** video.json → voice → word timings → sound → scenes → index.html → lint/check → render → master → autocheck. */
+/** project.json → voice → word timings → sound → scenes → index.html → lint/check → render → master → autocheck. */
 export async function build(videoDir: string, opts: BuildOptions): Promise<boolean> {
   const spec = loadSpec(videoDir);
+  const media = checkProjectMedia(videoDir);
+  if (media.errors.length) fail(`медиа проекта — у каждого файла запись с лицензией в media.json:\n  ${media.errors.join("\n  ")}`);
+  const snap = snapshotHistory(videoDir, "build");
+  if (snap) log.info(`история: снимок project.json и media.json → ${relative(ROOT_DIR, snap)}`);
   const look = loadLook(spec.look);
   const style = applyLook(loadStyle(spec.style), look);
   validateBeats(spec, style, videoDir);
   for (const beat of spec.beats) if (beat.scene === undefined) checkStageBeat(beat, style, videoDir);
   validateLayers(spec, look, videoDir);
-  if (spec.captions !== undefined && typeof spec.captions !== "string") checkCaptionFields(spec.captions, "video.json: captions");
+  if (spec.captions !== undefined && typeof spec.captions !== "string") checkCaptionFields(spec.captions, "project.json: captions");
   for (const beat of spec.beats) if (beat.caption !== undefined) checkCaptionFields(beat.caption, `${beat.id}: caption`);
   const grammar = checkGrammar(spec, look, videoDir);
   for (const w of grammar.warnings) log.warn(`грамматика: ${w}`);

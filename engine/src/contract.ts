@@ -4,6 +4,7 @@ import type { BeatSpec, VideoSpec } from "./spec.ts";
 import { parseBeatText } from "./spec.ts";
 import { TEXT_KINDS } from "./motion.ts";
 import { ENGINE_DIR, ROOT_DIR, ensureDir, fail, readJson } from "./lib/util.ts";
+import { ledgerOf, mediaRecord, missingLicense } from "./lib/project.ts";
 
 // The scene contract (engine/scenes/CONTRACT.md, engine/scenes/schema.json), checked in code.
 
@@ -108,7 +109,7 @@ export interface StyleDef {
   };
   /** Event sounds (engine/src/sound.ts): event word → family, volumes, carve, gap, per-beat limit. */
   sound?: { events?: Record<string, string>; volume?: Record<string, number>; carve?: number; gap?: number; perBeat?: number };
-  /** Music bed (engine/assets/music/MUSIC.md): track ids, dB volume, ducking under the voice, fades. */
+  /** Music bed (library/music/MUSIC.md): track ids, dB volume, ducking under the voice, fades. */
   music?: { tracks?: string[]; volume?: number; duck?: number; fadeIn?: number; fadeOut?: number };
 }
 
@@ -359,17 +360,14 @@ export interface MapSilhouette {
   fillRule: string;
 }
 
-export function licenseOf(file: string): string {
-  return join(file.slice(0, file.length - extname(file).length) + ".license.json");
-}
-
+/** Every licensed file has a complete record in its ledger: projects/<id>/media.json, library/music/music.json, engine/assets/media.json. */
 export function checkLicense(file: string, where: string): void {
-  const lic = licenseOf(file);
-  if (!existsSync(lic)) fail(`${where}: у файла ${file} нет записи о лицензии ${basename(lic)}`);
-  const rec = readJson<Record<string, unknown>>(lic);
-  for (const key of ["source", "author", "license", "url"]) {
-    if (typeof rec[key] !== "string" || !(rec[key] as string).trim()) fail(`${where}: в ${basename(lic)} нет поля ${key}`);
-  }
+  const at = ledgerOf(file);
+  if (!at) fail(`${where}: файл ${file} не лежит ни в проекте, ни в library/music, ни в engine/assets — нет записи о лицензии`);
+  const rec = mediaRecord(file);
+  if (!rec) fail(`${where}: у файла ${basename(file)} нет записи в ${basename(at.path)} (ключ «${at.key}»)`);
+  const miss = missingLicense(rec);
+  if (miss.length) fail(`${where}: в ${basename(at.path)} → «${at.key}» не заполнено ${miss.join(", ")}`);
 }
 
 export function loadMap(name: string, where: string): MapSilhouette {
@@ -413,7 +411,7 @@ export function resolveParams(beat: BeatSpec, scene: SceneDef, ctx: ResolveConte
     }
     if (def.type === "image") {
       const v = value as string;
-      const file = isAbsolute(v) ? v : v.startsWith("engine/") ? join(ROOT_DIR, v) : join(ctx.videoDir, v);
+      const file = isAbsolute(v) ? v : /^(engine|projects|library)\//.test(v) ? join(ROOT_DIR, v) : join(ctx.videoDir, v);
       if (!existsSync(file)) fail(`${where}: нет файла ${file}`);
       checkLicense(file, `${where}: параметр ${name}`);
       const rel = `assets/media/${basename(file)}`;

@@ -1,0 +1,45 @@
+{
+  "maps/bay-of-naples.svg": {
+    "source": "examples/pompeii-short, frame 02 (hand-drawn schematic coastline)",
+    "author": "hygen project",
+    "license": "own work",
+    "url": "local:examples/pompeii-short/compositions/frames/02-context.html",
+    "notes": "schematic, not traced from survey data"
+  },
+  "maps/indian-ocean.svg": {
+    "title": "Indian Ocean and the Malay Archipelago — land silhouette",
+    "source": "Natural Earth 1:50m Physical Vectors, land (ne_50m_land), via github.com/nvkelso/natural-earth-vector",
+    "author": "Natural Earth (naturalearthdata.com)",
+    "license": "Public domain",
+    "url": "https://www.naturalearthdata.com/downloads/50m-physical-vectors/50m-land/",
+    "added": "2026-09-14",
+    "notes": "Traced with engine/py/trace_map.py: box lon 48…152, lat −44…44 onto the map window x 60–1020, y 150–990. Krakatoa 6.102 S 105.423 E → x 590, y 628 px (54.6 %, 32.7 %). Scale ≈ 0.083 px/km east–west, 0.086 px/km north–south: 4,800 km ≈ 405 px. Rodrigues 19.7 S 63.4 E → x 202, y 758."
+  },
+  "maps/north-atlantic.svg": {
+    "title": "North Atlantic off Newfoundland and Nova Scotia — land silhouette",
+    "source": "Natural Earth 1:50m Physical Vectors, land (ne_50m_land), via github.com/nvkelso/natural-earth-vector",
+    "author": "Natural Earth (naturalearthdata.com)",
+    "license": "Public domain",
+    "url": "https://www.naturalearthdata.com/downloads/50m-physical-vectors/50m-land/",
+    "added": "2026-09-14",
+    "notes": "Traced with engine/py/trace_map.py: equirectangular box lon −66…−37, lat 36…54 onto the map window x 60–1020, y 150–990; Douglas–Peucker 1 px. Titanic wreck 41.726 N 49.946 W lands at x 594, y 723."
+  },
+  "maps/sunda-strait.svg": {
+    "title": "Sunda Strait between Sumatra and Java — land silhouette",
+    "source": "Natural Earth 1:50m Physical Vectors, land (ne_50m_land), via github.com/nvkelso/natural-earth-vector",
+    "author": "Natural Earth (naturalearthdata.com)",
+    "license": "Public domain",
+    "url": "https://www.naturalearthdata.com/downloads/50m-physical-vectors/50m-land/",
+    "added": "2026-09-14",
+    "notes": "Traced with engine/py/trace_map.py: box lon 103.5…107.64, lat −7.9…−4.3 onto the map window x 60–1020, y 150–990; Douglas–Peucker 0.8 px. Krakatoa 6.102 S 105.423 E lands at x 506, y 570. The Krakatoa islands are below the 1:50m detail and are not drawn."
+  },
+  "media/volaire-vesuvius.jpg": {
+    "title": "The Eruption of Vesuvius (1771)",
+    "source": "Wikimedia Commons — Art Institute of Chicago, 1978.426",
+    "author": "Pierre-Jacques Volaire (1729–1799)",
+    "license": "Public domain",
+    "url": "https://commons.wikimedia.org/wiki/File:Pierre-Jacques_Volaire_-_The_Eruption_of_Vesuvius_-_1978.426_-_Art_Institute_of_Chicago.jpg",
+    "added": "2026-09-14",
+    "notes": "1920 px thumbnail of the 3000×1381 file; museum page https://www.artic.edu/artworks/57996"
+  }
+}

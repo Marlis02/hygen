@@ -1,0 +1,548 @@
+{
+  "captions/blend-difference": {
+    "file": "library/previews/captions/blend-difference.mp4",
+    "hash": "06a192cde41680fe",
+    "seconds": 6.477,
+    "ok": true
+  },
+  "captions/camera-follow": {
+    "file": "library/previews/captions/camera-follow.mp4",
+    "hash": "f9c5ba7b20566503",
+    "seconds": 10.124,
+    "ok": true
+  },
+  "captions/clip-wipe": {
+    "file": "library/previews/captions/clip-wipe.mp4",
+    "hash": "8273e1d5ef51b638",
+    "seconds": 6.43,
+    "ok": true
+  },
+  "captions/editorial-emphasis": {
+    "file": "library/previews/captions/editorial-emphasis.mp4",
+    "hash": "4727cab1e8fd8f5a",
+    "seconds": 6.586,
+    "ok": true
+  },
+  "captions/emoji-pop": {
+    "file": "library/previews/captions/emoji-pop.mp4",
+    "hash": "f45e778d8b89f7a5",
+    "seconds": 6.577,
+    "ok": true
+  },
+  "captions/glitch-rgb": {
+    "file": "library/previews/captions/glitch-rgb.mp4",
+    "hash": "95321ed0d9495320",
+    "seconds": 7.998,
+    "ok": true
+  },
+  "captions/gradient-fill": {
+    "file": "library/previews/captions/gradient-fill.mp4",
+    "hash": "9ce464776e56f49e",
+    "seconds": 6.756,
+    "ok": true
+  },
+  "captions/highlight": {
+    "file": "library/previews/captions/highlight.mp4",
+    "hash": "d50eed8ed538405e",
+    "seconds": 6.678,
+    "ok": true
+  },
+  "captions/karaoke": {
+    "file": "library/previews/captions/karaoke.mp4",
+    "hash": "6976b7e1788d4307",
+    "seconds": 6.457,
+    "ok": true
+  },
+  "captions/kinetic-slam": {
+    "file": "library/previews/captions/kinetic-slam.mp4",
+    "hash": "2364c5a45f5ba550",
+    "seconds": 6.452,
+    "ok": true
+  },
+  "captions/matrix-decode": {
+    "file": "library/previews/captions/matrix-decode.mp4",
+    "hash": "729fac8583e31226",
+    "seconds": 8.149,
+    "ok": true
+  },
+  "captions/neon-accent": {
+    "file": "library/previews/captions/neon-accent.mp4",
+    "hash": "120f11fb77eaa41e",
+    "seconds": 6.536,
+    "ok": true
+  },
+  "captions/neon-glow": {
+    "file": "library/previews/captions/neon-glow.mp4",
+    "hash": "d1bc6038c0b3c4a5",
+    "seconds": 6.48,
+    "ok": true
+  },
+  "captions/parallax-layers": {
+    "file": "library/previews/captions/parallax-layers.mp4",
+    "hash": "f0ad6f2a24af9c40",
+    "seconds": 8.068,
+    "ok": true
+  },
+  "captions/particle-burst": {
+    "file": "library/previews/captions/particle-burst.mp4",
+    "hash": "4944ed8a8e40f291",
+    "seconds": 7.928,
+    "ok": true
+  },
+  "captions/pill-karaoke": {
+    "file": "library/previews/captions/pill-karaoke.mp4",
+    "hash": "827ee648fe406be0",
+    "seconds": 6.634,
+    "ok": true
+  },
+  "captions/plain": {
+    "file": "library/previews/captions/plain.mp4",
+    "hash": "8085503429fb9c86",
+    "seconds": 6.616,
+    "ok": true
+  },
+  "captions/texture": {
+    "file": "library/previews/captions/texture.mp4",
+    "hash": "68eb58cc0a6ac8c3",
+    "seconds": 6.968,
+    "ok": true
+  },
+  "captions/typewriter": {
+    "file": "library/previews/captions/typewriter.mp4",
+    "hash": "0efdbde9ae996e84",
+    "seconds": 6.351,
+    "ok": true
+  },
+  "captions/weight-shift": {
+    "file": "library/previews/captions/weight-shift.mp4",
+    "hash": "ff263a5a715b9a0e",
+    "seconds": 6.539,
+    "ok": true
+  },
+  "devices/annotate.arrow": {
+    "file": "library/previews/devices/annotate.arrow.mp4",
+    "hash": "4a720dbc3228a170",
+    "seconds": 7.065,
+    "ok": true
+  },
+  "devices/annotate.box": {
+    "file": "library/previews/devices/annotate.box.mp4",
+    "hash": "f4c55c5670168e76",
+    "seconds": 7.092,
+    "ok": true
+  },
+  "devices/annotate.circle": {
+    "file": "library/previews/devices/annotate.circle.mp4",
+    "hash": "7435f7f65d96069d",
+    "seconds": 7.109,
+    "ok": true
+  },
+  "devices/annotate.label": {
+    "file": "library/previews/devices/annotate.label.mp4",
+    "hash": "9a73b9697c292ecd",
+    "seconds": 6.883,
+    "ok": true
+  },
+  "devices/annotate.measure": {
+    "file": "library/previews/devices/annotate.measure.mp4",
+    "hash": "98b411adc7db6992",
+    "seconds": 7.243,
+    "ok": true
+  },
+  "devices/data.chart": {
+    "file": "library/previews/devices/data.chart.mp4",
+    "hash": "6bd54ca0181fa9d9",
+    "seconds": 7.774,
+    "ok": true
+  },
+  "devices/data.chart:line": {
+    "file": "library/previews/devices/data.chart~line.mp4",
+    "hash": "ac0002efaab8d26a",
+    "seconds": 7.357,
+    "ok": true
+  },
+  "devices/data.count": {
+    "file": "library/previews/devices/data.count.mp4",
+    "hash": "2958bab4ac366167",
+    "seconds": 6.91,
+    "ok": true
+  },
+  "devices/data.dots": {
+    "file": "library/previews/devices/data.dots.mp4",
+    "hash": "d334e6cf094e88be",
+    "seconds": 7.473,
+    "ok": true
+  },
+  "devices/data.dots:fade": {
+    "file": "library/previews/devices/data.dots~fade.mp4",
+    "hash": "efd8d98fe60f9ac2",
+    "seconds": 7.489,
+    "ok": true
+  },
+  "devices/data.timeline": {
+    "file": "library/previews/devices/data.timeline.mp4",
+    "hash": "add2ddc7a10a508a",
+    "seconds": 8.448,
+    "ok": true
+  },
+  "devices/edit.hold": {
+    "file": "library/previews/devices/edit.hold.mp4",
+    "hash": "5358d89b058059b2",
+    "seconds": 7.481,
+    "ok": true
+  },
+  "devices/edit.pip": {
+    "file": "library/previews/devices/edit.pip.mp4",
+    "hash": "b0bddc0fada0d17d",
+    "seconds": 9.554,
+    "ok": true
+  },
+  "devices/focus.spotlight": {
+    "file": "library/previews/devices/focus.spotlight.mp4",
+    "hash": "f291dc3e3fefeb55",
+    "seconds": 8.14,
+    "ok": true
+  },
+  "devices/focus.spotlight:blur": {
+    "file": "library/previews/devices/focus.spotlight~blur.mp4",
+    "hash": "180439a60e8b1868",
+    "seconds": 7.524,
+    "ok": true
+  },
+  "devices/text.quote": {
+    "file": "library/previews/devices/text.quote.mp4",
+    "hash": "a3faaff5e8113b34",
+    "seconds": 6.576,
+    "ok": true
+  },
+  "devices/text.title": {
+    "file": "library/previews/devices/text.title.mp4",
+    "hash": "eb986fbbe807bbd4",
+    "seconds": 6.099,
+    "ok": true
+  },
+  "devices/text.title:slam": {
+    "file": "library/previews/devices/text.title~slam.mp4",
+    "hash": "24be6911d10f7b07",
+    "seconds": 6.251,
+    "ok": true
+  },
+  "devices/text.title:typewriter": {
+    "file": "library/previews/devices/text.title~typewriter.mp4",
+    "hash": "d507e18517874a28",
+    "seconds": 6.577,
+    "ok": true
+  },
+  "kinetic/behind-subject": {
+    "file": "library/previews/kinetic/behind-subject.mp4",
+    "hash": "b57f89556b9c21b3",
+    "seconds": 10.528,
+    "ok": true
+  },
+  "kinetic/center-build": {
+    "file": "library/previews/kinetic/center-build.mp4",
+    "hash": "b3875ac8574b8bc0",
+    "seconds": 6.806,
+    "ok": true
+  },
+  "kinetic/extrude": {
+    "file": "library/previews/kinetic/extrude.mp4",
+    "hash": "b0b256d5c25930e9",
+    "seconds": 6.828,
+    "ok": true
+  },
+  "kinetic/marquee": {
+    "file": "library/previews/kinetic/marquee.mp4",
+    "hash": "6b3f4d54e530c055",
+    "seconds": 7.104,
+    "ok": true
+  },
+  "kinetic/outline": {
+    "file": "library/previews/kinetic/outline.mp4",
+    "hash": "81ba6887edc55d77",
+    "seconds": 6.749,
+    "ok": true
+  },
+  "kinetic/scramble": {
+    "file": "library/previews/kinetic/scramble.mp4",
+    "hash": "2f3ac67b63e2fdf8",
+    "seconds": 6.868,
+    "ok": true
+  },
+  "kinetic/slam": {
+    "file": "library/previews/kinetic/slam.mp4",
+    "hash": "2d49966bec4b78e1",
+    "seconds": 6.39,
+    "ok": true
+  },
+  "kinetic/stack": {
+    "file": "library/previews/kinetic/stack.mp4",
+    "hash": "2b8b3cf2bd5d5197",
+    "seconds": 6.958,
+    "ok": true
+  },
+  "kinetic/texture": {
+    "file": "library/previews/kinetic/texture.mp4",
+    "hash": "03c7fe083aaf28a0",
+    "seconds": 7.409,
+    "ok": true
+  },
+  "kinetic/tilt": {
+    "file": "library/previews/kinetic/tilt.mp4",
+    "hash": "c3eeca479794455f",
+    "seconds": 6.978,
+    "ok": true
+  },
+  "kinetic/type-swap": {
+    "file": "library/previews/kinetic/type-swap.mp4",
+    "hash": "e7e3e5c6b0586044",
+    "seconds": 6.874,
+    "ok": true
+  },
+  "kinetic/weight-morph": {
+    "file": "library/previews/kinetic/weight-morph.mp4",
+    "hash": "8ce306aff90a3950",
+    "seconds": 6.665,
+    "ok": true
+  },
+  "looks/abyss": {
+    "file": "library/previews/looks/abyss.mp4",
+    "hash": "34937742a700d440",
+    "seconds": 8.614,
+    "ok": true
+  },
+  "looks/bright-explainer": {
+    "file": "library/previews/looks/bright-explainer.mp4",
+    "hash": "3735f35fb4a98283",
+    "seconds": 7.37,
+    "ok": true
+  },
+  "looks/ember": {
+    "file": "library/previews/looks/ember.mp4",
+    "hash": "e58f1d666e6b0b0e",
+    "seconds": 7.688,
+    "ok": true
+  },
+  "looks/storm": {
+    "file": "library/previews/looks/storm.mp4",
+    "hash": "f2823815844aa902",
+    "seconds": 8.363,
+    "ok": true
+  },
+  "music/documentary-dark-01": {
+    "file": "library/music/documentary-dark-01.wav",
+    "hash": "39c505127d42a583",
+    "seconds": 0,
+    "ok": true
+  },
+  "music/test-beat-100": {
+    "file": "library/music/test-beat-100.wav",
+    "hash": "dfc89dea4223216b",
+    "seconds": 0,
+    "ok": true
+  },
+  "recipes/portrait": {
+    "file": "library/previews/recipes/portrait.mp4",
+    "hash": "74b9c63a0767c006",
+    "seconds": 9.15,
+    "ok": true
+  },
+  "recipes/question-card": {
+    "file": "library/previews/recipes/question-card.mp4",
+    "hash": "128192249cd18b29",
+    "seconds": 6.548,
+    "ok": true
+  },
+  "recipes/quote-card": {
+    "file": "library/previews/recipes/quote-card.mp4",
+    "hash": "c5bb174db57c63ab",
+    "seconds": 7.171,
+    "ok": true
+  },
+  "scenes/counter-title": {
+    "file": "library/previews/scenes/counter-title.mp4",
+    "hash": "600b988987743677",
+    "seconds": 8.33,
+    "ok": true
+  },
+  "scenes/fraction-finale": {
+    "file": "library/previews/scenes/fraction-finale.mp4",
+    "hash": "dca0d6589cdcb513",
+    "seconds": 8.704,
+    "ok": true
+  },
+  "scenes/map-marker": {
+    "file": "library/previews/scenes/map-marker.mp4",
+    "hash": "159c172568a18fa9",
+    "seconds": 11.449,
+    "ok": true
+  },
+  "scenes/picture-zoom": {
+    "file": "library/previews/scenes/picture-zoom.mp4",
+    "hash": "90a97b3fcfca9d12",
+    "seconds": 9.155,
+    "ok": true
+  },
+  "scenes/pyroclastic-flow": {
+    "file": "library/previews/scenes/pyroclastic-flow.mp4",
+    "hash": "c2bcaa19084a243a",
+    "seconds": 12.701,
+    "ok": true
+  },
+  "scenes/scale-gauge": {
+    "file": "library/previews/scenes/scale-gauge.mp4",
+    "hash": "d362e16f1c683ef7",
+    "seconds": 12.822,
+    "ok": true
+  },
+  "scenes/year-odometer": {
+    "file": "library/previews/scenes/year-odometer.mp4",
+    "hash": "56f40e0afbba0975",
+    "seconds": 10.439,
+    "ok": true
+  },
+  "textures/ash": {
+    "file": "library/previews/textures/ash.mp4",
+    "hash": "2ea17d916d6eb4fe",
+    "seconds": 7.915,
+    "ok": true
+  },
+  "textures/bubbles": {
+    "file": "library/previews/textures/bubbles.mp4",
+    "hash": "ba96e70b2b2b5d73",
+    "seconds": 8.268,
+    "ok": true
+  },
+  "textures/embers": {
+    "file": "library/previews/textures/embers.mp4",
+    "hash": "414e8c99ca327c74",
+    "seconds": 8.435,
+    "ok": true
+  },
+  "textures/fire": {
+    "file": "library/previews/textures/fire.mp4",
+    "hash": "4662cdc5d628b641",
+    "seconds": 8.542,
+    "ok": true
+  },
+  "textures/fog": {
+    "file": "library/previews/textures/fog.mp4",
+    "hash": "2cd0032619a7498e",
+    "seconds": 7.921,
+    "ok": true
+  },
+  "textures/grain": {
+    "file": "library/previews/textures/grain.mp4",
+    "hash": "ba0b144cc9cfab5f",
+    "seconds": 8.467,
+    "ok": true
+  },
+  "textures/lightning": {
+    "file": "library/previews/textures/lightning.mp4",
+    "hash": "fa006f5d3f50b8cf",
+    "seconds": 7.946,
+    "ok": true
+  },
+  "textures/paper": {
+    "file": "library/previews/textures/paper.mp4",
+    "hash": "3adf04d750182254",
+    "seconds": 8.505,
+    "ok": true
+  },
+  "textures/rain": {
+    "file": "library/previews/textures/rain.mp4",
+    "hash": "8f31f5d14521d4ce",
+    "seconds": 8.906,
+    "ok": true
+  },
+  "textures/smoke": {
+    "file": "library/previews/textures/smoke.mp4",
+    "hash": "34e0de611fa1cd3e",
+    "seconds": 9.37,
+    "ok": true
+  },
+  "textures/snow": {
+    "file": "library/previews/textures/snow.mp4",
+    "hash": "f7aea304bc5cec91",
+    "seconds": 9.173,
+    "ok": true
+  },
+  "textures/wind": {
+    "file": "library/previews/textures/wind.mp4",
+    "hash": "26fe8d6178c62a64",
+    "seconds": 8.97,
+    "ok": true
+  },
+  "transitions/ash-burst": {
+    "file": "library/previews/transitions/ash-burst.mp4",
+    "hash": "2ddb0936cf886e93",
+    "seconds": 12.251,
+    "ok": true
+  },
+  "transitions/blinds": {
+    "file": "library/previews/transitions/blinds.mp4",
+    "hash": "26ab8f469ed76fc9",
+    "seconds": 10.917,
+    "ok": true
+  },
+  "transitions/directional-wipe": {
+    "file": "library/previews/transitions/directional-wipe.mp4",
+    "hash": "5b78418fe4666c8b",
+    "seconds": 11.206,
+    "ok": true
+  },
+  "transitions/film-burn": {
+    "file": "library/previews/transitions/film-burn.mp4",
+    "hash": "3b9149003aec20d4",
+    "seconds": 10.586,
+    "ok": true
+  },
+  "transitions/flash": {
+    "file": "library/previews/transitions/flash.mp4",
+    "hash": "e0f5d15040ee1f2d",
+    "seconds": 11.111,
+    "ok": true
+  },
+  "transitions/grade-split": {
+    "file": "library/previews/transitions/grade-split.mp4",
+    "hash": "50999a17afb880cf",
+    "seconds": 10.748,
+    "ok": true
+  },
+  "transitions/grid-dissolve": {
+    "file": "library/previews/transitions/grid-dissolve.mp4",
+    "hash": "cb3b019cd715c646",
+    "seconds": 11.218,
+    "ok": true
+  },
+  "transitions/hard-cut": {
+    "file": "library/previews/transitions/hard-cut.mp4",
+    "hash": "4747d917d6731566",
+    "seconds": 10.607,
+    "ok": true
+  },
+  "transitions/iris": {
+    "file": "library/previews/transitions/iris.mp4",
+    "hash": "c057799072a1a3b1",
+    "seconds": 11.698,
+    "ok": true
+  },
+  "transitions/smoke-wipe": {
+    "file": "library/previews/transitions/smoke-wipe.mp4",
+    "hash": "f5c840feb413fa7e",
+    "seconds": 11.113,
+    "ok": true
+  },
+  "transitions/water-ripple": {
+    "file": "library/previews/transitions/water-ripple.mp4",
+    "hash": "964648f79650aec9",
+    "seconds": 11.968,
+    "ok": true
+  },
+  "transitions/whip": {
+    "file": "library/previews/transitions/whip.mp4",
+    "hash": "4eca211708bdaf8e",
+    "seconds": 10.822,
+    "ok": true
+  }
+}

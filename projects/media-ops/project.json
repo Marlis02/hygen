@@ -1,0 +1,170 @@
+{
+  "id": "media-ops",
+  "title": "Control render: reverse, two-ink and pan on video, boil of a drawn circle",
+  "status": "verified",
+  "proof": true,
+  "format": "1080x1920",
+  "fps": 30,
+  "language": "en",
+  "style": "documentary-dark",
+  "look": {
+    "extends": "abyss",
+    "id": "control-violet",
+    "name": "Контроль",
+    "palette": {
+      "accent": "#B07CFF",
+      "secondary": "#F2C46D",
+      "groundTint": "#100C18",
+      "temperature": "cold",
+      "textColor": "#ECE6F7"
+    },
+    "textures": [],
+    "motion": {
+      "camera": {
+        "preset": "none"
+      },
+      "parallax": {
+        "enabled": false
+      },
+      "type": {},
+      "post": []
+    }
+  },
+  "captions": "word-by-word",
+  "voice": {
+    "engine": "kokoro",
+    "voice": "am_michael",
+    "speed": 1
+  },
+  "arc": {
+    "structure": "list",
+    "hook": "concept-announcement",
+    "protagonist": "object",
+    "ending": "what-remains",
+    "why": "A control render, not a story: four media operations in a row, each on its own beat, so every one can be checked in the frames of the MP4."
+  },
+  "beats": [
+    {
+      "id": "01-reverse",
+      "role": "hook",
+      "text": "The counter runs backwards on this clip.",
+      "pad": [
+        0.3,
+        0.8
+      ],
+      "stage": {
+        "type": "media",
+        "src": "media/testsrc2-counter.mp4",
+        "in": 0,
+        "out": 6,
+        "reverse": true,
+        "fit": "contain"
+      },
+      "devices": [],
+      "dominant": "stage"
+    },
+    {
+      "id": "02-two-ink",
+      "role": "item",
+      "text": "Here the moving picture is printed in two inks.",
+      "pad": [
+        0.3,
+        0.8
+      ],
+      "stage": {
+        "type": "media",
+        "src": "media/testsrc2-counter.mp4",
+        "in": 1,
+        "out": 7,
+        "treatment": "two-ink",
+        "fit": "contain"
+      },
+      "devices": [],
+      "dominant": "stage"
+    },
+    {
+      "id": "03-pan",
+      "role": "item",
+      "text": "Now the frame travels across the moving picture, from corner to corner.",
+      "pad": [
+        0.3,
+        0.8
+      ],
+      "stage": {
+        "type": "media",
+        "src": "media/testsrc2-counter.mp4",
+        "in": 0,
+        "out": 7,
+        "fit": "cover",
+        "crop": {
+          "x": 0,
+          "y": 0,
+          "w": 55,
+          "h": 55
+        },
+        "pan": {
+          "to": {
+            "x": 45,
+            "y": 45,
+            "w": 55,
+            "h": 55
+          },
+          "at": "travels",
+          "dur": 2.2
+        }
+      },
+      "devices": [],
+      "dominant": "stage",
+      "camera": {
+        "reason": "follow",
+        "amplitude": 0.3
+      }
+    },
+    {
+      "id": "04-boil",
+      "role": "ending",
+      "text": "A hand drawn circle stays alive after it lands, and it keeps on breathing.",
+      "pad": [
+        0.3,
+        1.6
+      ],
+      "stage": {
+        "type": "color",
+        "color": "night",
+        "glow": false
+      },
+      "devices": [
+        {
+          "type": "annotate.circle",
+          "target": {
+            "x": 20,
+            "y": 22,
+            "w": 60,
+            "h": 22
+          },
+          "at": "circle",
+          "params": {
+            "label": "BOIL"
+          },
+          "explains": "the drawn ellipse keeps a small boil after it lands"
+        }
+      ],
+      "dominant": 0
+    }
+  ],
+  "transitions": [],
+  "sound": {
+    "drone": {
+      "peak": "03-pan:travels",
+      "cut": "04-boil:start",
+      "volume": 0.3,
+      "carve": 0.6
+    },
+    "hits": [
+      {
+        "at": "02-two-ink:start",
+        "volume": 0.4
+      }
+    ]
+  }
+}

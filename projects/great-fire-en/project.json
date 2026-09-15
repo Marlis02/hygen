@@ -1,0 +1,387 @@
+{
+  "id": "great-fire-en",
+  "title": "The Great Fire of London: one bakery, four days, 13,200 houses",
+  "status": "verified",
+  "concept": "- Настроение: Лондон, каким его вырезал на меди Холлар, и та же ночь маслом — огонь у реки. Спокойно и тяжело, как в хронике; ветер с востока несёт искры через кадр справа налево.\n- Ключевой цвет: золото расплавленного свинца и свечного света на тёмной сепии туши (акцент #E8C84A, земля #120E0A, бумага #F1E8D6).\n- Look: свой объект `ink-fire` поверх `ember` — палитра тушь + золото, текстуры `smoke` (фон) и `embers` (передний план, снос влево −25°), типографика typewriter (печатный лист), bloom 0,3, лёгкий flicker 0,2 (свет огня), переход на ударах `smoke-wipe`. Набор текстур {smoke, embers} не совпадает ни с одним роликом (ember — нет, abyss — fog+bubbles, storm — smoke+ash); акцент 32° от ember.\n- Арка: mechanism × rhetorical-question × place × callback. Протагонист — сам Сити: деревянный город, мэр, мост без воды, ветер, собор; финал возвращается к пекарне из хука через высоту колонны.",
+  "format": "1080x1920",
+  "fps": 30,
+  "language": "en",
+  "style": "documentary-dark",
+  "look": {
+    "extends": "ember",
+    "id": "ink-fire",
+    "name": "Тушь и огонь",
+    "about": {
+      "mood": "London as Hollar etched it and the same night in oil: ink, paper and the gold of molten lead; slow and heavy, sparks carried west by the east wind.",
+      "topics": "City fires, sieges and disasters of the 16th–18th centuries told through etchings, maps and old paintings.",
+      "avoid": "Modern footage, neon colours, fast cuts."
+    },
+    "palette": {
+      "accent": "#E8C84A",
+      "secondary": "#9DB4C8",
+      "groundTint": "#120E0A",
+      "temperature": "warm",
+      "textColor": "#F1E8D6"
+    },
+    "textures": [
+      {
+        "id": "smoke",
+        "density": 0.4,
+        "speed": 0.45,
+        "opacity": 0.35,
+        "depth": "bg"
+      },
+      {
+        "id": "embers",
+        "density": 0.3,
+        "angle": -25,
+        "opacity": 0.75,
+        "depth": "fg"
+      }
+    ],
+    "motion": {
+      "camera": {
+        "preset": "none"
+      },
+      "parallax": {
+        "enabled": false
+      },
+      "type": {
+        "number": "count-roll",
+        "title": "typewriter",
+        "label": "typewriter"
+      },
+      "post": [
+        {
+          "id": "bloom",
+          "strength": 0.3
+        },
+        {
+          "id": "flicker",
+          "strength": 0.2
+        }
+      ]
+    },
+    "transitions": {
+      "default": "hard-cut",
+      "hit": "smoke-wipe"
+    },
+    "grain": 1.2,
+    "vignette": {
+      "alpha": 0.66,
+      "clear": 52
+    },
+    "sound": {
+      "hit": "thud",
+      "whoosh": "smoke"
+    }
+  },
+  "voice": {
+    "provider": "elevenlabs"
+  },
+  "arc": {
+    "structure": "mechanism",
+    "hook": "rhetorical-question",
+    "protagonist": "place",
+    "ending": "callback",
+    "why": "The City itself is the protagonist: a timber town, a mayor who waited, a bridge without water, a wind and a cathedral fail step by step, and the Monument measures the way back to the bakery of the hook."
+  },
+  "beats": [
+    {
+      "id": "01-bakery",
+      "role": "hook",
+      "text": "How does one bakery burn down the heart of London?",
+      "sees": "Зритель видит надпись на табличке «…the King's Baker, in which the Great Fire of September 1666 began», её выделяет свет и рукописная обводка с подписью PUDDING LANE.",
+      "pad": [
+        0.2,
+        0.5
+      ],
+      "stage": {
+        "type": "media",
+        "src": "media/plaque-pudding-lane.jpg",
+        "fit": "contain",
+        "crop": {
+          "x": 2,
+          "y": 0,
+          "w": 96,
+          "h": 93
+        },
+        "pan": {
+          "to": {
+            "x": 68.5,
+            "y": 32.5,
+            "w": 28,
+            "h": 28
+          },
+          "at": "how",
+          "dur": 2.6
+        }
+      },
+      "devices": [
+        {
+          "type": "focus.spotlight",
+          "target": {
+            "x": 0,
+            "y": 46.5,
+            "w": 100,
+            "h": 7
+          },
+          "at": "how",
+          "params": {
+            "shape": "rect",
+            "mode": "dim",
+            "strength": 0.9
+          }
+        }
+      ],
+      "dominant": 0,
+      "sources": {
+        "text": "https://en.wikipedia.org/wiki/Great_Fire_of_London"
+      }
+    },
+    {
+      "id": "02-timber",
+      "role": "setup",
+      "text": "In [1666|sixteen sixty-six], the City was mostly timber, its upper floors almost touching across narrow lanes.",
+      "sees": "Зритель видит плотный деревянный Лондон с собором Св. Павла, камера отъезжает от собора ко всему городу.",
+      "pad": [
+        0.2,
+        0.6
+      ],
+      "stage": {
+        "type": "media",
+        "src": "media/hollar-london-before-1666.jpg",
+        "fit": "contain",
+        "crop": {
+          "x": 28,
+          "y": 33,
+          "w": 40,
+          "h": 40
+        }
+      },
+      "devices": [],
+      "dominant": "stage",
+      "camera": {
+        "reason": "approach"
+      },
+      "sources": {
+        "text": "https://en.wikipedia.org/wiki/Great_Fire_of_London"
+      }
+    },
+    {
+      "id": "03-mayor",
+      "role": "step",
+      "text": "The Lord Mayor delayed for hours. Then he cried: the fire overtakes us faster than we can do it.",
+      "sees": "Зритель видит на тёмной карточке слова мэра, появляющиеся по одному: «…the fire overtakes us faster than we can do it.»",
+      "pad": [
+        0.2,
+        0.9
+      ],
+      "scene": "quote-card",
+      "at": "cried.end",
+      "data": {
+        "text": "…the fire overtakes us faster than we can do it.",
+        "author": "Thomas Bloodworth, Lord Mayor",
+        "year": "1666",
+        "source": "https://en.wikipedia.org/wiki/Great_Fire_of_London"
+      },
+      "sources": {
+        "text": "https://en.wikipedia.org/wiki/Great_Fire_of_London"
+      }
+    },
+    {
+      "id": "04-bridge",
+      "role": "step",
+      "text": "The flames took the water wheels under London Bridge. The pipes ran dry, and the east wind did the rest.",
+      "sees": "Зритель видит на картине Old London Bridge над ночной водой, мост выхвачен светом и подписан, справа огонь.",
+      "pad": [
+        0.2,
+        0.6
+      ],
+      "intent": "show-detail",
+      "target": {
+        "x": 2,
+        "y": 58,
+        "w": 90,
+        "h": 15.5
+      },
+      "at": "london",
+      "data": {
+        "src": "media/great-fire-1675-tower-wharf.jpg",
+        "label": "LONDON BRIDGE",
+        "sub": "WATER WHEELS BURNED",
+        "explains": "the fire burned the water wheels under London Bridge and the city lost its piped water",
+        "source": "https://en.wikipedia.org/wiki/Great_Fire_of_London"
+      },
+      "stage": {
+        "type": "media",
+        "fit": "cover",
+        "focus": [
+          0.14,
+          0.5
+        ]
+      },
+      "textures": [
+        {
+          "id": "wind",
+          "opacity": 0.3
+        }
+      ],
+      "sources": {
+        "text": "https://en.wikipedia.org/wiki/Great_Fire_of_London"
+      }
+    },
+    {
+      "id": "05-st-pauls",
+      "role": "step",
+      "text": "On Tuesday night, Saint Paul's caught fire. Within half an hour, its lead roof was melting.",
+      "sees": "Зритель видит, как горит собор Св. Павла на офорте 1666 года: камера медленно наезжает на башню в огне.",
+      "pad": [
+        0.2,
+        0.8
+      ],
+      "stage": {
+        "type": "media",
+        "src": "media/hollar-old-st-pauls-burning-1666.jpg",
+        "fit": "cover",
+        "focus": [
+          0.56,
+          0.6
+        ]
+      },
+      "devices": [],
+      "dominant": "stage",
+      "camera": {
+        "reason": "approach",
+        "amplitude": 0.5
+      },
+      "sources": {
+        "text": "https://en.wikipedia.org/wiki/Great_Fire_of_London"
+      }
+    },
+    {
+      "id": "06-gone",
+      "role": "consequence",
+      "text": "In four days, at least [13,200|thirteen thousand two hundred] houses were gone.",
+      "sees": "Зритель видит тот же вид Лондона до и после: шторка на слове «four» стирает город до руин, над ним вырастает «13,200 · HOUSES DESTROYED».",
+      "pad": [
+        0.2,
+        1
+      ],
+      "intent": "compare",
+      "target": {
+        "x": 50,
+        "y": 23
+      },
+      "at": "four",
+      "data": {
+        "value": 13200,
+        "display": "13,200",
+        "label": "HOUSES DESTROYED",
+        "source": "https://en.wikipedia.org/wiki/Great_Fire_of_London"
+      },
+      "stage": {
+        "type": "split",
+        "a": {
+          "src": "media/hollar-london-before-1666.jpg",
+          "fit": "contain"
+        },
+        "b": {
+          "src": "media/hollar-london-after-1666.jpg",
+          "fit": "contain"
+        },
+        "labels": [
+          "BEFORE",
+          "AFTER"
+        ],
+        "at": "gone"
+      },
+      "sources": {
+        "text": "https://en.wikipedia.org/wiki/Great_Fire_of_London"
+      }
+    },
+    {
+      "id": "07-monument",
+      "role": "ending",
+      "text": "The fire's monument stands [202|two hundred and two] feet from the bakery, and it is just as tall.",
+      "sees": "Зритель видит колонну Monument целиком, вдоль неё рисуется размерная линия «202 FT» — ровно столько до пекарни из первого кадра.",
+      "pad": [
+        0.3,
+        2
+      ],
+      "intent": "show-scale",
+      "target": {
+        "x": 67,
+        "y": 1.5,
+        "w": 0,
+        "h": 69.5
+      },
+      "at": "tall",
+      "data": {
+        "src": "media/monument-fish-street-hill.jpg",
+        "label": "202 FT",
+        "explains": "the column is as tall as its distance from the bakery where the fire began",
+        "source": "https://en.wikipedia.org/wiki/Monument_to_the_Great_Fire_of_London"
+      },
+      "sources": {
+        "text": "https://en.wikipedia.org/wiki/Monument_to_the_Great_Fire_of_London"
+      }
+    }
+  ],
+  "transitions": [],
+  "sound": {
+    "drone": {
+      "peak": "05-st-pauls:melting",
+      "cut": "07-monument:start",
+      "volume": 0.42,
+      "carve": 0.65
+    },
+    "hits": [
+      {
+        "at": "02-timber:start",
+        "volume": 0.45
+      },
+      {
+        "at": "04-bridge:start",
+        "volume": 0.5,
+        "carve": 0.75
+      },
+      {
+        "at": "05-st-pauls:fire",
+        "heavy": true,
+        "volume": 0.6,
+        "carve": 0.75
+      },
+      {
+        "at": "06-gone:start",
+        "volume": 0.5
+      },
+      {
+        "at": "07-monument:start",
+        "volume": 0.42
+      }
+    ]
+  },
+  "publish": {
+    "titles": [
+      "How one bakery burned down the heart of London",
+      "13,200 houses in four days: the Great Fire of London, 1666",
+      "From Pudding Lane to the Monument: how London burned"
+    ],
+    "description": "In September 1666 a fire in a bakery on Pudding Lane burned for four days and destroyed at least 13,200 houses. The Lord Mayor waited, the water wheels under London Bridge burned, and the lead roof of St Paul's melted within half an hour. The Monument to the fire stands 202 feet from the bakery, and it is just as tall.",
+    "tags": [
+      "great fire of london",
+      "1666",
+      "london history",
+      "pudding lane",
+      "st pauls cathedral",
+      "the monument",
+      "wenceslaus hollar",
+      "17th century",
+      "england",
+      "history shorts",
+      "documentary",
+      "disaster"
+    ]
+  }
+}

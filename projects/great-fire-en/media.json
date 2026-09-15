@@ -1,0 +1,74 @@
+{
+  "great-fire-1675-tower-wharf.jpg": {
+    "role": "hero",
+    "title": "The Great Fire of London, seen from a boat near Tower Wharf",
+    "source": "Wikimedia Commons",
+    "author": "Unknown artist (Dutch school, c. 1675), Museum of London",
+    "license": "Public domain",
+    "url": "https://commons.wikimedia.org/wiki/File:Great_Fire_London.jpg",
+    "added": "2026-09-14",
+    "notes": "3840 px thumbnail of the 5477×3189 file. Old London Bridge on the left, Old St Paul's in the centre, the Tower of London on the right."
+  },
+  "hollar-london-after-1666.jpg": {
+    "role": "evidence",
+    "title": "Wenceslaus Hollar — London before and after the fire (State 1): view after the fire",
+    "source": "Wikimedia Commons",
+    "author": "Wenceslaus Hollar (1607–1677)",
+    "license": "Public domain",
+    "url": "https://commons.wikimedia.org/wiki/File:Wenceslas_Hollar_-_London_before_and_after_the_fire_(State_1).jpg",
+    "added": "2026-09-14",
+    "notes": "Derived by the hygen engine: the same 1427×810 px window around Old St Paul's from the lower view ('as it appeareth now after the sad calamitie and destruction by fire, 1666'), aligned to the upper view."
+  },
+  "hollar-london-before-1666.jpg": {
+    "role": "place",
+    "title": "Wenceslaus Hollar — London before and after the fire (State 1): view before the fire",
+    "source": "Wikimedia Commons",
+    "author": "Wenceslaus Hollar (1607–1677)",
+    "license": "Public domain",
+    "url": "https://commons.wikimedia.org/wiki/File:Wenceslas_Hollar_-_London_before_and_after_the_fire_(State_1).jpg",
+    "added": "2026-09-14",
+    "notes": "Derived by the hygen engine: a 1427×810 px window around Old St Paul's from the upper view ('in its flourishing condition before the fire') of the 6940×2275 scan, University of Toronto Wenceslaus Hollar Digital Collection. Etching, 1666.",
+    "crop": {
+      "x": 28,
+      "y": 33,
+      "w": 40,
+      "h": 40
+    }
+  },
+  "hollar-old-st-pauls-burning-1666.jpg": {
+    "role": "evidence",
+    "title": "Wenceslaus Hollar — Burning of old St Paul's Cathedral in the Fire of London",
+    "source": "Wikimedia Commons",
+    "author": "Wenceslaus Hollar (1607–1677), Yale Center for British Art",
+    "license": "CC0",
+    "url": "https://commons.wikimedia.org/wiki/File:Wenceslaus_Hollar_-_Burning_of_old_St_Paul%27s_Cathedral_in_the_Fire_of_London_-_B1977.14.17818_-_Yale_Center_for_British_Art.jpg",
+    "added": "2026-09-14",
+    "notes": "Original 1920×1190 file; etching signed 'W. Hollar fecit A° 1666'."
+  },
+  "monument-fish-street-hill.jpg": {
+    "role": "place",
+    "title": "Monument to the Great Fire of London",
+    "source": "Wikimedia Commons",
+    "author": "Lauren (geograph.org.uk)",
+    "license": "CC BY-SA 2.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Monument_to_the_Great_Fire_of_London_-_geograph.org.uk_-_7072428.jpg",
+    "added": "2026-09-14",
+    "notes": "Derived by the hygen engine: 9:16 centre crop of the 1920 px thumbnail (original 2533×3648, photo 2012-06-04), scaled to 74 % and placed at the top of a 1215×2160 canvas over a blurred, darkened copy of itself, so the whole column stays above the caption zone."
+  },
+  "plaque-pudding-lane.jpg": {
+    "role": "evidence",
+    "title": "Plaque to the shop of Thomas Faryner, the King's Baker, Pudding Lane",
+    "source": "Wikimedia Commons",
+    "author": "Acabashi",
+    "license": "CC BY-SA 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Thomas_Faryner_shop_plaque_Pudding_Lane_City_of_London_England.jpg",
+    "added": "2026-09-14",
+    "notes": "Derived by the hygen engine: crop x 36–90 %, y 18–76 % of the 3840 px thumbnail (original 4052×2533) — the inscription without the coat of arms. Photo taken 2025-11-16.",
+    "crop": {
+      "x": 2,
+      "y": 0,
+      "w": 96,
+      "h": 93
+    }
+  }
+}

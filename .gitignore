@@ -2,19 +2,18 @@
 node_modules/
 dist/
 
-# Рендеры, снимки, кэши (контактные листы роликов коммитим — приёмка по кадрам)
+# Рендеры, снимки, кэши (контактные листы и publish/ проектов коммитим — приёмка по кадрам)
 **/renders/*
-!videos/*/renders/
-!videos/*/renders/*.contact.jpg
-!videos/*/renders/blind/
-!videos/*/renders/blind/*.contact.jpg
-!videos/_proof/*/renders/
-!videos/_proof/*/renders/*.contact.jpg
+!projects/*/renders/
+!projects/*/renders/*.contact.jpg
+!projects/*/renders/blind/
+!projects/*/renders/blind/*.contact.jpg
+!projects/*/renders/publish/
 snapshots/
 .thumbnails/
 .waveform-cache/
 
-# Секреты
+# Секреты (настройки без секретов — hygen.config.json, в git)
 .env
 .env.*
 !.env.example
@@ -29,14 +28,17 @@ snapshots/
 __pycache__/
 **/.hyperframes/backup/
 
-# Сборка роликов и кэши движка
-videos/*/build/
-videos/_proof/*/build/
-videos/_proof/_*/
+# Сборка проектов и кэши движка
+projects/*/build/
 .cache/
-# Дубли голоса ElevenLabs роликов — videos/<id>/voice/ (take.wav, alignment.json, meta.json, usage.jsonl) коммитим:
+# Дубли голоса ElevenLabs — projects/<id>/voice/ (take.wav, alignment.json, meta.json, usage.jsonl) коммитим:
 # голос едет вместе с проектом. В .cache/voice — только превью голосов.
 .preview/
 
-# Старые версии роликов (history/): video.json, research.md, листы и publish коммитим, MP4 — нет
-videos/*/history/**/*.mp4
+# История проектов: снимки project.json и media.json, листы и publish коммитим, MP4 — нет
+projects/*/history/**/*.mp4
+
+# Превью библиотеки — пересобираются npm run library:previews (кэш по хэшу файла элемента)
+library/previews/**/*.mp4
+library/previews/**/*.webm
+library/previews/**/*.jpg

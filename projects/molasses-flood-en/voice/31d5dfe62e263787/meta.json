@@ -1,0 +1,9 @@
+{
+  "label": "molasses-flood-en/05-trapped",
+  "voiceId": "uju3wxzG5OhpWcoi3SMy",
+  "model": "eleven_multilingual_v2",
+  "output_format": "pcm_24000",
+  "chars": 122,
+  "character_cost": 67,
+  "text": "As it cooled, it thickened and trapped those caught in it. Twenty-one people died; about a hundred and fifty were injured."
+}

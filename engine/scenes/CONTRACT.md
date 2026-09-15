@@ -5,7 +5,7 @@
 - `scene.html` — шаблон подкомпозиции HyperFrames с одним paused-таймлайном;
 - `scene.json` — описание по [schema.json](schema.json): параметры, якоря, длительность, сид, безопасная зона.
 
-Ролик не трогает HTML сцен. Всё, что меняется от ролика к ролику, — параметры, якорные слова, оттенок и сид в `video.json`, а поверх сцены — слои движка: look ролика, текстуры, медиафон, камера, типографика, пост-эффекты и переходы (разделы ниже). Сцена о слоях не знает: она только объявляет в `scene.json` свои текстовые слоты. Если для нового ролика пришлось править `scene.html`, контракт неполный: сначала чинится контракт (новый параметр в `scene.json`), потом ролик.
+Ролик не трогает HTML сцен. Всё, что меняется от ролика к ролику, — параметры, якорные слова, оттенок и сид в `project.json`, а поверх сцены — слои движка: look ролика, текстуры, медиафон, камера, типографика, пост-эффекты и переходы (разделы ниже). Сцена о слоях не знает: она только объявляет в `scene.json` свои текстовые слоты. Если для нового ролика пришлось править `scene.html`, контракт неполный: сначала чинится контракт (новый параметр в `scene.json`), потом ролик.
 
 ## Библиотека
 
@@ -21,7 +21,7 @@
 
 Дефолты каждой сцены = Помпеи: бит без `params` собирает кадр из эталонного ролика.
 
-## Бит в video.json
+## Бит в project.json
 
 ```json
 {
@@ -75,8 +75,8 @@
 | `enum` | одна из `values` | — |
 | `list` | массив строк | `maxItems`, `maxLength` на элемент |
 | `point` | `{x, y}` в px кадра 1080×1920 | y ≤ `contentMaxY`, не в правой полосе (x > 960 при y 1000–1700) |
-| `map` | имя силуэта из `engine/assets/maps/<имя>.svg` | рядом `<имя>.license.json`; в сцену приходит `{name, water, coast, fillRule}` |
-| `image` | путь к файлу от папки ролика | рядом `<файл без расширения>.license.json`; файл копируется в `assets/media/`, в сцену приходит путь |
+| `map` | имя силуэта из `engine/assets/maps/<имя>.svg` | запись в `engine/assets/media.json` (ключ `maps/<имя>.svg`); в сцену приходит `{name, water, coast, fillRule}` |
+| `image` | путь к файлу от папки ролика | запись в `media.json` проекта; файл копируется в `assets/media/`, в сцену приходит путь |
 
 - `figure: true` — параметр выводит цифру на экран, нужен `sources.<param>`.
 - `if: "param"` — параметр показывается только при условии: `param` (истинно), `!param`, `param>=2` (для строк и списков — длина), `param==word`; части соединяются `&&`: `section&&voids`.
@@ -87,11 +87,11 @@
 
 - `<path data-role="water" d="…">` — вода, заливается плоскостью стиля; несколько путей склеиваются; `data-fill-rule="evenodd"` — если вода задана рамкой с вырезами суши.
 - `<path data-role="coast" d="…">` — береговая линия, рисуется штрихом.
-- `<имя>.license.json`: `{ "source", "author", "license", "url", "notes" }`.
+- Лицензия силуэта — запись в `engine/assets/media.json`, ключ `maps/<имя>.svg`: `{ "title", "source", "author", "license", "url", "notes" }`.
 
 ### Медиа
 
-Каждый файл картинки лежит в папке ролика (`videos/<id>/media/`) с записью `<файл>.license.json`: `source`, `author`, `license`, `url`. Без записи сборка падает. Только Wikimedia Commons, NASA, Pexels, Pixabay.
+Файлы ролика лежат в `projects/<id>/media/` — только сами файлы, без json. Лицензии — один файл `projects/<id>/media.json` рядом с `project.json`: ключ — имя файла, запись `{role, title, source, author, license, url, added, notes, crop, trim}` (`role` — hero | evidence | place; `trim` — `{in, out}` обрезка видео из панели). Обязательны `source`, `author`, `license`, `url`. Файл без полной записи и запись без файла — ошибка `build` и `verify → media`. Только Wikimedia Commons, NASA, Pexels, Pixabay. Лицензии ассетов движка (силуэты карт, картина Волера) — `engine/assets/media.json`, музыки — `library/music/music.json`.
 
 ## Якоря и время
 
@@ -152,7 +152,7 @@
 
 ## Look ролика
 
-`video.json → "look"`: id из `engine/looks/` (`ember` — Помпеи, `abyss`, `storm`) или объект — новый look прямо в ролике, можно от встроенного: `{"extends": "abyss", "palette": {"accent": "#E0B040"}, "textures": [...]}` (разделы сливаются по ключам, списки заменяются). Без look — `ember`.
+`project.json → "look"`: id из `engine/looks/` (`ember` — Помпеи, `abyss`, `storm`) или объект — новый look прямо в ролике, можно от встроенного: `{"extends": "abyss", "palette": {"accent": "#E0B040"}, "textures": [...]}` (разделы сливаются по ключам, списки заменяются). Без look — `ember`.
 
 | Поле | Что |
 |---|---|
@@ -185,11 +185,11 @@
 
 У любого бита: `"background": {"image": "media/x.jpg", "treatment": ["duotone", "ken-burns"], "focus": [0.6, 0.5], "opacity": 0.5, "blend": "lighten", "depth": "bg", "zoom": [1, 1.1]}`.
 
-- `image` (jpg, png, webp) или `video` (webm, mp4, mov) от папки ролика; рядом обязателен `<файл>.license.json`, как у картинок сцен.
+- `image` (jpg, png, webp) или `video` (webm, mp4, mov) от папки ролика; обязательна запись в `media.json` проекта, как у картинок сцен.
 - `treatment` (одно или списком): `duotone` — перекраска в палитру бита (ночь → hero-deep → чуть светлее), `blur` — размытие с затемнением, `ken-burns` — медленный наезд к `focus` (`zoom` [от, до]), `parallax` — медленный дрейф по вертикали. Без treatment — `ken-burns`.
 - `focus` — [x, y] доли картинки: центр обрезки и наезда.
 - Слой лежит над сценой в режиме `lighten`: картинка заменяет тёмную землю сцены, светлый текст и герой остаются сверху. Лучше всего под ночной землёй (`counter-title`, `fraction-finale`, `year-odometer` без пыли, `scale-gauge` без сценографии); на карте и под пепельной землёй картинка спорит со сценой.
-- Картинка обрабатывается при сборке (`engine/py/background.py`, кэш `videos/<id>/.cache/bg`), в рендере только движется. Видео ffmpeg зацикливает и режет до длины бита, звук убирает.
+- Картинка обрабатывается при сборке (`engine/py/background.py`, кэш `projects/<id>/.cache/bg`), в рендере только движется. Видео ffmpeg зацикливает и режет до длины бита, звук убирает.
 
 ## Motion
 
@@ -202,7 +202,7 @@
 
 ## Переходы
 
-`engine/transitions/<id>/`: `transition.json` (`id`, `name`, `use`, `duration`) и `transition.js` — модуль, который сборка дописывает к runtime: `window.HygenTransitions[id] = {host(fx, role, d, tr, api), overlay(api, d, tr), frame(api), always}` — `host` сдвигает, масштабирует и размывает уходящую (`from`) или входящую (`to`) сцену, `overlay` рисует над стыком (`api.ctx` — общий canvas переходов, `api.el`, `api.C.rgb`/`api.C.hex` — палитра look), `d` — секунды от стыка. Библиотека: `hard-cut`, `flash`, `ash-burst`, `whip`, `water-ripple`, `smoke-wipe`; D6 — `iris`, `blinds`, `grid-dissolve`, `film-burn`, `directional-wipe`, `grade-split` (canvas по идеям компонентов реестра, `engine/devices/VENDOR.md`). Каждый стык получает переход по порядку: `video.json → transitions` (`{"from", "to", "type": ["flash", "ash-burst"], "duration"}`, только соседние биты) → `"transition"` бита (переход в этот бит) → `look.transitions.hit`, если на стык падает тяжёлый удар (`heavy`) → `look.transitions.default`. Разгон перехода до стыка — не дольше 0,08 с: settle-кадр уходящей сцены остаётся чистым.
+`engine/transitions/<id>/`: `transition.json` (`id`, `name`, `use`, `duration`) и `transition.js` — модуль, который сборка дописывает к runtime: `window.HygenTransitions[id] = {host(fx, role, d, tr, api), overlay(api, d, tr), frame(api), always}` — `host` сдвигает, масштабирует и размывает уходящую (`from`) или входящую (`to`) сцену, `overlay` рисует над стыком (`api.ctx` — общий canvas переходов, `api.el`, `api.C.rgb`/`api.C.hex` — палитра look), `d` — секунды от стыка. Библиотека: `hard-cut`, `flash`, `ash-burst`, `whip`, `water-ripple`, `smoke-wipe`; D6 — `iris`, `blinds`, `grid-dissolve`, `film-burn`, `directional-wipe`, `grade-split` (canvas по идеям компонентов реестра, `engine/devices/VENDOR.md`). Каждый стык получает переход по порядку: `project.json → transitions` (`{"from", "to", "type": ["flash", "ash-burst"], "duration"}`, только соседние биты) → `"transition"` бита (переход в этот бит) → `look.transitions.hit`, если на стык падает тяжёлый удар (`heavy`) → `look.transitions.default`. Разгон перехода до стыка — не дольше 0,08 с: settle-кадр уходящей сцены остаётся чистым.
 
 ## Проверка сцены без голоса
 
@@ -212,7 +212,7 @@ npm run scene -- counter-title --params '{"value":160,"format":"clock"}' --tone 
 npm run scene -- counter-title --look abyss                        # сцена под look (и его текстурами, камерой, пост-эффектами)
 npm run scene -- map-marker --look storm --beat '{"type":{"count":"stagger"},"camera":{"preset":"handheld","shake":1},"post":[{"id":"chromatic","strength":0.8}]}'
 npm run scene -- fraction-finale --textures '[{"id":"rain"}]'       # текстура поверх look
-npm run scene -- counter-title --beat '{"background":{"image":"videos/titanic-en/media/rms-titanic.jpg","treatment":["duotone","ken-burns"]}}'
+npm run scene -- counter-title --beat '{"background":{"image":"projects/titanic-en/media/rms-titanic.jpg","treatment":["duotone","ken-burns"]}}'
 ```
 
 В превью удары — это события сцены: тряска, chromatic и vignette-pulse срабатывают на них.
@@ -221,7 +221,7 @@ npm run scene -- counter-title --beat '{"background":{"image":"videos/titanic-en
 
 ## Бит v2: stage + devices + intent
 
-Бит — **либо** `scene` (сцена с HTML из библиотеки выше, как раньше, без изменений), **либо** `stage` — база кадра и 0–3 устройства поверх. Новых HTML-сцен нет: кадр собирается из stage и устройств. Эталоны: `videos/_proof/titanic-v2`, `videos/_proof/krakatoa-v2`.
+Бит — **либо** `scene` (сцена с HTML из библиотеки выше, как раньше, без изменений), **либо** `stage` — база кадра и 0–3 устройства поверх. Новых HTML-сцен нет: кадр собирается из stage и устройств. Эталоны: `projects/titanic-v2`, `projects/krakatoa-v2`.
 
 ```json
 {
@@ -261,7 +261,7 @@ npm run scene -- counter-title --beat '{"background":{"image":"videos/titanic-en
 
 ### Stage
 
-**media** — картинка или видео от папки ролика (рядом `<файл>.license.json`):
+**media** — картинка или видео от папки ролика (запись в `media.json` проекта):
 
 | Поле | Что |
 |---|---|
@@ -277,7 +277,7 @@ npm run scene -- counter-title --beat '{"background":{"image":"videos/titanic-en
 | `zoom` | `[от, до]` 1–2 — медленный наезд за бит |
 | `treatment` | `none`, `film-memory` (выцветание, тёплый сдвиг, виньетка, зерно + gate weave и дыхание экспозиции в рендере), `engraved` (гравюра: толщина штриха от светлоты, перекрёстная штриховка в тенях; тушь night, бумага text), `two-ink` (две краски hero и heroDeep по бумаге, растры 15°/75°). `duotone` (две краски look: тени — night, света — приглушённый text с hero не ярче 72 %, чтобы белая бумага не выпадала из тёмного look; яркие насыщенные точки — огни, лампы — остаются пятнами цвета cold). CPU-версии рецептов media-use без WebGL: картинка — numpy, видео — тоновая карта ffmpeg без штриховки |
 
-Видео и картинки обрабатываются один раз при сборке (`engine/py/media_stage.py`, кэш `videos/<id>/.cache/stage` по хэшу файла и параметров): обрезка `in`–`out`, reverse, treatment, H.264 без звука, fps ролика. Звук из видео не берётся. Не больше 2 видео одновременно (`split` из двух видео — уже 2; `focus.spotlight` в режиме blur на видео добавляет копию).
+Видео и картинки обрабатываются один раз при сборке (`engine/py/media_stage.py`, кэш `projects/<id>/.cache/stage` по хэшу файла и параметров): обрезка `in`–`out`, reverse, treatment, H.264 без звука, fps ролика. Звук из видео не берётся. Не больше 2 видео одновременно (`split` из двух видео — уже 2; `focus.spotlight` в режиме blur на видео добавляет копию).
 
 **split** — `a` и `b` (поля media), шторка `b` поверх `a` в момент `at` за `dur` с (по умолчанию 1,1), `direction` left | right | up | down, разделитель едет по краю, `labels: ["BEFORE", "AFTER"]` вверху.
 
@@ -326,13 +326,13 @@ npm run scene -- counter-title --beat '{"background":{"image":"videos/titanic-en
 
 JSON-рецепты без HTML — `engine/scenes/recipes/<id>.json` того же вида, вызываются как `"scene": "<id>"` с `data`: `quote-card` (color + text.quote), `portrait` (media film-memory + annotate.label + camera approach), `question-card` (color + text.title typewriter).
 
-Развёрнутые биты пишутся в `build/beats.expanded.json` с хэшем входа (биты video.json + таблицы). Сборка разворачивает дважды и сравнивает с прошлой сборкой при том же хэше; `verify` — проверка `expanded`.
+Развёрнутые биты пишутся в `build/beats.expanded.json` с хэшем входа (биты project.json + таблицы). Сборка разворачивает дважды и сравнивает с прошлой сборкой при том же хэше; `verify` — проверка `expanded`.
 
 ### Арка
 
-`video.json → "arc": {structure, hook, protagonist, ending, why}` — обязательна, если в ролике есть stage-биты. Значения — `engine/arcs/arc.json`: structure story | mystery | mechanism | comparison | list; hook — 9 стратегий faceless-explainer; protagonist place | person | object | number | sound; ending lesson | open-question | callback | what-remains | one-number-silence. Роли битов (`role`) — `engine/arcs/<structure>.json`; первый бит hook, последний ending.
+`project.json → "arc": {structure, hook, protagonist, ending, why}` — обязательна, если в ролике есть stage-биты. Значения — `engine/arcs/arc.json`: structure story | mystery | mechanism | comparison | list; hook — 9 стратегий faceless-explainer; protagonist place | person | object | number | sound; ending lesson | open-question | callback | what-remains | one-number-silence. Роли битов (`role`) — `engine/arcs/<structure>.json`; первый бит hook, последний ending.
 
-`verify → uniqueness`: против двух последних других роликов (`videos/`, `videos/_proof/`, по времени сборки) кортеж арки и последовательность stage-типов (бит со сценой — `scene:<id>`) не совпадают — иначе ошибка; совпадение больше половины позиций — предупреждение. Проверка цвета и текстур D3.5 остаётся; ролик с `"retells": "<id>"` (пересказ в том же мире) от неё освобождён только в паре с этим id.
+`verify → uniqueness`: против двух последних других роликов (все проекты `projects/`, proof тоже, по времени сборки) кортеж арки и последовательность stage-типов (бит со сценой — `scene:<id>`) не совпадают — иначе ошибка; совпадение больше половины позиций — предупреждение. Проверка цвета и текстур D3.5 остаётся; ролик с `"retells": "<id>"` (пересказ в том же мире) от неё освобождён только в паре с этим id.
 
 ### Грамматика
 
@@ -349,8 +349,8 @@ JSON-рецепты без HTML — `engine/scenes/recipes/<id>.json` того �
 
 ```bash
 npm run scene -- --device annotate.arrow                         # demo устройства на нейтральном stage
-npm run scene -- --device focus.spotlight --look abyss --beat '{"stage":{"type":"media","src":"videos/titanic-en/media/rms-titanic.jpg"}}'
-npm run scene -- --stage media --src videos/_proof/titanic-v2/media/titanic-pathe-1912-belfast.webm --dur 6 \
+npm run scene -- --device focus.spotlight --look abyss --beat '{"stage":{"type":"media","src":"projects/titanic-en/media/rms-titanic.jpg"}}'
+npm run scene -- --stage media --src projects/titanic-v2/media/titanic-pathe-1912-belfast.webm --dur 6 \
   --text "The ship left the dock and then it was gone" --beat '{"stage":{"rate":0.8,"fit":"contain"},"devices":[{"type":"edit.hold","at":"gone"}],"dominant":0}'
 npm run scene -- quote-card                                       # JSON-рецепт с demo-данными
 ```
@@ -359,13 +359,13 @@ npm run scene -- quote-card                                       # JSON-рец�
 
 ## Голос, звук, музыка и публикация (D5)
 
-**Голос.** `video.json → "voice": {"provider": "kokoro" | "elevenlabs", "voiceId", "model"}`; старая форма `{"engine": "kokoro", "voice", "speed"}` работает. Выбор: `--voice` в CLI > `video.json` > `.env VOICE_PROVIDER` (`ELEVENLABS_LIVE=1` — elevenlabs) > kokoro. ElevenLabs — `eleven_multilingual_v2`, эндпоинт with-timestamps: тайминги слов из API, whisper не запускается; дубли — `.cache/voice/elevenlabs/<хэш provider, voiceId, model, text>`, расход — `usage.jsonl`. Ошибка API или нет ключа — предупреждение и Kokoro на весь ролик. Превью голосов — `npm run voices -- "<реплика>"` → `videos/_proof/voices/`.
+**Голос.** `project.json → "voice": {"provider": "kokoro" | "elevenlabs", "voiceId", "model"}`; старая форма `{"engine": "kokoro", "voice", "speed"}` работает. Выбор: `--voice` в CLI > `project.json` > переменная окружения `VOICE_PROVIDER` > `hygen.config.json → voice.provider`. ElevenLabs — `eleven_multilingual_v2`, эндпоинт with-timestamps: тайминги слов из API, whisper не запускается; дубли — `projects/<id>/voice/<хэш provider, voiceId, model, text>/`, расход — `projects/<id>/voice/usage.jsonl`. Ошибка API или нет ключа — предупреждение и Kokoro на весь ролик. Превью голосов — `npm run voices -- "<реплика>"` → `library/voices/`.
 
 **Звук по событиям.** События сцен (`scene.json → events`), устройств (`device.json → events`) и переходы получают звук автоматически: слово события → семейство по `style.json → sound.events` (draw → scribble, land → tap, count → ticks, focus → swell, freeze/hold → shutter, wipe/transition → whoosh, rise/fill → riser, collapse → impact); громкости и приглушение — там же; цвет свиста — `look.sound.whoosh`. Не ближе `gap` (0,2 с) друг к другу и 0,25 с к ручным `sound.hits`, не больше `perBeat` (4) на бит; тики длятся до `land` своего устройства. Синтез кодом — `engine/py/sound_design.py --events`. `sound.events: false` — только ручные удары (Помпеи).
 
-**Музыка.** `style.json → music {tracks, volume, duck, fadeIn, fadeOut}`; `video.json → "music": false | {track, volume, duck, fadeIn, fadeOut, in, out}`. Подложка (`engine/py/music_bed.py`): трек к −24 LUFS, петли с кроссфейдом, под речью `duck` дБ, клип `music-bed` на шине music. Треки и лицензии — `engine/assets/music/MUSIC.md`.
+**Музыка.** `style.json → music {tracks, volume, duck, fadeIn, fadeOut}`; `project.json → "music": false | {track, gain, duck, in, out, fadeIn, fadeOut}` — только ссылка на трек библиотеки (`volume` — старое имя `gain`). Подложка (`engine/py/music_bed.py`): трек к −24 LUFS, петли с кроссфейдом, под речью `duck` дБ, клип `music-bed` на шине music. Треки — `library/music/<трек>.wav`, записи — `library/music/music.json` (ключ — имя файла: title, source, author, license, url, bpm, mood, looks), сетка битов — `library/music/beats/<трек>.beats.json` (считается один раз, `sha` файла в записи), правила — `library/music/MUSIC.md`.
 
-**Публикация (D5).** `video.json → "publish": {titles[3], description, tags[10–15]}`. `build` после мастеринга пишет `videos/<id>/publish/`: `title.txt`, `description.md` (+ «Sources:» — все ссылки video.json, «Media:» — кредиты из license.json всех медиа, карт и музыки), `tags.txt`, `subtitles.srt` фразами по 3–5 слов, `thumbnail.jpg` — settle-кадр самого плотного бита. Без рендера — `npm run publish -- videos/<id>`. `verify → publish`: всё на месте, в описании все источники и кредиты.
+**Публикация (D5).** `project.json → "publish": {titles[3], description, tags[10–15]}`. `build` после мастеринга пишет `projects/<id>/renders/publish/`: `title.txt`, `description.md` (+ «Sources:» — все ссылки project.json, «Media:» — кредиты из media.json проекта, engine/assets/media.json и library/music/music.json), `tags.txt`, `subtitles.srt` фразами по 3–5 слов, `thumbnail.jpg` — settle-кадр самого плотного бита. Без рендера — `npm run publish -- projects/<id>`. `verify → publish`: всё на месте, в описании все источники и кредиты.
 
 ## Текст на экране (D6)
 
@@ -387,7 +387,7 @@ npm run scene -- quote-card                                       # JSON-рец�
 
 ### Субтитры — устройство `text.caption`
 
-Слой на весь ролик, в `devices` бита не ставится и в плотность грамматики не входит. Стиль бита: `look.captions` ← `video.json → captions` ← `caption` бита.
+Слой на весь ролик, в `devices` бита не ставится и в плотность грамматики не входит. Стиль бита: `look.captions` ← `project.json → captions` ← `caption` бита.
 
 ```json
 "captions": { "preset": "pill-karaoke", "group": "phrase", "activeWord": "highlight-sweep", "size": "l" },
@@ -417,7 +417,7 @@ npm run scene -- quote-card                                       # JSON-рец�
 
 ### `sync` — ритм устройств
 
-У любого устройства и у бита: `"sync": "voice" | "music" | "both"`. `voice` — моменты по словам (умолчание); `music` — `at` встаёт на ближайший бит трека подложки, ритм внутри устройства (строки stack, ряды marquee, волна weight-morph, буквы scramble, слова slam и type-swap) шагает по битам; `both` — слово задаёт что, бит в пределах 100 мс — когда. Сетка — `engine/py/beats.py` один раз на трек (`.cache/beats/<sha>.json`), петли подложки учтены как в `music_bed.py`. В бите один ритм — иначе ошибка грамматики. Превью берёт сетку тестового трека `engine/assets/music/test-beat-100.wav` (100 BPM, CC0).
+У любого устройства и у бита: `"sync": "voice" | "music" | "both"`. `voice` — моменты по словам (умолчание); `music` — `at` встаёт на ближайший бит трека подложки, ритм внутри устройства (строки stack, ряды marquee, волна weight-morph, буквы scramble, слова slam и type-swap) шагает по битам; `both` — слово задаёт что, бит в пределах 100 мс — когда. Сетка — `engine/py/beats.py` один раз на трек (`.cache/beats/<sha>.json`), петли подложки учтены как в `music_bed.py`. В бите один ритм — иначе ошибка грамматики. Превью берёт сетку тестового трека `library/music/test-beat-100.wav` (100 BPM, CC0).
 
 ### Look: `captions` и `typography`
 
@@ -438,7 +438,7 @@ npm run scene -- quote-card                                       # JSON-рец�
 |---|---|---|---|
 | `data.timeline` | data | 3–7 дат на линии (`dates`, `labels`), бегущая метка доходит до каждой станции: при sync voice — шаг `step`, при sync music — биты; горизонтально в широкой области, вертикально в высокой | beat-timeline / pan-stations (идея) + своё |
 | `data.dots` | data | `count` точек сеткой (1 точка = человек или `per`), на `markAt` `mark` из них загораются (`mode: color`) или гаснут (`fade`), первые, последние или вразброс по сиду | своё |
-| `edit.pip` | data | вторая картинка в окне: `src` (с license.json), `corner` или target, `size`, `ratio`, `fit`, `frame` none/thin/rounded/polaroid, `enter` pop/slide/wipe, `label`; сборка ставит `<img>` статично — рендер его предзагружает | своё |
+| `edit.pip` | data | вторая картинка в окне: `src` (с записью в media.json), `corner` или target, `size`, `ratio`, `fit`, `frame` none/thin/rounded/polaroid, `enter` pop/slide/wipe, `label`; сборка ставит `<img>` статично — рендер его предзагружает | своё |
 
 Intents: `show-process` (шаги процесса лентой: `data.steps`), `show-timeline` (даты: `data.dates` + `data.source`), `explain-cause` (spotlight на причину и стрелка к следствию: `target`, `data.effect`, `data.label`), `show-consequence` (точки-люди: `data.count`, `data.mark`, `data.source`, по умолчанию `fade`).
 
@@ -450,4 +450,23 @@ Intents: `show-process` (шаги процесса лентой: `data.steps`), 
 
 ### Бюджет ElevenLabs (D6)
 
-`.env`: `ELEVENLABS_BUDGET_CHARS=3000`. Сборка считает символы, отправленные после последнего сброса (`.cache/voice/elevenlabs/usage.jsonl`, кэш не считается); реплика, которой не хватает бюджета, озвучивается Kokoro с предупреждением, API не вызывается. `npm run voice` — остаток, `npm run voice -- --reset-budget` — сброс; `doctor` показывает остаток. Запасной голос Kokoro — `voice.voice` в video.json (`{"provider": "elevenlabs", "voice": "bm_george"}`).
+`hygen.config.json → budgets.elevenlabsChars` (3000). Сборка считает символы, отправленные после последнего сброса (`.cache/voice/elevenlabs/usage.jsonl` превью и `projects/<id>/voice/usage.jsonl`, кэш не считается); реплика, которой не хватает бюджета, озвучивается Kokoro с предупреждением, API не вызывается. `npm run voice` — остаток, `npm run voice -- --reset-budget` — сброс; `doctor` показывает остаток. Запасной голос Kokoro — `voice.voice` в project.json (`{"provider": "elevenlabs", "voice": "bm_george"}`).
+
+## Хранилище проектов (S1)
+
+| Путь | Что | В git |
+|---|---|---|
+| `hygen.config.json` | голос и провайдер по умолчанию, look, бюджет ElevenLabs, битрейт, целевая длина Short, пути, порт панели; `.env` — только ключи | да |
+| `projects/<id>/project.json` | ролик: `id, title, status (draft · built · verified · published), proof, concept, publishedAt`, look, голос, арка, биты (с `sees` — что видит зритель), переходы, звук, музыка (ссылка), publish | да |
+| `projects/<id>/media.json` | все ассеты и лицензии одним файлом | да |
+| `projects/<id>/media/` | только файлы ассетов | да |
+| `projects/<id>/research.md` | приложение: цитаты, концепция, раскадровка | да |
+| `projects/<id>/brief.json` | бриф панели для режиссёра (`topic, look, voice, seconds, wishes`) | да |
+| `projects/<id>/voice/` | дубли ElevenLabs и `usage.jsonl` | да |
+| `projects/<id>/renders/` | MP4 (нет), контактный лист (да), `publish/` (да) | частично |
+| `projects/<id>/history/<дата>/` | снимок project.json и media.json перед пересборкой, откатом, удалением бита, применением элемента библиотеки — только если что-то изменилось (`snapshot.json`: at, reason, digest) | да, без MP4 |
+| `library/music/` | треки, `music.json`, `beats/`, `MUSIC.md` | да |
+| `library/previews/` | 3-секундные превью элементов библиотеки 540×960 (`npm run library:previews`, кэш по хэшу файлов элемента), `index.json` | только index.json |
+| `library/voices/` | превью голосов ElevenLabs | да |
+
+Команды принимают путь или id: `npm run build -- projects/halifax-en` или `npm run build -- halifax-en`. Миграция со старого `videos/` — `npm run migrate` (повторный запуск ничего не делает).

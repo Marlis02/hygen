@@ -1,3 +1,4 @@
+import { loadConfig } from "./lib/project.ts";
 import { fail, hyperframesBin, lastJsonLine, log, pyScript, python, run, stripAnsi } from "./lib/util.ts";
 
 const tail = (text: string, n: number): string[] =>
@@ -30,8 +31,8 @@ export interface MasterResult {
   passes: number;
 }
 
-/** Upload-sized H.264 (DECISIONS.md): libx264 crf 18, preset slow, maxrate 16M, bufsize 32M, faststart. */
-export const X264 = { crf: 18, preset: "slow", maxrate: "16M", bufsize: "32M" };
+/** Upload-sized H.264 (DECISIONS.md): hygen.config.json → bitrate (crf 18, preset slow, maxrate 16M, bufsize 32M), faststart. */
+export const X264 = loadConfig().bitrate;
 
 export function masterAudio(raw: string, out: string): MasterResult {
   const enc = ["--crf", String(X264.crf), "--preset", X264.preset, "--maxrate", X264.maxrate, "--bufsize", X264.bufsize];

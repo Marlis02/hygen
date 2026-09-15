@@ -5,7 +5,7 @@ import type { BeatSpec, VideoSpec } from "./spec.ts";
 import { loadSpec } from "./spec.ts";
 import { fail, readJson } from "./lib/util.ts";
 
-// build/beats.expanded.json — beats after the intent resolver. The resolver is a pure function of video.json and the
+// build/beats.expanded.json — beats after the intent resolver. The resolver is a pure function of project.json and the
 // tables: two expansions in one run must match, and a build with the same input hash must write the same beats.
 
 export interface ExpandedRecord {
@@ -14,7 +14,7 @@ export interface ExpandedRecord {
 }
 
 export function expandedRecord(videoDir: string, spec: VideoSpec): ExpandedRecord {
-  const raw = readJson<{ beats: BeatSpec[] }>(join(videoDir, "video.json"));
+  const raw = readJson<{ beats: BeatSpec[] }>(join(videoDir, "project.json"));
   return { inputHash: resolverInputHash(raw.beats), beats: spec.beats };
 }
 
@@ -22,11 +22,11 @@ export function expandedRecord(videoDir: string, spec: VideoSpec): ExpandedRecor
 export function checkExpanded(videoDir: string, spec: VideoSpec): { ok: boolean; detail: string; record: ExpandedRecord } {
   const record = expandedRecord(videoDir, spec);
   const again = JSON.stringify(loadSpec(videoDir).beats);
-  if (again !== JSON.stringify(spec.beats)) return { ok: false, detail: "две развёртки video.json в одном запуске разошлись — резолвер недетерминирован", record };
+  if (again !== JSON.stringify(spec.beats)) return { ok: false, detail: "две развёртки project.json в одном запуске разошлись — резолвер недетерминирован", record };
   const prevPath = join(videoDir, "build", "beats.expanded.json");
   if (!existsSync(prevPath)) return { ok: true, detail: "прошлой развёртки нет", record };
   const prev = readJson<ExpandedRecord>(prevPath);
-  if (prev.inputHash !== record.inputHash) return { ok: true, detail: "video.json или таблицы intents изменились — развёртка обновлена", record };
+  if (prev.inputHash !== record.inputHash) return { ok: true, detail: "project.json или таблицы intents изменились — развёртка обновлена", record };
   const same = JSON.stringify(prev.beats) === JSON.stringify(record.beats);
   return { ok: same, detail: same ? "beats.expanded.json совпадает с прошлой сборкой" : "тот же вход, другая развёртка — резолвер недетерминирован", record };
 }

@@ -2,15 +2,16 @@
 /**
  * npm run media -- "<запрос>" [--n 5] [--video] [--sheet <файл.jpg>] — медиа с подходящей лицензией: Wikimedia Commons (public domain,
  * CC0, CC BY, CC BY-SA), Pexels — если в .env есть PEXELS_API_KEY; таблица и лист миниатюр с номерами.
- * npm run media -- --get "<File:Имя>" <videoId> [--as <имя>] [--width 2400] [--in <с> --out <с>] — файл в videos/<id>/media/ и рядом
- * <имя>.license.json; видео — отрезок без звука в VP9 webm.
+ * npm run media -- --get "<File:Имя>" <projectId> [--as <имя>] [--width 2400] [--in <с> --out <с>] — файл в projects/<id>/media/ и
+ * запись в projects/<id>/media.json (источник, автор, лицензия, ссылка, роль); видео — отрезок без звука в VP9 webm.
  */
 import { createWriteStream, existsSync, mkdtempSync, renameSync, rmSync, statSync } from "node:fs";
 import { basename, dirname, extname, isAbsolute, join, relative, resolve } from "node:path";
 import { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
 import type { ReadableStream as WebReadableStream } from "node:stream/web";
-import { checkLicense, licenseOf } from "./contract.ts";
+import { checkLicense } from "./contract.ts";
+import { projectPath, projectsDir, setMediaRecord } from "./lib/project.ts";
 import { BuildError, ROOT_DIR, ensureDir, fail, lastJsonLine, loadEnv, pool, pyScript, python, run, writeJson } from "./lib/util.ts";
 
 const UA = "hygen-engine/0.1 (faceless channel draft tool)";
@@ -39,7 +40,7 @@ interface Found {
   license: string;
   licenseRaw: string;
   licenseUrl: string;
-  /** File page — the url of license.json. */
+  /** File page — the url of the media.json record. */
   page: string;
   description: string;
   date: string;
@@ -97,6 +98,8 @@ interface PexelsVideo {
 
 interface GetOptions {
   name?: string;
+  /** hero | evidence | place — the role of the file in the video (media.json). */
+  role?: string;
   width?: number;
   from?: number;
   to?: number;
@@ -454,7 +457,23 @@ async function makeSheet(items: Found[], out: string): Promise<void> {
   }
 }
 
+/** --json: the table goes nowhere, stdout gets one JSON array of the found files (the studio searches through this). */
+const JSON_OUT = { on: false };
+
 async function search(query: string, n: number, video: boolean, sheet: string | undefined, provider = "all"): Promise<number> {
+  if (JSON_OUT.on) {
+    const print = console.log;
+    console.log = () => {};
+    try {
+      return await searchInner(query, n, video, sheet, provider);
+    } finally {
+      console.log = print;
+    }
+  }
+  return searchInner(query, n, video, sheet, provider);
+}
+
+async function searchInner(query: string, n: number, video: boolean, sheet: string | undefined, provider = "all"): Promise<number> {
   const kind = video ? "видео" : "картинки";
   const all: Found[] = [];
   if (provider !== "pexels") {
@@ -482,23 +501,24 @@ async function search(query: string, n: number, video: boolean, sheet: string | 
     }
   }
   if (sheet) await makeSheet(all, sheet);
+  if (JSON_OUT.on) process.stdout.write(JSON.stringify(all) + "\n");
   if (!all.length) {
     console.log("Ничего не нашлось: запрос короче или другими словами");
     return 1;
   }
-  console.log(`\nСкачать: npm run media -- --get "<файл>" <videoId> [--as <имя>]${video ? " [--in <с> --out <с>]" : " [--width 2400]"}`);
+  console.log(`\nСкачать: npm run media -- --get "<файл>" <projectId> [--as <имя>]${video ? " [--in <с> --out <с>]" : " [--width 2400]"}`);
   return 0;
 }
 
 // ── download ────────────────────────────────────────────────────────────────────────────────────────────
 
-/** videos/<id>/media inside the repo; the video folder must exist, so a typo in the id does not start a new video. */
+/** projects/<id>/media; the project folder must exist (project.json or the brief of the studio), so a typo in the id does not start a new project. */
 function mediaDirOf(arg: string): string {
-  let dir = isAbsolute(arg) ? resolve(arg) : resolve(ROOT_DIR, /^(\.\/)?videos\//.test(arg) ? arg : join("videos", arg));
+  let dir = projectPath(arg);
   if (basename(dir) === "media") dir = dirname(dir);
-  const inside = relative(join(ROOT_DIR, "videos"), dir);
-  if (!inside || inside.startsWith("..") || isAbsolute(inside)) fail(`${arg}: папка ролика должна лежать внутри videos/ репозитория`);
-  if (!existsSync(dir)) fail(`нет папки ролика ${relative(ROOT_DIR, dir)} — проверьте id или создайте папку`);
+  const inside = relative(projectsDir(), dir);
+  if (!inside || inside.startsWith("..") || isAbsolute(inside)) fail(`${arg}: папка проекта должна лежать внутри projects/`);
+  if (!existsSync(dir)) fail(`нет папки проекта ${relative(ROOT_DIR, dir)} — проверьте id или создайте проект`);
   return ensureDir(join(dir, "media"));
 }
 
@@ -638,11 +658,10 @@ async function get(ref: string, videoArg: string, opt: GetOptions): Promise<numb
   const tmp = mkdtempSync(join(ensureDir(join(ROOT_DIR, ".cache", "media")), "get-"));
   try {
     const saved = item.video ? await getVideo(item, dir, stem, tmp, opt) : await getImage(item, dir, stem, tmp, opt);
-    const lic = licenseOf(saved.file);
-    writeJson(lic, { title: item.title, source: item.source, author: item.author, license: item.license, url: item.page, retrieved: today(), notes: saved.notes });
+    const ledger = setMediaRecord(saved.file, { role: opt.role ?? null, title: item.title, source: item.source, author: item.author, license: item.license, url: item.page, added: today(), notes: saved.notes });
     checkLicense(saved.file, "media --get");
     console.log(`✓ ${relative(ROOT_DIR, saved.file)} · ${saved.summary}`);
-    console.log(`✓ ${relative(ROOT_DIR, lic)} · ${item.license} · ${cut(item.author, 40)}`);
+    console.log(`✓ ${relative(ROOT_DIR, ledger)} → ${basename(saved.file)} · ${item.license} · ${cut(item.author, 40)}`);
     return 0;
   } finally {
     rmSync(tmp, { recursive: true, force: true });
@@ -653,11 +672,11 @@ async function get(ref: string, videoArg: string, opt: GetOptions): Promise<numb
 
 const USAGE = [
   'npm run media -- "<запрос>" [--n 5] [--video] [--sheet <файл.jpg>] [--provider all|commons|pexels]',
-  'npm run media -- --get "<File:Имя>" <videoId> [--as <имя>] [--width 2400] [--in <с> --out <с>]',
+  'npm run media -- --get "<File:Имя>" <projectId> [--as <имя>] [--width 2400] [--in <с> --out <с>]',
   "  --get: File:Имя или ссылка Commons; pexels:photo:<id>, pexels:video:<id> или ссылка Pexels (нужен PEXELS_API_KEY)",
 ].join("\n");
 
-const VALUE_FLAGS = ["--n", "--sheet", "--get", "--as", "--width", "--in", "--out", "--provider"];
+const VALUE_FLAGS = ["--n", "--sheet", "--get", "--as", "--width", "--in", "--out", "--provider", "--role"];
 
 function number(value: string | undefined, flag: string, min: number, max: number, int = false): number | undefined {
   if (value === undefined) return undefined;
@@ -678,6 +697,7 @@ async function main(argv: string[]): Promise<number> {
       if (argv[i + 1] === undefined) fail(`у ${a} нет значения`);
       flags[a] = argv[++i];
     } else if (a === "--video") video = true;
+    else if (a === "--json") JSON_OUT.on = true;
     else if (a === "--help" || a === "-h") return (console.log(USAGE), 2);
     else if (a.startsWith("--")) fail(`неизвестный флаг ${a}\n${USAGE}`);
     else positional.push(a);
@@ -686,6 +706,7 @@ async function main(argv: string[]): Promise<number> {
     if (positional.length !== 1) return (console.log(USAGE), 2);
     return get(flags["--get"], positional[0], {
       name: flags["--as"],
+      role: flags["--role"],
       width: number(flags["--width"], "--width", 16, 10000, true),
       from: number(flags["--in"], "--in", 0, 86400),
       to: number(flags["--out"], "--out", 0, 86400),

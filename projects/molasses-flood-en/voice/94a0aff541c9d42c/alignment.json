@@ -1,0 +1,87 @@
+[
+  {
+    "text": "Two",
+    "start": 0,
+    "end": 0.209
+  },
+  {
+    "text": "point",
+    "start": 0.29,
+    "end": 0.499
+  },
+  {
+    "text": "three",
+    "start": 0.546,
+    "end": 0.766
+  },
+  {
+    "text": "million",
+    "start": 0.836,
+    "end": 1.173
+  },
+  {
+    "text": "gallons",
+    "start": 1.219,
+    "end": 1.579
+  },
+  {
+    "text": "of",
+    "start": 1.614,
+    "end": 1.66
+  },
+  {
+    "text": "molasses",
+    "start": 1.73,
+    "end": 2.368
+  },
+  {
+    "text": "sat",
+    "start": 2.461,
+    "end": 2.705
+  },
+  {
+    "text": "in",
+    "start": 2.752,
+    "end": 2.821
+  },
+  {
+    "text": "one",
+    "start": 2.902,
+    "end": 3.111
+  },
+  {
+    "text": "steel",
+    "start": 3.146,
+    "end": 3.437
+  },
+  {
+    "text": "tank",
+    "start": 3.506,
+    "end": 3.785
+  },
+  {
+    "text": "in",
+    "start": 3.855,
+    "end": 3.936
+  },
+  {
+    "text": "Boston,",
+    "start": 4.005,
+    "end": 4.54
+  },
+  {
+    "text": "January",
+    "start": 4.667,
+    "end": 5.213
+  },
+  {
+    "text": "nineteen",
+    "start": 5.271,
+    "end": 5.689
+  },
+  {
+    "text": "nineteen.",
+    "start": 5.759,
+    "end": 6.78
+  }
+]

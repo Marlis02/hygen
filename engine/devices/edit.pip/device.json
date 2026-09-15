@@ -9,7 +9,7 @@
   "explains": false,
   "figures": ["label"],
   "params": {
-    "src": { "type": "string", "default": "", "maxLength": 160, "description": "Картинка от папки ролика (jpg, png, webp) с license.json рядом; сборка копирует её в assets/media." },
+    "src": { "type": "string", "default": "", "maxLength": 160, "description": "Картинка от папки ролика (jpg, png, webp) с записью в media.json рядом; сборка копирует её в assets/media." },
     "corner": { "type": "enum", "values": ["top-right", "top-left", "bottom-right", "bottom-left", "center"], "default": "top-right", "description": "Угол окна без target; низ — выше безопасной зоны субтитров." },
     "size": { "type": "number", "default": 0.42, "min": 0.2, "max": 0.8, "description": "Ширина окна без target — доля ширины кадра." },
     "ratio": { "type": "number", "default": 1.25, "min": 0.5, "max": 2, "description": "Высота окна к ширине без target." },
@@ -22,5 +22,5 @@
     { "label": "in", "offset": 0 },
     { "label": "land", "offset": 0.45 }
   ],
-  "demo": { "params": { "src": "videos/_proof/titanic-v2/media/titanic-lifeboat-ogden.jpg", "corner": "top-right", "frame": "polaroid", "label": "LIFEBOAT, APRIL 15" }, "at": 0.5, "stage": { "type": "media", "src": "videos/_proof/titanic-v2/media/rms-titanic.jpg", "fit": "cover" } }
+  "demo": { "params": { "src": "projects/titanic-v2/media/titanic-lifeboat-ogden.jpg", "corner": "top-right", "frame": "polaroid", "label": "LIFEBOAT, APRIL 15" }, "at": 0.5, "stage": { "type": "media", "src": "projects/titanic-v2/media/rms-titanic.jpg", "fit": "cover" } }
 }

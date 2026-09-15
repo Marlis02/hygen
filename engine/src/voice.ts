@@ -3,17 +3,18 @@ import { homedir } from "node:os";
 import { basename, join } from "node:path";
 import type { VideoSpec } from "./spec.ts";
 import { parseBeatText } from "./spec.ts";
+import { loadConfig, projectDirs } from "./lib/project.ts";
 import { ROOT_DIR, ensureDir, fail, hyperframesBin, lastJsonLine, loadEnv, log, pool, pyScript, python, r3, readJson, runAsync, sha, writeJson } from "./lib/util.ts";
 
 export type VoiceProvider = "kokoro" | "elevenlabs";
 
-/** The voice of a build and where the choice came from: `--voice` > video.json `voice` > `.env` > kokoro. */
+/** The voice of a build and where the choice came from: `--voice` > project.json `voice` > `.env` > kokoro. */
 export interface VoiceChoice {
   provider: VoiceProvider;
   voiceId: string;
   model: string;
   speed: number;
-  from: "--voice" | "video.json" | ".env" | "по умолчанию";
+  from: string;
 }
 
 /** A word of the take with its time; for a provider with timestamps — already in clip time. */
@@ -59,21 +60,13 @@ interface LineMeta {
 
 export const ELEVEN_DEFAULT_MODEL = "eleven_multilingual_v2";
 const KOKORO_DEFAULT_VOICE = "am_michael";
-/** Previews of voices and the reset marks of the budget; takes of videos live in `videos/<id>/voice/` (in git, ROADMAP D7). */
+/** Previews of voices and the reset marks of the budget; takes of videos live in `projects/<id>/voice/` (in git, ROADMAP D7). */
 const ELEVEN_DIR = join(ROOT_DIR, ".cache", "voice", "elevenlabs");
 const USAGE = join(ELEVEN_DIR, "usage.jsonl");
 
-/** videos/<id>/voice/usage.jsonl of every project (and _proof) — the budget counts them together with the previews. */
+/** projects/<id>/voice/usage.jsonl of every project (and _proof) — the budget counts them together with the previews. */
 function projectUsageFiles(): string[] {
-  const out: string[] = [];
-  for (const base of [join(ROOT_DIR, "videos"), join(ROOT_DIR, "videos", "_proof")]) {
-    if (!existsSync(base)) continue;
-    for (const name of readdirSync(base)) {
-      const f = join(base, name, "voice", "usage.jsonl");
-      if (existsSync(f)) out.push(f);
-    }
-  }
-  return out;
+  return projectDirs().map((d) => join(d, "voice", "usage.jsonl")).filter((f) => existsSync(f));
 }
 
 function readUsage(file: string): Record<string, unknown>[] {
@@ -95,11 +88,11 @@ export class BudgetError extends Error {}
 
 /**
  * ELEVENLABS_BUDGET_CHARS in .env against the characters sent since the last reset (.cache/voice/elevenlabs/usage.jsonl and
- * videos/<id>/voice/usage.jsonl; a cached take is not sent and not recorded). `npm run voice -- --reset-budget` appends a reset mark.
+ * projects/<id>/voice/usage.jsonl; a cached take is not sent and not recorded). `npm run voice -- --reset-budget` appends a reset mark.
  */
 export function budgetState(): { budget: number | null; spent: number; left: number | null; since: string | null } {
-  const raw = loadEnv().ELEVENLABS_BUDGET_CHARS;
-  const budget = raw !== undefined && raw !== "" && Number.isFinite(Number(raw)) ? Number(raw) : null;
+  const raw: unknown = loadEnv().ELEVENLABS_BUDGET_CHARS ?? loadConfig().budgets.elevenlabsChars;
+  const budget = raw !== undefined && raw !== null && raw !== "" && Number.isFinite(Number(raw)) ? Number(raw) : null;
   let spent = 0;
   let since: string | null = null;
   // one timeline: previews and resets from .cache, takes from the projects; a take moved into a project keeps its record once
@@ -134,14 +127,16 @@ export function resolveVoice(spec: VideoSpec, cli?: string): VoiceChoice {
   const env = loadEnv();
   const v = spec.voice ?? {};
   const own = v.provider ?? v.engine;
-  const fromEnv = env.VOICE_PROVIDER || (env.ELEVENLABS_LIVE === "1" ? "elevenlabs" : undefined);
-  const provider = cli ?? own ?? fromEnv ?? "kokoro";
-  const from = cli ? "--voice" : own ? "video.json" : fromEnv ? ".env" : "по умолчанию";
+  const cfg = loadConfig();
+  // the environment variable still wins (a one-off run); the default voice lives in hygen.config.json, .env holds only keys
+  const fromEnv = process.env.VOICE_PROVIDER || (process.env.ELEVENLABS_LIVE === "1" ? "elevenlabs" : undefined);
+  const provider = cli ?? own ?? fromEnv ?? cfg.voice.provider;
+  const from = cli ? "--voice" : own ? "project.json" : fromEnv ? "VOICE_PROVIDER" : "hygen.config.json";
   if (provider !== "kokoro" && provider !== "elevenlabs") fail(`голос: провайдер kokoro или elevenlabs, а не «${provider}» (${from})`);
-  // voiceId and model of video.json belong to its own provider: `--voice elevenlabs` on a Kokoro video takes the .env voice
+  // voiceId and model of project.json belong to its own provider: `--voice elevenlabs` on a Kokoro video takes the .env voice
   const mine = own === provider;
-  if (provider === "kokoro") return { provider, voiceId: (mine ? (v.voiceId ?? v.voice) : undefined) ?? KOKORO_DEFAULT_VOICE, model: "kokoro-v1.0", speed: v.speed ?? 1, from };
-  return { provider, voiceId: (mine ? v.voiceId : undefined) ?? env.ELEVENLABS_VOICE_ID ?? "", model: (mine ? v.model : undefined) ?? env.ELEVENLABS_MODEL ?? ELEVEN_DEFAULT_MODEL, speed: 1, from };
+  if (provider === "kokoro") return { provider, voiceId: (mine ? (v.voiceId ?? v.voice) : undefined) ?? cfg.voice.kokoroVoice ?? KOKORO_DEFAULT_VOICE, model: "kokoro-v1.0", speed: v.speed ?? 1, from };
+  return { provider, voiceId: (mine ? v.voiceId : undefined) ?? (cfg.voice.voiceId || env.ELEVENLABS_VOICE_ID || ""), model: (mine ? v.model : undefined) ?? env.ELEVENLABS_MODEL ?? (cfg.voice.model || ELEVEN_DEFAULT_MODEL), speed: 1, from };
 }
 
 function wavHeader(bytes: number, rate: number): Buffer {
@@ -215,19 +210,14 @@ export function moveTake(key: string, projectDir: string): boolean {
   return true;
 }
 
-/** The label of a take (`<video id>/<beat>`) → the project folder whose video.json has that id. */
+/** The label of a take (`<video id>/<beat>`) → the project folder whose project.json has that id. */
 export function projectOfLabel(label: string): string | null {
   const id = label.split("/")[0] ?? "";
-  for (const base of [join(ROOT_DIR, "videos"), join(ROOT_DIR, "videos", "_proof")]) {
-    if (!existsSync(base)) continue;
-    for (const name of readdirSync(base)) {
-      const spec = join(base, name, "video.json");
-      if (!existsSync(spec)) continue;
-      try {
-        if (readJson<{ id?: string }>(spec).id === id || name === id) return join(base, name);
-      } catch {
-        // not a video folder
-      }
+  for (const dir of projectDirs()) {
+    try {
+      if (readJson<{ id?: string }>(join(dir, "project.json")).id === id || basename(dir) === id) return dir;
+    } catch {
+      // a broken project.json
     }
   }
   return null;
@@ -250,7 +240,7 @@ export function globalTakes(): { previews: number; videos: { key: string; label:
 /**
  * One ElevenLabs take with word times (`text-to-speech/{voice}/with-timestamps`), cached by provider + voice + model +
  * text: a rebuild costs no characters, an edited line re-voices only itself. Takes of a video live in
- * `videos/<id>/voice/<key>/` and go to git — the voice travels with the project; previews (no project) stay in `.cache`.
+ * `projects/<id>/voice/<key>/` and go to git — the voice travels with the project; previews (no project) stay in `.cache`.
  */
 export async function elevenTake(text: string, voiceId: string, model: string, label: string, projectDir?: string): Promise<ElevenTake> {
   const key = sha({ provider: "elevenlabs", voiceId, model, text });
@@ -261,7 +251,7 @@ export async function elevenTake(text: string, voiceId: string, model: string, l
   if (existsSync(wav) && existsSync(alignPath)) return { wav, alignment: readJson<AlignedWord[]>(alignPath), chars: 0, cached: true };
   const apiKey = loadEnv().ELEVENLABS_API_KEY;
   if (!apiKey) throw new Error("нет ELEVENLABS_API_KEY в .env");
-  if (!voiceId) throw new Error("нет voiceId: voice.voiceId в video.json или ELEVENLABS_VOICE_ID в .env");
+  if (!voiceId) throw new Error("нет voiceId: voice.voiceId в project.json или voice.voiceId в hygen.config.json");
   const budget = budgetState();
   if (budget.budget !== null && budget.spent + reserved + text.length > budget.budget) {
     throw new BudgetError(`бюджет ElevenLabs: потрачено ${budget.spent} из ${budget.budget} символов${reserved ? ` (+${reserved} в пути)` : ""}, реплике нужно ${text.length}`);

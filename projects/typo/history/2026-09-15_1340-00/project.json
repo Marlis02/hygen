@@ -1,0 +1,491 @@
+{
+  "id": "typo",
+  "title": "Why is the sky blue? — kinetic type proof",
+  "status": "verified",
+  "proof": true,
+  "concept": "Светлый лист бумаги, синяя тушь и оранжевый второй цвет: объясняющий ролик, в котором буквы — главный объект кадра. Look `bright-explainer` (светлая бумага, субтитры explainer — pill-karaoke с маркером по звучащему слову), текстура `paper` на трёх битах, переходы — жёсткие склейки. Музыка — `test-beat-100` (100 BPM): половина битов шагает по сетке трека.\n\nАрка: mechanism × rhetorical-question × object × lesson — как белый солнечный свет становится синим небом шаг за шагом.",
+  "format": "1080x1920",
+  "fps": 30,
+  "language": "en",
+  "style": "documentary-dark",
+  "look": "bright-explainer",
+  "voice": {
+    "provider": "kokoro",
+    "voiceId": "am_michael"
+  },
+  "arc": {
+    "structure": "mechanism",
+    "hook": "rhetorical-question",
+    "protagonist": "object",
+    "ending": "lesson",
+    "why": "Sunlight itself is the object: white light breaks into waves, the air scatters the short blue ones everywhere, sunset takes them away, and the lesson has a name."
+  },
+  "music": {
+    "track": "test-beat-100",
+    "gain": -3,
+    "duck": -9
+  },
+  "beats": [
+    {
+      "id": "01-why",
+      "role": "hook",
+      "text": "Why is the sky blue?",
+      "sees": "Зритель видит, как на слова вопроса падают WHY / IS / THE SKY / BLUE?",
+      "pad": [
+        0.2,
+        0.5
+      ],
+      "stage": {
+        "type": "color",
+        "color": "night",
+        "glow": true
+      },
+      "devices": [
+        {
+          "type": "text.kinetic",
+          "at": "why",
+          "params": {
+            "mode": "slam",
+            "words": [
+              "WHY",
+              "IS",
+              "THE SKY",
+              "BLUE?"
+            ],
+            "step": 0.26,
+            "size": "xl"
+          }
+        }
+      ],
+      "dominant": 0
+    },
+    {
+      "id": "02-white",
+      "role": "setup",
+      "text": "Sunlight looks white.",
+      "sees": "Слово WHITE столбиком, залитая строка шагает по битам",
+      "pad": [
+        0.3,
+        1
+      ],
+      "sync": "music",
+      "stage": {
+        "type": "color",
+        "color": "night",
+        "glow": true
+      },
+      "devices": [
+        {
+          "type": "text.kinetic",
+          "at": "sunlight",
+          "params": {
+            "mode": "stack",
+            "text": "WHITE",
+            "repeat": 5
+          }
+        }
+      ],
+      "dominant": 0,
+      "textures": [
+        {
+          "id": "paper",
+          "crumple": 0.7,
+          "tape": 2,
+          "offset": 0.6
+        }
+      ]
+    },
+    {
+      "id": "03-colors",
+      "role": "step",
+      "text": "But white light is every color at once.",
+      "sees": "EVERY COLOR AT ONCE собирается по центру слово за словом",
+      "pad": [
+        0.2,
+        0.6
+      ],
+      "stage": {
+        "type": "color",
+        "color": "ground",
+        "glow": true
+      },
+      "devices": [
+        {
+          "type": "text.kinetic",
+          "at": "every",
+          "params": {
+            "mode": "center-build",
+            "words": [
+              "EVERY",
+              "COLOR",
+              "AT",
+              "ONCE"
+            ],
+            "step": 0.3
+          }
+        }
+      ],
+      "dominant": 0
+    },
+    {
+      "id": "04-rainbow",
+      "role": "step",
+      "text": "Red, orange, yellow, green, blue and violet all travel together.",
+      "sees": "ряды COLORS бегут навстречу, шагая на бит",
+      "pad": [
+        0.2,
+        0.6
+      ],
+      "sync": "music",
+      "stage": {
+        "type": "color",
+        "color": "night",
+        "glow": false
+      },
+      "devices": [
+        {
+          "type": "text.kinetic",
+          "at": "red",
+          "params": {
+            "mode": "marquee",
+            "text": "COLORS",
+            "repeat": 5
+          }
+        }
+      ],
+      "dominant": 0
+    },
+    {
+      "id": "05-waves",
+      "role": "step",
+      "text": "Each color is a wave, and every wave has its own length.",
+      "sees": "WAVES выдавливается в глубину и качается",
+      "pad": [
+        0.2,
+        0.6
+      ],
+      "stage": {
+        "type": "color",
+        "color": "night",
+        "glow": true
+      },
+      "devices": [
+        {
+          "type": "text.kinetic",
+          "at": "wave",
+          "params": {
+            "mode": "extrude",
+            "text": "WAVES",
+            "depth": 16,
+            "angle": 20
+          }
+        }
+      ],
+      "dominant": 0
+    },
+    {
+      "id": "06-short",
+      "role": "step",
+      "text": "Red waves are long and lazy. Blue waves are short and tight.",
+      "sees": "SHORT дышит весом и шириной в такт",
+      "pad": [
+        0.2,
+        0.8
+      ],
+      "sync": "music",
+      "stage": {
+        "type": "color",
+        "color": "night",
+        "glow": true
+      },
+      "devices": [
+        {
+          "type": "text.kinetic",
+          "at": "red",
+          "params": {
+            "mode": "weight-morph",
+            "text": "SHORT"
+          }
+        }
+      ],
+      "dominant": 0,
+      "textures": [
+        {
+          "id": "paper",
+          "crumple": 0.45,
+          "tape": 0,
+          "offset": 0.4,
+          "seed": 3
+        }
+      ]
+    },
+    {
+      "id": "07-air",
+      "role": "step",
+      "text": "In the air, sunlight meets tiny molecules of nitrogen and oxygen.",
+      "sees": "NITROGEN перебирает символы и встаёт",
+      "pad": [
+        0.2,
+        0.6
+      ],
+      "caption": {
+        "preset": "neon-glow"
+      },
+      "stage": {
+        "type": "color",
+        "color": "heroDeep",
+        "glow": true
+      },
+      "devices": [
+        {
+          "type": "text.kinetic",
+          "at": "molecules",
+          "params": {
+            "mode": "scramble",
+            "text": "NITROGEN",
+            "color": "white"
+          }
+        }
+      ],
+      "dominant": 0
+    },
+    {
+      "id": "08-scatter",
+      "role": "step",
+      "text": "They bounce the light away in every direction.",
+      "sees": "контур SCATTER заливается на слове direction, привязанном к биту",
+      "pad": [
+        0.2,
+        0.8
+      ],
+      "sync": "music",
+      "stage": {
+        "type": "color",
+        "color": "night",
+        "glow": true
+      },
+      "devices": [
+        {
+          "type": "text.kinetic",
+          "at": "bounce",
+          "params": {
+            "mode": "outline",
+            "text": "SCATTER",
+            "fillAt": "direction"
+          }
+        }
+      ],
+      "dominant": 0
+    },
+    {
+      "id": "09-stronger",
+      "role": "step",
+      "text": "Short blue waves scatter far more strongly than long red ones.",
+      "sees": "BLUE, прорезанное текстурой бетона",
+      "pad": [
+        0.2,
+        0.6
+      ],
+      "stage": {
+        "type": "color",
+        "color": "ground",
+        "glow": true
+      },
+      "devices": [
+        {
+          "type": "text.kinetic",
+          "at": "blue",
+          "params": {
+            "mode": "texture",
+            "text": "BLUE",
+            "texture": "concrete",
+            "color": "accent",
+            "size": "xl"
+          }
+        }
+      ],
+      "dominant": 0,
+      "textures": [
+        {
+          "id": "paper",
+          "crumple": 0.85,
+          "tape": 4,
+          "offset": 0.8,
+          "seed": 7
+        }
+      ]
+    },
+    {
+      "id": "10-everywhere",
+      "role": "step",
+      "text": "So blue light reaches you from every part of the sky.",
+      "sees": "небо сквозь листву, EVERYWHERE в перспективе",
+      "pad": [
+        0.2,
+        0.8
+      ],
+      "sync": "music",
+      "caption": {
+        "preset": "blend-difference"
+      },
+      "stage": {
+        "type": "media",
+        "src": "media/sky-trees.jpg",
+        "fit": "cover",
+        "focus": [
+          0.5,
+          0.5
+        ]
+      },
+      "devices": [
+        {
+          "type": "text.kinetic",
+          "at": "blue",
+          "params": {
+            "mode": "tilt",
+            "text": "EVERYWHERE",
+            "angle": 16,
+            "background": "pill"
+          }
+        }
+      ],
+      "dominant": 0
+    },
+    {
+      "id": "11-look-up",
+      "role": "step",
+      "text": "Look up, and that scattered blue is what you see.",
+      "sees": "женщина смотрит в небо, LOOK UP стоит за её головой",
+      "pad": [
+        0.2,
+        0.8
+      ],
+      "stage": {
+        "type": "media",
+        "src": "media/woman-sky.jpg",
+        "fit": "contain",
+        "focus": [
+          0.5,
+          0.5
+        ]
+      },
+      "devices": [
+        {
+          "type": "text.kinetic",
+          "at": "look",
+          "params": {
+            "mode": "behind-subject",
+            "text": "LOOK UP",
+            "position": "center",
+            "size": "xl"
+          }
+        }
+      ],
+      "dominant": 0
+    },
+    {
+      "id": "12-sunset",
+      "role": "consequence",
+      "text": "At sunset, light crosses much more air, and the blue is scattered away.",
+      "sees": "закат, строка THE SKY IS меняет BLUE",
+      "pad": [
+        0.2,
+        0.8
+      ],
+      "sync": "music",
+      "stage": {
+        "type": "media",
+        "src": "media/sunset-laos.jpg",
+        "fit": "cover",
+        "focus": [
+          0.5,
+          0.5
+        ]
+      },
+      "devices": [
+        {
+          "type": "text.kinetic",
+          "at": "sunset",
+          "params": {
+            "mode": "type-swap",
+            "text": "THE SKY IS",
+            "words": [
+              "BLUE",
+              "ORANGE",
+              "RED"
+            ],
+            "background": "pill"
+          }
+        }
+      ],
+      "dominant": 0
+    },
+    {
+      "id": "13-rayleigh",
+      "role": "ending",
+      "text": "Lord Rayleigh explained it in [1871|eighteen seventy-one]: the air scatters blue light.",
+      "sees": "RAYLEIGH SCATTERING и 1871 спокойным титром",
+      "pad": [
+        0.2,
+        1.4
+      ],
+      "stage": {
+        "type": "color",
+        "color": "night",
+        "glow": true
+      },
+      "devices": [
+        {
+          "type": "text.title",
+          "at": "rayleigh",
+          "params": {
+            "text": "Rayleigh scattering",
+            "kicker": "LORD RAYLEIGH, 1871",
+            "mode": "calm",
+            "position": "center",
+            "color": "accent"
+          },
+          "source": "https://en.wikipedia.org/wiki/Diffuse_sky_radiation"
+        }
+      ],
+      "dominant": 0,
+      "sources": {
+        "text": "https://en.wikipedia.org/wiki/Diffuse_sky_radiation"
+      }
+    }
+  ],
+  "transitions": [],
+  "sound": {
+    "drone": {
+      "peak": "12-sunset:start",
+      "cut": "13-rayleigh:start",
+      "volume": 0.12
+    },
+    "hits": [
+      {
+        "at": "01-why:start",
+        "volume": 0.35
+      }
+    ]
+  },
+  "publish": {
+    "titles": [
+      "Why is the sky blue? The answer fits in one word",
+      "Sunlight is white, so why is the sky blue?",
+      "Blue sky, red sunset: what the air does to light"
+    ],
+    "description": "Sunlight is every colour at once. Air molecules scatter the short blue waves far more strongly than the long red ones, so blue reaches you from every part of the sky; at sunset the light crosses more air and loses its blue. Lord Rayleigh explained it in 1871.",
+    "tags": [
+      "why is the sky blue",
+      "rayleigh scattering",
+      "science explained",
+      "physics",
+      "light",
+      "sunset",
+      "sky",
+      "atmosphere",
+      "short science",
+      "kinetic typography"
+    ]
+  }
+}

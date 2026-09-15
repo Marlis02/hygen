@@ -5,6 +5,7 @@ import { loadStyle, toneColors } from "./contract.ts";
 import { checkCaptionFields, installCaptions, planCaptions, writeCaptions } from "./captions.ts";
 import type { LookDef } from "./look.ts";
 import { trackBeats } from "./music.ts";
+import { musicFile } from "./lib/project.ts";
 import { checkCaptionPreset } from "./text.ts";
 import type { BeatWords } from "./words.ts";
 import type { Clock, DeviceSpec } from "./devices.ts";
@@ -12,11 +13,12 @@ import { installDevices, loadDevice } from "./devices.ts";
 import { expandBeat, loadRecipe } from "./intents.ts";
 import { vignetteCss } from "./layers.ts";
 import { applyLook, loadLook, paletteCss } from "./look.ts";
-import { SHEET_PY } from "./preview.ts";
+import type { PreviewOutput } from "./preview.ts";
+import { finishPreview } from "./preview.ts";
 import type { BeatSpec } from "./spec.ts";
 import { isHtmlScene, parseBeatText } from "./spec.ts";
 import { checkStageBeat, writeStageFrame } from "./stage.ts";
-import { ENGINE_DIR, ROOT_DIR, copyInto, ensureDir, fail, hyperframesBin, log, python, r3, run, stripAnsi, writeJson } from "./lib/util.ts";
+import { ENGINE_DIR, ROOT_DIR, copyInto, ensureDir, fail, hyperframesBin, log, r3, run, stripAnsi, writeJson } from "./lib/util.ts";
 
 // Preview of a stage beat without a voice (engine/scenes/CONTRACT.md, «Проверка без голоса»):
 //   npm run scene -- --device annotate.arrow           the device's demo on its neutral stage
@@ -24,7 +26,7 @@ import { ENGINE_DIR, ROOT_DIR, copyInto, ensureDir, fail, hyperframesBin, log, p
 //   npm run scene -- quote-card                        a JSON recipe with its demo data
 // The words of --text are spread evenly over the clip, so `at` words work as in a video.
 
-export interface StagePreviewOptions {
+export interface StagePreviewOptions extends PreviewOutput {
   stage?: string;
   src?: string;
   device?: string;
@@ -37,11 +39,13 @@ export interface StagePreviewOptions {
   at?: string;
   /** text.caption: the preset to preview. */
   preset?: string;
+  /** --device: JSON merged over the demo params (a mode: '{"mode":"blur"}'). */
+  params?: string;
 }
 
-/** In a preview sync: music | both snaps to the test track (engine/assets/music/test-beat-100.wav) from 0 s. */
+/** In a preview sync: music | both snaps to the test track (library/music/test-beat-100.wav) from 0 s. */
 function previewGrid(duration: number): { beats: number[]; strong: number[] } {
-  const g = trackBeats(join(ENGINE_DIR, "assets", "music", "test-beat-100.wav"));
+  const g = trackBeats(musicFile("test-beat-100") ?? fail("нет library/music/test-beat-100.wav — тестовый трек превью sync: music"));
   return { beats: g.beats.filter((t) => t <= duration), strong: g.downbeats.filter((t) => t <= duration) };
 }
 
@@ -85,7 +89,8 @@ export function previewStage(opts: StagePreviewOptions): boolean {
   if (opts.device) {
     const def = loadDevice(opts.device, "--device");
     const demo = def.demo;
-    const dev: DeviceSpec = { type: def.type, target: demo.target, at: demo.at ?? 0.6, params: demo.params };
+    const given = opts.params ? parse<Record<string, unknown>>("--params", opts.params) : {};
+    const dev: DeviceSpec = { type: def.type, target: demo.target, at: demo.at ?? 0.6, params: { ...(demo.params ?? {}), ...given } };
     if (demo.until !== undefined) dev.until = demo.until;
     if (def.explains) dev.explains = "preview of the device";
     if (def.figures.length) dev.source = "https://example.org/preview";
@@ -108,6 +113,7 @@ export function previewStage(opts: StagePreviewOptions): boolean {
   checkStageBeat(beat, style, ROOT_DIR);
   const D = opts.dur ?? 5;
   const clock = fakeClock(beat.text, D);
+  if (opts.name) name = opts.name;
   const dir = join(ROOT_DIR, ".preview", name);
   rmSync(dir, { recursive: true, force: true });
   ensureDir(dir);
@@ -152,16 +158,9 @@ export function previewStage(opts: StagePreviewOptions): boolean {
   const lint = run(hyperframesBin(), ["lint"], { cwd: dir, allowFail: true });
   for (const line of stripAnsi(lint.stdout + lint.stderr).trim().split("\n").filter((l) => l.trim()).slice(-12)) log.info(line);
   const times = opts.at ?? [...new Set([...frame.events.map((e) => r3(Math.min(D - 0.05, e.t + 0.5))), frame.settle, r3(D - 0.1)])].sort((a, b) => a - b).join(",");
-  console.log(`\nснимки ${name} · look ${look.id} @ ${times} (события: ${frame.events.map((e) => `${e.label} ${e.t}`).join(" · ") || "нет"})`);
-  const snapDir = join(dir, "snapshots");
-  const snap = run(hyperframesBin(), ["snapshot", "--at", times, "--no-end", "--output", snapDir], { cwd: dir, allowFail: true });
-  if (snap.status !== 0) {
-    console.log(stripAnsi(snap.stdout + snap.stderr).slice(-1500));
-    return false;
-  }
-  run(python(), ["-c", SHEET_PY, snapDir, join(dir, "sheet.jpg")]);
-  console.log(`контактный лист: .preview/${name}/sheet.jpg · lint: ${lint.status === 0 ? "0 ошибок" : "ЕСТЬ ОШИБКИ"}`);
-  return lint.status === 0;
+  const note = ` (события: ${frame.events.map((e) => `${e.label} ${e.t}`).join(" · ") || "нет"})`;
+  const anchor = frame.events.length ? Math.min(...frame.events.map((e) => e.t)) : 0;
+  return finishPreview({ dir, name, lookId: look.id, lintOk: lint.status === 0, times, note, total: D, anchor, out: opts });
 }
 
 /**
@@ -174,7 +173,7 @@ function previewCaption(opts: StagePreviewOptions, look: LookDef, style: StyleDe
   const preset = checkCaptionPreset(opts.preset ?? "plain", "--preset");
   const text = opts.text ?? def.demo.text ?? "A neutral preview line for the captions.";
   const D = opts.dur ?? 6;
-  const name = `caption-${preset}`;
+  const name = opts.name ?? `caption-${preset}`;
   const dir = join(ROOT_DIR, ".preview", name);
   rmSync(dir, { recursive: true, force: true });
   ensureDir(dir);
@@ -242,14 +241,6 @@ function previewCaption(opts: StagePreviewOptions, look: LookDef, style: StyleDe
   const groups = plan.cfg.groups;
   const pick = groups.length <= 7 ? groups : Array.from({ length: 7 }, (_, k) => groups[Math.round((k * (groups.length - 1)) / 6)] as (typeof groups)[number]);
   const times = opts.at ?? [...new Set(pick.map((g) => r3(Math.min(D - 0.05, g.start + Math.min(0.45, (g.end - g.start) * 0.6)))))].sort((a, b) => a - b).join(",");
-  console.log(`\nснимки ${name} · look ${look.id} · групп ${groups.length} (${caption.group}) @ ${times}`);
-  const snapDir = join(dir, "snapshots");
-  const snap = run(hyperframesBin(), ["snapshot", "--at", times, "--no-end", "--output", snapDir], { cwd: dir, allowFail: true });
-  if (snap.status !== 0) {
-    console.log(stripAnsi(snap.stdout + snap.stderr).slice(-1500));
-    return false;
-  }
-  run(python(), ["-c", SHEET_PY, snapDir, join(dir, "sheet.jpg")]);
-  console.log(`контактный лист: .preview/${name}/sheet.jpg · lint: ${lint.status === 0 ? "0 ошибок" : "ЕСТЬ ОШИБКИ"}`);
-  return lint.status === 0;
+  const anchor = groups.length ? Math.min(...groups.map((g) => g.start)) : t0;
+  return finishPreview({ dir, name, lookId: look.id, lintOk: lint.status === 0, times, note: ` · групп ${groups.length} (${caption.group})`, total: D, anchor, lead: 0.15, out: opts });
 }

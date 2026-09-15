@@ -1,0 +1,394 @@
+{
+  "id": "titanic-en",
+  "title": "Titanic: the largest ship afloat and lifeboats for half",
+  "status": "verified",
+  "concept": "Холодная глубина look `abyss` (пересказ того же мира, `retells: titanic-v2`). Субтитры calm · plain по слову; в бите шлюпок — editorial-emphasis фразами. Хук — единственная хроника корабля и кинетика THE LARGEST SHIP AFLOAT на словах голоса.\n\nАрка: **story × imagine-scenario × object × one-number-silence** — «представьте самый большой корабль на плаву», рейс, машина, которая не выдержала, места в шлюпках, гибель, одна цифра живых. Отличие от первой версии: у той не было арки, скелет — шесть сцен с HTML; у proof — concept-announcement и три бита.",
+  "format": "1080x1920",
+  "fps": 30,
+  "language": "en",
+  "style": "documentary-dark",
+  "look": "abyss",
+  "retells": "titanic-v2",
+  "voice": {
+    "provider": "elevenlabs"
+  },
+  "arc": {
+    "structure": "story",
+    "hook": "imagine-scenario",
+    "protagonist": "object",
+    "ending": "one-number-silence",
+    "why": "Imagine the largest ship afloat: her only film, her route, the hull that failed, the seats that were missing, the sinking — and one number of the living."
+  },
+  "beats": [
+    {
+      "id": "01-film",
+      "role": "hook",
+      "text": "Imagine the largest ship afloat. This is the only film of her, weeks before she was gone.",
+      "sees": "Зритель видит единственную хронику корабля, и на слова голоса собирается THE LARGEST SHIP AFLOAT; на слове gone кадр замирает.",
+      "pad": [
+        0.3,
+        1.2
+      ],
+      "stage": {
+        "type": "media",
+        "src": "media/titanic-pathe-1912-belfast.webm",
+        "in": 0,
+        "out": 11,
+        "rate": 0.8,
+        "fit": "contain",
+        "crop": {
+          "x": 0,
+          "y": 7.5,
+          "w": 85,
+          "h": 85
+        }
+      },
+      "devices": [
+        {
+          "type": "text.kinetic",
+          "at": "the",
+          "params": {
+            "mode": "center-build",
+            "words": [
+              "THE",
+              "LARGEST",
+              "SHIP",
+              "AFLOAT"
+            ],
+            "wordsAt": [
+              "the",
+              "largest",
+              "ship",
+              "afloat"
+            ],
+            "position": "top",
+            "size": "m",
+            "background": "wash"
+          }
+        },
+        {
+          "type": "edit.hold",
+          "at": "gone",
+          "params": {
+            "dur": 1.6
+          }
+        }
+      ],
+      "dominant": 0,
+      "sources": {
+        "text": "https://commons.wikimedia.org/wiki/File:Titanic_Disaster_-_Genuine_Footage_(1911-1912).webm"
+      }
+    },
+    {
+      "id": "02-route",
+      "role": "setup",
+      "text": "Four days into her maiden voyage from Southampton to New York, she steamed across the North Atlantic on a calm night with no moon.",
+      "sees": "Зритель видит, как маршрут идёт с востока через Северную Атлантику к метке TITANIC.",
+      "pad": [
+        0.2,
+        0.7
+      ],
+      "stage": {
+        "type": "map",
+        "map": "north-atlantic",
+        "reveal": "maiden",
+        "draw": true,
+        "markers": [
+          {
+            "x": 54.7,
+            "y": 37.7,
+            "label": "TITANIC",
+            "at": "night"
+          }
+        ],
+        "route": {
+          "points": [
+            {
+              "x": 93.5,
+              "y": 31.8
+            },
+            {
+              "x": 74,
+              "y": 35.5
+            },
+            {
+              "x": 54.7,
+              "y": 37.7
+            }
+          ],
+          "at": "Southampton",
+          "dur": 3.6,
+          "traveler": true
+        }
+      },
+      "devices": [],
+      "dominant": "stage",
+      "camera": {
+        "reason": "follow",
+        "amplitude": 0.3
+      },
+      "sources": {
+        "text": "https://en.wikipedia.org/wiki/Sinking_of_the_Titanic"
+      }
+    },
+    {
+      "id": "03-hull",
+      "role": "turn",
+      "text": "She had [16|sixteen] compartments and was designed to stay afloat with four flooded. The iceberg opened six.",
+      "sees": "Зритель видит корпус, разделённый на 16 отсеков, и как шесть из них заполняются водой.",
+      "pad": [
+        0.2,
+        0.8
+      ],
+      "stage": {
+        "type": "media",
+        "src": "media/rms-titanic.jpg",
+        "fit": "contain",
+        "treatment": "film-memory",
+        "regions": {
+          "hull": {
+            "x": 2,
+            "y": 53,
+            "w": 91,
+            "h": 6.6
+          }
+        }
+      },
+      "devices": [
+        {
+          "type": "focus.spotlight",
+          "target": "hull",
+          "at": "compartments",
+          "params": {
+            "shape": "rect",
+            "mode": "dim",
+            "strength": 0.55
+          }
+        },
+        {
+          "type": "annotate.box",
+          "target": "hull",
+          "at": "sixteen",
+          "params": {
+            "cells": 16,
+            "stagger": 0.05,
+            "label": "FLOATS WITH 4 FLOODED",
+            "fill": 6,
+            "fillAt": "six",
+            "fillDur": 1.2,
+            "fillFrom": "right"
+          },
+          "explains": "the hull was split into 16 watertight compartments and the iceberg filled six of them",
+          "source": "https://en.wikipedia.org/wiki/Sinking_of_the_Titanic"
+        },
+        {
+          "type": "data.count",
+          "target": {
+            "x": 50,
+            "y": 36
+          },
+          "at": "six",
+          "params": {
+            "from": 0,
+            "to": 6,
+            "label": "OPENED TO THE SEA",
+            "size": "mid",
+            "countDur": 1.2
+          },
+          "source": "https://en.wikipedia.org/wiki/Sinking_of_the_Titanic"
+        }
+      ],
+      "dominant": 1,
+      "camera": {
+        "reason": "tension",
+        "preset": "push-in",
+        "amplitude": 0.5
+      },
+      "sources": {
+        "text": "https://en.wikipedia.org/wiki/Sinking_of_the_Titanic"
+      }
+    },
+    {
+      "id": "04-lifeboats",
+      "role": "peak",
+      "text": "Her [20|twenty] lifeboats could carry [1,178|eleven hundred and seventy-eight] people. There were [2,209|twenty-two hundred and nine] on board.",
+      "sees": "Зритель видит 221 точку — всех на борту — и как загораются только 118 мест в шлюпках.",
+      "pad": [
+        0.2,
+        1.2
+      ],
+      "caption": {
+        "preset": "editorial-emphasis",
+        "group": "phrase"
+      },
+      "stage": {
+        "type": "color",
+        "color": "night",
+        "glow": true
+      },
+      "devices": [
+        {
+          "type": "data.dots",
+          "target": {
+            "x": 8,
+            "y": 16,
+            "w": 84,
+            "h": 44
+          },
+          "at": "lifeboats",
+          "params": {
+            "count": 221,
+            "mark": 118,
+            "mode": "color",
+            "from": "start",
+            "markAt": "eleven",
+            "label": "SEATS FOR 1,178 OF 2,209",
+            "per": "1 DOT = 10 PEOPLE"
+          },
+          "source": "https://en.wikipedia.org/wiki/Lifeboats_of_the_Titanic"
+        }
+      ],
+      "dominant": 0,
+      "sources": {
+        "text": "https://en.wikipedia.org/wiki/Lifeboats_of_the_Titanic"
+      }
+    },
+    {
+      "id": "05-sinking",
+      "role": "aftermath",
+      "text": "[2 hours 40 minutes|Two hours and forty minutes] after the collision, the largest ship afloat broke apart and sank.",
+      "sees": "Зритель видит картину Штёвера целиком полосой, свет на тонущем корабле и подпись, что это взгляд художника.",
+      "pad": [
+        0.3,
+        1
+      ],
+      "stage": {
+        "type": "media",
+        "src": "media/stower-sinking.jpg",
+        "fit": "contain",
+        "regions": {
+          "ship": {
+            "x": 25,
+            "y": 33,
+            "w": 53,
+            "h": 21
+          }
+        }
+      },
+      "devices": [
+        {
+          "type": "focus.spotlight",
+          "target": "ship",
+          "at": "collision",
+          "params": {
+            "shape": "rect",
+            "mode": "dim",
+            "strength": 0.5
+          }
+        },
+        {
+          "type": "annotate.label",
+          "target": {
+            "x": 71,
+            "y": 36
+          },
+          "at": "broke",
+          "params": {
+            "text": "WILLY STÖWER, 1912",
+            "sub": "A PAINTER'S VIEW"
+          },
+          "explains": "the picture is an artist's imagining of the sinking, not a photograph",
+          "source": "https://commons.wikimedia.org/wiki/File:St%C3%B6wer_Titanic.jpg"
+        }
+      ],
+      "dominant": "stage",
+      "camera": {
+        "reason": "approach",
+        "amplitude": 0.12
+      },
+      "sources": {
+        "text": "https://en.wikipedia.org/wiki/Sinking_of_the_Titanic"
+      }
+    },
+    {
+      "id": "06-boat",
+      "role": "ending",
+      "text": "By morning, the Carpathia had rescued [710|seven hundred and ten] people from the boats.",
+      "sees": "Зритель видит шлюпку и одну цифру 710 в тишине.",
+      "pad": [
+        0.8,
+        2.2
+      ],
+      "intent": "quiet-ending",
+      "target": {
+        "x": 50,
+        "y": 21
+      },
+      "at": "seven",
+      "data": {
+        "src": "media/titanic-lifeboat-ogden.jpg",
+        "value": 710,
+        "size": "hero",
+        "source": "https://en.wikipedia.org/wiki/Sinking_of_the_Titanic"
+      },
+      "stage": {
+        "type": "media",
+        "fit": "contain"
+      },
+      "dominant": 0
+    }
+  ],
+  "transitions": [],
+  "sound": {
+    "drone": {
+      "peak": "03-hull:six+0.3",
+      "cut": "06-boat:start",
+      "volume": 0.42,
+      "carve": 0.65
+    },
+    "hits": [
+      {
+        "at": "03-hull:start",
+        "volume": 0.55,
+        "carve": 0.75
+      },
+      {
+        "at": "03-hull:six",
+        "heavy": true,
+        "volume": 0.6,
+        "carve": 0.75
+      },
+      {
+        "at": "05-sinking:start",
+        "volume": 0.5,
+        "carve": 0.75
+      },
+      {
+        "at": "06-boat:start",
+        "volume": 0.42
+      }
+    ]
+  },
+  "publish": {
+    "titles": [
+      "Titanic: 20 lifeboats for 2,209 people",
+      "Imagine the largest ship afloat — and seats in the boats for half",
+      "The only film of the Titanic, and the 710 who lived"
+    ],
+    "description": "The Titanic was the largest ship afloat. Four days into her maiden voyage from Southampton to New York, on a calm night with no moon, she struck an iceberg: of her sixteen compartments, six were opened to the sea. Her 20 lifeboats could carry 1,178 of the 2,209 people on board. Two hours and forty minutes after the collision she broke apart and sank; by morning the Carpathia had rescued 710 people from the boats.\n\nArchive film: \"Titanic Disaster – Genuine Footage (1911–1912)\", British Pathé, public domain on Wikimedia Commons; no newsreel of the Titanic without the Pathé mark was found there.",
+    "tags": [
+      "titanic",
+      "rms titanic",
+      "1912",
+      "shipwreck",
+      "history",
+      "lifeboats",
+      "iceberg",
+      "north atlantic",
+      "maritime history",
+      "history shorts",
+      "disasters",
+      "ocean liner"
+    ]
+  }
+}

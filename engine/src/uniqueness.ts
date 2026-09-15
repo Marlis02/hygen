@@ -5,9 +5,10 @@ import { loadStyle } from "./contract.ts";
 import { applyLook, hueDistance, hueOf, loadLook } from "./look.ts";
 import type { VideoSpec } from "./spec.ts";
 import { loadSpec } from "./spec.ts";
-import { ROOT_DIR, readJson } from "./lib/util.ts";
+import { readJson } from "./lib/util.ts";
+import { projectDirs } from "./lib/project.ts";
 
-// Uniqueness of a video among the others in videos/ and videos/_proof/.
+// Uniqueness of a video among the other projects in projects/ (proof projects included).
 // World (D3.5): two videos may not look like one — accent hues differ by at least 30° (by the look and by the settle
 // frames of the MP4) or their texture sets differ; a video that `retells` another is exempt from this pair.
 // Skeleton (D4): against the two most recent other videos the arc tuple (structure × hook × protagonist × ending) and the
@@ -66,7 +67,7 @@ function fingerprint(spec: VideoSpec, dir: string, observed: number | null): Fin
   const textures = new Set<string>(look.textures.map((t) => t.id));
   for (const beat of spec.beats) for (const t of beat.textures ?? []) textures.add(t.id);
   const build = join(dir, "renders", `${spec.id}.build.json`);
-  const built = existsSync(build) ? statSync(build).mtimeMs : statSync(join(dir, "video.json")).mtimeMs;
+  const built = existsSync(build) ? statSync(build).mtimeMs : statSync(join(dir, "project.json")).mtimeMs;
   return { id: spec.id, dir, hue: Math.round(hueOf(style.colors.accent as string)), observed, textures: [...textures].sort(), stages: stageSequence(spec), devices: deviceFingerprint(spec), arc: arcKey(spec), retells: spec.retells ?? null, built };
 }
 
@@ -79,12 +80,7 @@ function observedHue(videoDir: string, id: string): number | null {
 }
 
 function videoDirs(): string[] {
-  const out: string[] = [];
-  for (const root of [join(ROOT_DIR, "videos"), join(ROOT_DIR, "videos", "_proof")]) {
-    if (!existsSync(root)) continue;
-    for (const name of readdirSync(root).sort()) if (!name.startsWith("_") && existsSync(join(root, name, "video.json"))) out.push(join(root, name));
-  }
-  return out;
+  return projectDirs();
 }
 
 export function checkUniqueness(spec: VideoSpec, videoDir: string, observed: number | null): UniquenessResult {

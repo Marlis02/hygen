@@ -14,7 +14,7 @@ import { CAPTION_FAMILIES, captionFamilies, checkCaptionPreset, familyOf, inkOn,
 import { ENGINE_DIR, ensureDir, fail, hyperframesBin, lastJsonLine, pyScript, python, r3, readJson, run, writeJson } from "./lib/util.ts";
 
 // Captions as the device text.caption (engine/devices/text.caption, ROADMAP D6): the words of the voice grouped by word,
-// phrase or line; the style of every beat — look.captions ← video.json captions ← the beat's caption; one sub-composition
+// phrase or line; the style of every beat — look.captions ← project.json captions ← the beat's caption; one sub-composition
 // compositions/captions.html over the whole video played by engine/devices/text.caption/device.js and its presets. The old
 // skin layer (captions.mjs, a plate with a hairline) is gone. Before the render the build measures the contrast under the
 // captions on snapshots and puts a wash or blur under the beats that fall below 4.5:1.
@@ -42,7 +42,7 @@ const OWN_ENUMS: Record<string, string[]> = {
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
 const rgbStr = (hex: string): string => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)).join(",");
 
-/** Fields of a caption object (video.json captions, a beat's caption, look.captions with family). */
+/** Fields of a caption object (project.json captions, a beat's caption, look.captions with family). */
 export function checkCaptionFields(v: unknown, where: string, look = false): Partial<CaptionStyle> & { family?: string } {
   if (!isObj(v)) return fail(`${where}: {${CAPTION_KEYS.join(", ")}}`);
   const allowed = look ? [...CAPTION_KEYS, "family"] : CAPTION_KEYS;
@@ -61,7 +61,7 @@ export function checkCaptionFields(v: unknown, where: string, look = false): Par
   return v as Partial<CaptionStyle>;
 }
 
-/** look.captions ← video.json captions ← beat caption; a look with only a family takes the family's first preset. */
+/** look.captions ← project.json captions ← beat caption; a look with only a family takes the family's first preset. */
 export function captionStyleOf(look: LookDef, spec: Pick<VideoSpec, "captions">, beat: Pick<BeatSpec, "caption"> | null): CaptionStyle {
   const lk = { ...((look.captions ?? {}) as Partial<CaptionStyle> & { family?: string }) };
   const family = lk.family;

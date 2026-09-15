@@ -6,7 +6,7 @@ import { ENGINE_DIR, fail, readJson, sha } from "./lib/util.ts";
 // Intent resolver (engine/scenes/CONTRACT.md, «Бит v2»): a table, not heuristics over the text. An intent
 // (engine/intents/<id>.json) or a JSON recipe (engine/scenes/recipes/<id>.json, used as `scene`) gives a default stage,
 // default devices, dominant and camera; placeholders take the beat's shorthand fields — $target, $at[±s], $data.<key>
-// — and every explicit field of the beat wins. Pure function of video.json and the tables: the same input gives the
+// — and every explicit field of the beat wins. Pure function of project.json and the tables: the same input gives the
 // same expanded beat (build/beats.expanded.json).
 
 export interface TemplateDef {

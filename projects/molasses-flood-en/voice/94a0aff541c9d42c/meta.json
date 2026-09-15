@@ -1,0 +1,9 @@
+{
+  "label": "molasses-flood-en/01-tank",
+  "voiceId": "uju3wxzG5OhpWcoi3SMy",
+  "model": "eleven_multilingual_v2",
+  "output_format": "pcm_24000",
+  "chars": 103,
+  "character_cost": 57,
+  "text": "Two point three million gallons of molasses sat in one steel tank in Boston, January nineteen nineteen."
+}

@@ -1,0 +1,38 @@
+{
+  "rms-titanic.jpg": {
+    "role": null,
+    "title": "RMS Titanic departing Southampton on April 10, 1912",
+    "source": "Wikimedia Commons",
+    "author": "Francis Godolphin Osbourne Stuart (1843–1923)",
+    "license": "Public domain",
+    "url": "https://commons.wikimedia.org/wiki/File:RMS_Titanic_3.jpg",
+    "added": "2026-09-14",
+    "notes": "1920 px thumbnail of the 5000×3677 file"
+  },
+  "titanic-lifeboat-ogden.jpg": {
+    "role": null,
+    "title": "Titanic lifeboat (Collapsible D, the last lifeboat launched)",
+    "source": "Wikimedia Commons",
+    "author": "Louis Ogden",
+    "license": "Public domain",
+    "url": "https://commons.wikimedia.org/wiki/File:Titanic_lifeboat.jpg",
+    "added": "2026-09-14",
+    "notes": "Taken on 15 April 1912 from RMS Carpathia; 1920 px thumbnail."
+  },
+  "titanic-pathe-1912-belfast.webm": {
+    "role": null,
+    "title": "Titanic Disaster - Genuine Footage (1911-1912)",
+    "source": "Wikimedia Commons",
+    "author": "British Pathé",
+    "license": "Public domain",
+    "url": "https://commons.wikimedia.org/wiki/File:Titanic_Disaster_-_Genuine_Footage_(1911-1912).webm",
+    "added": "2026-09-14",
+    "notes": "Derived by the hygen engine session D4: seconds 5–16 of the original 480×360 webm (the eight shots of the Titanic moored at Belfast, 2 April 1912), re-encoded VP9 without sound. Original: 401 s, British Pathé / Gaumont newsreel.",
+    "crop": {
+      "x": 0,
+      "y": 7.5,
+      "w": 85,
+      "h": 85
+    }
+  }
+}

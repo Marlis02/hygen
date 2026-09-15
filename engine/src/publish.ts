@@ -1,11 +1,11 @@
 import { existsSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { join, relative } from "node:path";
-import { licenseOf } from "./contract.ts";
+import { mediaRecord } from "./lib/project.ts";
 import type { BeatSpec, VideoSpec } from "./spec.ts";
 import { isHtmlScene, parseBeatText } from "./spec.ts";
 import { ENGINE_DIR, ROOT_DIR, ensureDir, fail, readJson, run } from "./lib/util.ts";
 
-/** video.json → `publish`: what the director writes for the upload; the engine adds sources, credits, SRT and the cover. */
+/** project.json → `publish`: what the director writes for the upload; the engine adds sources, credits, SRT and the cover. */
 export interface PublishSpec {
   titles?: string[];
   description?: string;
@@ -69,11 +69,11 @@ export function collectMedia(videoDir: string, spec: VideoSpec, beats: BeatSpec[
   walk((spec as unknown as { music?: unknown }).music);
   const music = join(videoDir, "build", "music.json");
   if (existsSync(music)) add(readJson<{ file: string }>(music).file);
-  return [...files].filter((f) => existsSync(licenseOf(f))).sort();
+  return [...files].filter((f) => mediaRecord(f) !== null).sort();
 }
 
 function credit(file: string): { line: string; url: string } {
-  const lic = readJson<Record<string, string>>(licenseOf(file));
+  const lic = mediaRecord(file) as unknown as Record<string, string>;
   const title = lic.title ?? relative(ROOT_DIR, file);
   return { line: `- ${title} — ${lic.author}, ${lic.license}. ${lic.url}`, url: lic.url ?? "" };
 }
@@ -130,7 +130,7 @@ function videoWords(buildDir: string): TimedWord[] {
   return meta.voices.flatMap((v, i) => v.words.map((w) => ({ text: w.text, start: (starts[i] ?? 0) + w.start, end: (starts[i] ?? 0) + w.end })));
 }
 
-/** videos/<id>/publish/: title.txt (3 variants), description.md (+ Sources and media credits), tags.txt, subtitles.srt, thumbnail.jpg. */
+/** projects/<id>/renders/publish/: title.txt (3 variants), description.md (+ Sources and media credits), tags.txt, subtitles.srt, thumbnail.jpg. */
 export function writePublish(videoDir: string, spec: VideoSpec, mp4?: string): PublishResult {
   const buildDir = join(videoDir, "build");
   for (const f of ["audio_meta.json", "audio_timeline.json", "verify_plan.json", "beats.expanded.json"]) {
@@ -140,7 +140,7 @@ export function writePublish(videoDir: string, spec: VideoSpec, mp4?: string): P
   if (!existsSync(video)) fail(`publish: нет ${relative(ROOT_DIR, video)} — обложка берётся из MP4`);
   const pub = ((spec as unknown as { publish?: PublishSpec }).publish ?? {}) as PublishSpec;
   const beats = readJson<{ beats: BeatSpec[] }>(join(buildDir, "beats.expanded.json")).beats;
-  const dir = ensureDir(join(videoDir, "publish"));
+  const dir = ensureDir(join(videoDir, "renders", "publish"));
 
   const hook = display(spec.beats[0]?.text ?? spec.title);
   const titles = (pub.titles?.length ? pub.titles : [spec.title, hook, `${spec.title.split(":")[0]?.trim()} — ${display(spec.beats[spec.beats.length - 1]?.text ?? "")}`])
@@ -178,7 +178,7 @@ export function writePublish(videoDir: string, spec: VideoSpec, mp4?: string): P
 
 /** verify: publish/ is complete — 3 titles ≤ 100, 10–15 tags, every source and media credit in the description, SRT and a cover. */
 export function checkPublish(videoDir: string, spec: VideoSpec): { ok: boolean; detail: string } {
-  const dir = join(videoDir, "publish");
+  const dir = join(videoDir, "renders", "publish");
   const problems: string[] = [];
   const read = (f: string): string => (existsSync(join(dir, f)) ? readFileSync(join(dir, f), "utf8") : "");
   for (const f of ["title.txt", "description.md", "tags.txt", "subtitles.srt", "thumbnail.jpg"]) if (!existsSync(join(dir, f))) problems.push(`нет ${f}`);

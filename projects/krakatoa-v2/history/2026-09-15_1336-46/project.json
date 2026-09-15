@@ -1,0 +1,248 @@
+{
+  "id": "krakatoa-v2",
+  "title": "Krakatoa: heard 4,800 km away",
+  "status": "verified",
+  "proof": true,
+  "concept": "- Настроение: мгла storm; ролик — загадка звука: его услышали за полмира и приняли за пушку.\n- Арка: mystery × shocking-statistic × sound × what-remains. Хук — «4,800» в первые 1,5 с.\n- Что видит зритель: (1) звуковая волна, потом карта, где круг от вулкана дорастает до Родригеса; (2) литографию-гравюру, замершую, с измерением столба пепла; (3) остров до и после под шторкой и «2/3».\n- Медиа: карта Natural Earth (place), литография 1888 (evidence), карты PSM 1884 (evidence).",
+  "format": "1080x1920",
+  "fps": 30,
+  "language": "en",
+  "style": "documentary-dark",
+  "look": "storm",
+  "retells": "krakatoa-en",
+  "captions": "word-by-word",
+  "voice": {
+    "engine": "kokoro",
+    "voice": "am_michael",
+    "speed": 1
+  },
+  "arc": {
+    "structure": "mystery",
+    "hook": "shocking-statistic",
+    "protagonist": "sound",
+    "ending": "what-remains",
+    "why": "The mystery of a sound heard half a world away: the distance first, then the proof on the plate of 1888, then what was left of the island."
+  },
+  "beats": [
+    {
+      "id": "01-heard",
+      "role": "hook",
+      "text": "[4,800|Four thousand eight hundred] kilometers away, on Rodrigues, people heard it and thought it was cannon fire.",
+      "sees": "Зритель видит звук — волну, — потом карту, где круг от вулкана дорастает до Родригеса.",
+      "pad": [
+        0.3,
+        0.6
+      ],
+      "stage": {
+        "type": "map",
+        "map": "indian-ocean",
+        "reveal": "kilometers",
+        "draw": true,
+        "markers": [
+          {
+            "x": 54.6,
+            "y": 32.7,
+            "label": "KRAKATOA",
+            "at": "kilometers"
+          },
+          {
+            "x": 18.7,
+            "y": 39.5,
+            "label": "RODRIGUES",
+            "at": "rodrigues"
+          }
+        ]
+      },
+      "devices": [
+        {
+          "type": "data.chart",
+          "target": {
+            "x": 8,
+            "y": 14,
+            "w": 84,
+            "h": 12
+          },
+          "at": "four",
+          "until": "away",
+          "params": {
+            "kind": "line",
+            "values": [
+              0,
+              2,
+              -3,
+              5,
+              -8,
+              14,
+              -22,
+              31,
+              -40,
+              52,
+              -61,
+              70,
+              -58,
+              44,
+              -33,
+              25,
+              -18,
+              12,
+              -8,
+              5,
+              -3,
+              2,
+              -1,
+              0
+            ],
+            "axis": false,
+            "drawDur": 1,
+            "color": "hero"
+          },
+          "source": "https://en.wikipedia.org/wiki/1883_eruption_of_Krakatoa"
+        },
+        {
+          "type": "annotate.circle",
+          "target": {
+            "x": 54.6,
+            "y": 32.7
+          },
+          "at": "rodrigues",
+          "params": {
+            "radius": 405,
+            "grow": true,
+            "growDur": 1.6,
+            "label": "4,800 KM",
+            "labelSide": "bottom"
+          },
+          "explains": "the circle reaches Rodrigues: everyone inside it could hear the blast",
+          "source": "https://en.wikipedia.org/wiki/1883_eruption_of_Krakatoa"
+        }
+      ],
+      "dominant": 1,
+      "camera": {
+        "reason": "reveal",
+        "amplitude": 0.5
+      }
+    },
+    {
+      "id": "02-column",
+      "role": "clue",
+      "text": "Artists drew it for the Royal Society. The ash rose about [80|eighty] kilometers.",
+      "sees": "Зритель видит литографию 1888 как документ: кадр замирает, прожектор на столб, размерная линия «80 KM».",
+      "pad": [
+        0.2,
+        0.9
+      ],
+      "stage": {
+        "type": "media",
+        "src": "media/krakatoa-lithograph.jpg",
+        "fit": "contain",
+        "treatment": "engraved",
+        "regions": {
+          "column": {
+            "x": 22,
+            "y": 16,
+            "w": 56,
+            "h": 54
+          }
+        }
+      },
+      "devices": [
+        {
+          "type": "edit.hold",
+          "at": "drew",
+          "until": "ash",
+          "params": {
+            "dur": 1.5
+          }
+        },
+        {
+          "type": "focus.spotlight",
+          "target": "column",
+          "at": "ash",
+          "params": {
+            "shape": "rect",
+            "mode": "dim",
+            "strength": 0.6
+          }
+        },
+        {
+          "type": "annotate.measure",
+          "target": {
+            "x": 86,
+            "y": 16.5,
+            "w": 0,
+            "h": 53.4
+          },
+          "at": "rose",
+          "params": {
+            "label": "80 KM"
+          },
+          "explains": "the height the ash column reached",
+          "source": "https://en.wikipedia.org/wiki/1883_eruption_of_Krakatoa"
+        }
+      ],
+      "dominant": 2
+    },
+    {
+      "id": "03-island",
+      "role": "ending",
+      "text": "The eruption destroyed [two-thirds|two thirds] of the island.",
+      "sees": "Зритель видит остров до и после под шторкой и «2/3».",
+      "pad": [
+        0.6,
+        2
+      ],
+      "intent": "compare",
+      "target": {
+        "x": 50,
+        "y": 11
+      },
+      "at": "destroyed",
+      "data": {
+        "a": "media/krakatoa-before.jpg",
+        "b": "media/krakatoa-after.jpg",
+        "labels": [
+          "BEFORE",
+          "AFTER"
+        ],
+        "value": 2,
+        "display": "2/3",
+        "label": "OF THE ISLAND GONE",
+        "size": "hero",
+        "color": "night",
+        "labelColor": "night",
+        "source": "https://en.wikipedia.org/wiki/Krakatoa"
+      },
+      "stage": {
+        "type": "split",
+        "dur": 1.2,
+        "direction": "left"
+      }
+    }
+  ],
+  "transitions": [],
+  "sound": {
+    "drone": {
+      "peak": "01-heard:rodrigues",
+      "cut": "03-island:start",
+      "volume": 0.42,
+      "carve": 0.65
+    },
+    "hits": [
+      {
+        "at": "01-heard:kilometers",
+        "heavy": true,
+        "volume": 0.62,
+        "carve": 0.75
+      },
+      {
+        "at": "02-column:start",
+        "volume": 0.55,
+        "carve": 0.75
+      },
+      {
+        "at": "03-island:start",
+        "volume": 0.42
+      }
+    ]
+  }
+}

@@ -1,0 +1,359 @@
+{
+  "id": "molasses-flood-en",
+  "title": "Boston, 1919: a 35 mph wave of molasses",
+  "status": "draft",
+  "concept": "- Настроение: чёрно-белый январский Бостон 1919 года, холодная гавань и эстакада — и в этом сером мире тёмно-янтарная, почти сладкая волна. Спокойно, без сенсации: странность — в самом веществе.\n- Ключевой цвет: янтарь патоки на холодной серой земле (акцент #C8862E, земля #0E0C0A, текст #EEE8DE; холодный тон — сталь #9FB3C4).\n- Look: свой объект `molasses-amber` поверх `abyss` — янтарный акцент (≈ 34°), одна текстура `fog` (холодная гавань, фон): набор {fog} не совпадает ни с одним роликом; типографика typewriter (газета 1919), лёгкий bloom, переход на ударе `film-burn`; субтитры calm · plain.\n- Арка: story × shocking-statistic × object × what-remains. Протагонист — резервуар: полный, тёплый день, разрыв, волна, погибшие, и то, что осталось, — запах.",
+  "format": "1080x1920",
+  "fps": 30,
+  "language": "en",
+  "style": "documentary-dark",
+  "look": {
+    "extends": "abyss",
+    "id": "molasses-amber",
+    "name": "Янтарь патоки",
+    "about": {
+      "mood": "A grey January harbour in 1919 black-and-white photographs, and through it a dark amber, almost sweet wave; calm and strange rather than loud.",
+      "topics": "Industrial accidents and odd disasters of the early 20th century told through archival photographs.",
+      "avoid": "Fire palettes, neon, fast handheld shake, sensational type."
+    },
+    "palette": {
+      "accent": "#C8862E",
+      "secondary": "#9FB3C4",
+      "groundTint": "#0E0C0A",
+      "temperature": "warm",
+      "textColor": "#EEE8DE"
+    },
+    "textures": [
+      {
+        "id": "fog",
+        "density": 0.35,
+        "speed": 0.3,
+        "color": "ashLight",
+        "opacity": 0.25,
+        "depth": "bg"
+      }
+    ],
+    "motion": {
+      "camera": {
+        "preset": "none"
+      },
+      "parallax": {
+        "enabled": false
+      },
+      "type": {
+        "number": "count-roll",
+        "title": "typewriter",
+        "label": "typewriter"
+      },
+      "post": [
+        {
+          "id": "bloom",
+          "strength": 0.2
+        }
+      ]
+    },
+    "transitions": {
+      "default": "hard-cut",
+      "hit": "film-burn"
+    },
+    "grain": 1.1,
+    "vignette": {
+      "alpha": 0.64,
+      "clear": 52
+    },
+    "sound": {
+      "hit": "deep-boom",
+      "whoosh": "smoke"
+    }
+  },
+  "voice": {
+    "provider": "elevenlabs"
+  },
+  "arc": {
+    "structure": "story",
+    "hook": "shocking-statistic",
+    "protagonist": "object",
+    "ending": "what-remains",
+    "why": "The tank is the protagonist: 2.3 million gallons, a warm day, a burst, a 35 mph wave, 21 dead — and what it left behind is a smell the North End kept for decades."
+  },
+  "beats": [
+    {
+      "id": "01-tank",
+      "role": "hook",
+      "text": "[2.3 million|Two point three million] gallons of molasses sat in one steel tank in Boston, January [1919|nineteen nineteen].",
+      "sees": "Зритель видит руины 1919 года с красным контуром резервуара 50 × 90 ft и над ними счётчик «2.3M · GALLONS OF MOLASSES».",
+      "pad": [
+        0.2,
+        0.5
+      ],
+      "stage": {
+        "type": "media",
+        "src": "media/tank-scale.png",
+        "fit": "contain",
+        "treatment": "film-memory"
+      },
+      "devices": [
+        {
+          "type": "data.count",
+          "target": {
+            "x": 50,
+            "y": 21
+          },
+          "at": "two",
+          "params": {
+            "from": 0,
+            "to": 2.3,
+            "format": "decimal1",
+            "suffix": "M",
+            "label": "GALLONS OF MOLASSES",
+            "size": "hero",
+            "countDur": 1.2
+          },
+          "source": "https://en.wikipedia.org/wiki/Great_Molasses_Flood"
+        }
+      ],
+      "dominant": 0,
+      "sources": {
+        "text": "https://en.wikipedia.org/wiki/Great_Molasses_Flood"
+      }
+    },
+    {
+      "id": "02-warm",
+      "role": "setup",
+      "text": "The day before, the air had warmed from [2|two] to [41|forty-one] degrees, and a fresh load of warm molasses went in.",
+      "sees": "Зритель видит на тёмном янтарном фоне, как счётчик температуры ползёт от 2 °F до 41 °F — за один день перед катастрофой.",
+      "pad": [
+        0.2,
+        0.5
+      ],
+      "stage": {
+        "type": "color",
+        "color": "night",
+        "glow": true
+      },
+      "devices": [
+        {
+          "type": "data.count",
+          "target": {
+            "x": 50,
+            "y": 40
+          },
+          "at": "warmed",
+          "params": {
+            "from": 2,
+            "to": 41,
+            "suffix": "°F",
+            "label": "THE DAY BEFORE",
+            "size": "hero",
+            "countDur": 1.3
+          },
+          "source": "https://en.wikipedia.org/wiki/Great_Molasses_Flood"
+        }
+      ],
+      "dominant": 0,
+      "sources": {
+        "text": "https://en.wikipedia.org/wiki/Great_Molasses_Flood"
+      }
+    },
+    {
+      "id": "03-burst",
+      "role": "turn",
+      "text": "Just after noon, the tank burst. Its rivets shot out with a sound like a machine gun.",
+      "sees": "Зритель видит свёрнутый стальной лист резервуара у опор эстакады, рукописная обводка подписывает его TANK STEEL.",
+      "pad": [
+        0.2,
+        0.6
+      ],
+      "stage": {
+        "type": "media",
+        "src": "media/el-structure.jpg",
+        "fit": "contain",
+        "treatment": "film-memory"
+      },
+      "devices": [
+        {
+          "type": "annotate.label",
+          "target": {
+            "x": 60,
+            "y": 46,
+            "w": 29,
+            "h": 14
+          },
+          "at": "burst",
+          "params": {
+            "text": "TANK STEEL",
+            "sub": "DRIVEN INTO THE ELEVATED",
+            "side": "top"
+          },
+          "explains": "this curled riveted sheet is a piece of the burst tank thrown against the elevated railway",
+          "source": "https://en.wikipedia.org/wiki/Great_Molasses_Flood"
+        }
+      ],
+      "dominant": 0,
+      "sources": {
+        "text": "https://en.wikipedia.org/wiki/Great_Molasses_Flood"
+      }
+    },
+    {
+      "id": "04-wave",
+      "role": "peak",
+      "text": "A wave [25|twenty-five] feet high swept through the North End at [35|thirty-five] miles an hour.",
+      "sees": "Зритель видит главную фотографию — разрушенную Commercial Street с толпой и машинами, камера чуть дышит, наверху падает «35 · MILES PER HOUR».",
+      "pad": [
+        0.2,
+        0.7
+      ],
+      "stage": {
+        "type": "media",
+        "src": "media/aftermath-panorama.jpg",
+        "fit": "cover",
+        "focus": [
+          0.5,
+          0.5
+        ],
+        "treatment": "film-memory"
+      },
+      "devices": [
+        {
+          "type": "data.count",
+          "target": {
+            "x": 50,
+            "y": 13
+          },
+          "at": "north",
+          "params": {
+            "from": 0,
+            "to": 35,
+            "label": "MILES PER HOUR",
+            "size": "hero",
+            "countDur": 1.2
+          },
+          "source": "https://en.wikipedia.org/wiki/Great_Molasses_Flood"
+        }
+      ],
+      "dominant": "stage",
+      "camera": {
+        "reason": "tension",
+        "amplitude": 0.4
+      },
+      "sources": {
+        "text": "https://en.wikipedia.org/wiki/Great_Molasses_Flood"
+      }
+    },
+    {
+      "id": "05-trapped",
+      "role": "aftermath",
+      "text": "As it cooled, it thickened and trapped those caught in it. [21|Twenty-one] people died; about [150|a hundred and fifty] were injured.",
+      "sees": "Зритель видит 171 точку — всех погибших и раненых, и на слове «died» 21 точка гаснет.",
+      "pad": [
+        0.2,
+        0.9
+      ],
+      "intent": "show-consequence",
+      "target": {
+        "x": 12,
+        "y": 22,
+        "w": 76,
+        "h": 40
+      },
+      "at": "cooled",
+      "data": {
+        "count": 171,
+        "mark": 21,
+        "from": "spread",
+        "markAt": "died",
+        "label": "21 DIED · ABOUT 150 HURT",
+        "source": "https://en.wikipedia.org/wiki/Great_Molasses_Flood"
+      },
+      "sources": {
+        "text": "https://en.wikipedia.org/wiki/Great_Molasses_Flood"
+      }
+    },
+    {
+      "id": "06-smell",
+      "role": "ending",
+      "text": "The tank was never rebuilt. For decades, on hot summer days, the North End still smelled of molasses.",
+      "sees": "Зритель видит, как тёмная патока медленно стекает с ложки, — тишина, без цифр.",
+      "pad": [
+        0.3,
+        2.4
+      ],
+      "intent": "quiet-ending",
+      "data": {
+        "src": "media/blackstrap-molasses.jpg"
+      },
+      "stage": {
+        "type": "media",
+        "fit": "cover",
+        "focus": [
+          0.53,
+          0.5
+        ],
+        "treatment": "duotone"
+      },
+      "dominant": "stage",
+      "sources": {
+        "text": "https://en.wikipedia.org/wiki/Great_Molasses_Flood"
+      },
+      "transition": "film-burn"
+    }
+  ],
+  "transitions": [],
+  "sound": {
+    "drone": {
+      "peak": "04-wave:wave",
+      "cut": "06-smell:start",
+      "volume": 0.4,
+      "carve": 0.65
+    },
+    "hits": [
+      {
+        "at": "02-warm:start",
+        "volume": 0.4
+      },
+      {
+        "at": "03-burst:burst",
+        "heavy": true,
+        "volume": 0.6,
+        "carve": 0.75
+      },
+      {
+        "at": "04-wave:start",
+        "volume": 0.5
+      },
+      {
+        "at": "05-trapped:start",
+        "volume": 0.45
+      },
+      {
+        "at": "06-smell:start",
+        "volume": 0.35
+      }
+    ]
+  },
+  "music": {
+    "track": "documentary-dark-01"
+  },
+  "publish": {
+    "titles": [
+      "Boston, 1919: a 25-foot wave of molasses moving at 35 mph",
+      "How did 2.3 million gallons of molasses kill 21 people?",
+      "The Great Molasses Flood: Boston's strangest disaster in 45 seconds"
+    ],
+    "description": "On January 15, 1919, a steel tank holding 2.3 million gallons of molasses burst on Commercial Street in Boston's North End. A wave 25 feet high swept through the neighborhood at 35 mph; as it cooled it thickened and trapped people. 21 died and about 150 were injured, and for decades the North End still smelled of molasses on hot summer days.",
+    "tags": [
+      "great molasses flood",
+      "boston molasses disaster",
+      "1919",
+      "boston history",
+      "north end",
+      "industrial disaster",
+      "molasses",
+      "strange history",
+      "massachusetts",
+      "history shorts",
+      "documentary",
+      "disaster"
+    ]
+  }
+}

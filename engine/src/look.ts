@@ -10,7 +10,7 @@ import { checkCaptionFields } from "./captions.ts";
 import { captionFamilies, familyOf } from "./text.ts";
 import { ENGINE_DIR, fail, readJson } from "./lib/util.ts";
 
-// The look of one video (engine/looks/<id>/look.json or an inline object in video.json): palette over the
+// The look of one video (engine/looks/<id>/look.json or an inline object in project.json): palette over the
 // style tokens, textures, motion, transitions, grain, vignette and sound hints. Scenes never read it — the
 // build hands them the looked token table, the engine layers read the same palette as CSS variables.
 
@@ -137,8 +137,8 @@ function mergeLook(base: Record<string, unknown>, over: Record<string, unknown>)
   return out;
 }
 
-/** video.json → look: a built-in id, an inline object (optionally {"extends": id}) or nothing (ember). */
-export function loadLook(ref: unknown, where = "video.json: look"): LookDef {
+/** project.json → look: a built-in id, an inline object (optionally {"extends": id}) or nothing (ember). */
+export function loadLook(ref: unknown, where = "project.json: look"): LookDef {
   let raw: Record<string, unknown>;
   if (ref === undefined || ref === null) raw = readLookFile("ember", where);
   else if (typeof ref === "string") raw = readLookFile(ref, where);

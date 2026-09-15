@@ -1,0 +1,30 @@
+{
+  "voice": {
+    "provider": "elevenlabs",
+    "voiceId": "uju3wxzG5OhpWcoi3SMy",
+    "model": "eleven_multilingual_v2",
+    "kokoroVoice": "am_michael"
+  },
+  "look": "ember",
+  "budgets": {
+    "elevenlabsChars": 3000
+  },
+  "bitrate": {
+    "crf": 18,
+    "preset": "slow",
+    "maxrate": "16M",
+    "bufsize": "32M"
+  },
+  "short": {
+    "targetSeconds": 45,
+    "minSeconds": 35,
+    "maxSeconds": 59
+  },
+  "paths": {
+    "projects": "projects",
+    "library": "library"
+  },
+  "studio": {
+    "port": 5177
+  }
+}

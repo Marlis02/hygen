@@ -15,7 +15,10 @@
     "voices": "node engine/src/voices.ts",
     "media": "node engine/src/media.ts",
     "publish": "node engine/src/cli.ts publish",
-    "voice": "node engine/src/voice-cli.ts"
+    "voice": "node engine/src/voice-cli.ts",
+    "migrate": "node engine/src/migrate.ts",
+    "library:previews": "node engine/src/library-previews.ts",
+    "studio": "node studio/server.ts"
   },
   "engines": {
     "node": ">=22.18"

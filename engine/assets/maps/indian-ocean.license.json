@@ -1,9 +1,0 @@
-{
-  "title": "Indian Ocean and the Malay Archipelago — land silhouette",
-  "source": "Natural Earth 1:50m Physical Vectors, land (ne_50m_land), via github.com/nvkelso/natural-earth-vector",
-  "author": "Natural Earth (naturalearthdata.com)",
-  "license": "Public domain",
-  "url": "https://www.naturalearthdata.com/downloads/50m-physical-vectors/50m-land/",
-  "retrieved": "2026-09-14",
-  "notes": "Traced with engine/py/trace_map.py: box lon 48…152, lat −44…44 onto the map window x 60–1020, y 150–990. Krakatoa 6.102 S 105.423 E → x 590, y 628 px (54.6 %, 32.7 %). Scale ≈ 0.083 px/km east–west, 0.086 px/km north–south: 4,800 km ≈ 405 px. Rodrigues 19.7 S 63.4 E → x 202, y 758."
-}
