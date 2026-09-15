@@ -2,15 +2,15 @@
 // npm run migrate — videos/ → projects/ (ROADMAP S1). Every video folder (and every proof in videos/_proof) becomes
 // projects/<name>/ with project.json (video.json + concept, «what the viewer sees» and status from research.md and the
 // renders) and media.json next to it (all license.json of media/, then deleted); publish/ → renders/publish/;
-// history/*/video.json → project.json. Music: engine/assets/music → library/music with music.json and beats/.
-// Map and scene assets: engine/assets/**/*.license.json → engine/assets/media.json. Non-secret lines of .env →
+// history/*/video.json → project.json. Music: library/assets/music → library/music with music.json and beats/.
+// Map and scene assets: library/assets/**/*.license.json → library/assets/media.json. Non-secret lines of .env →
 // hygen.config.json. A second run finds nothing to move.
 import { existsSync, readdirSync, readFileSync, renameSync, rmSync, rmdirSync, statSync, writeFileSync } from "node:fs";
 import { basename, extname, join, relative } from "node:path";
 import { trackBeats } from "./music.ts";
 import { CONFIG_PATH, DEFAULT_CONFIG, libraryDir, musicDir, projectsDir, readLedger, writeLedger } from "./lib/project.ts";
 import type { HygenConfig, MediaRecord } from "./lib/project.ts";
-import { ENGINE_DIR, ROOT_DIR, ensureDir, readJson, writeJson } from "./lib/util.ts";
+import { ENGINE_DIR, LIBRARY_DIR, ROOT_DIR, ensureDir, readJson, writeJson } from "./lib/util.ts";
 
 const OLD = join(ROOT_DIR, "videos");
 const rel = (p: string): string => relative(ROOT_DIR, p);
@@ -184,9 +184,9 @@ function migrateMusic(): void {
   if (!readdirSync(old).length) rmdirSync(old);
 }
 
-/** engine/assets/**\/<file>.license.json → engine/assets/media.json (key — path from engine/assets). */
+/** library/assets/**\/<file>.license.json → library/assets/media.json (key — path from library/assets). */
 function migrateEngineAssets(): void {
-  const assets = join(ENGINE_DIR, "assets");
+  const assets = join(LIBRARY_DIR, "assets");
   const ledgerPath = join(assets, "media.json");
   const ledger = readLedger(ledgerPath);
   let n = 0;
@@ -206,7 +206,7 @@ function migrateEngineAssets(): void {
   }
   if (n) {
     writeLedger(ledgerPath, ledger);
-    say(`✓ engine/assets: ${n} license.json → engine/assets/media.json`);
+    say(`✓ library/assets: ${n} license.json → library/assets/media.json`);
   }
 }
 
@@ -278,7 +278,7 @@ function main(): number {
     for (const d of [join(OLD, "_proof"), OLD]) if (existsSync(d) && !readdirSync(d).length) rmdirSync(d);
     if (existsSync(OLD)) say(`⚠ в videos/ осталось: ${readdirSync(OLD).join(", ")}`);
   }
-  const left = [projectsDir(), musicDir(), join(ENGINE_DIR, "assets")].flatMap(function find(dir: string): string[] {
+  const left = [projectsDir(), musicDir(), join(LIBRARY_DIR, "assets")].flatMap(function find(dir: string): string[] {
     if (!existsSync(dir)) return [];
     return readdirSync(dir).flatMap((n) => {
       const p = join(dir, n);

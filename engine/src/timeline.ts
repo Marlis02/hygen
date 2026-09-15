@@ -98,7 +98,7 @@ export function warpKnots(cues: RefCue[], sceneRef: SceneDef["ref"], timing: Bea
   return { ref, act, notes };
 }
 
-/** The same piecewise-linear map the scene runtime applies (engine/scenes/_runtime/warp.js). */
+/** The same piecewise-linear map the scene runtime applies (library/scenes/_runtime/warp.js). */
 export function warpAt(warp: Warp, t: number): number {
   const xs = warp.ref;
   const ys = warp.act;

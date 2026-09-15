@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Music bed of a video: a licensed track looped to the bed length, faded in and out, ducked under the voice.
 
-    python3 music_bed.py --track engine/assets/music/documentary-dark-01.wav --out build/assets/music/bed.wav \
+    python3 music_bed.py --track library/assets/music/documentary-dark-01.wav --out build/assets/music/bed.wav \
         --duration 46.7 --speech speech.json --gain -4 --duck -12 --fade-in 1.5 --fade-out 2 --start 0 --end 46.7
 
 speech.json: [[start, end], …] — seconds of speech in the video. The track is first normalized to −24 LUFS,

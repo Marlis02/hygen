@@ -11,11 +11,11 @@
 
 | Папка | Что |
 |---|---|
-| `engine/` | основной движок: CLI, конвейер, сцены, стили, звук, автопроверка |
-| `projects/` | ролики: `projects/<id>/` — project.json, media.json, media/, voice/, renders/, history/; proof-проекты с `"proof": true`; рендеры и кэши не в git |
-| `library/` | музыка (`music/` с music.json и beats/), превью библиотеки (`previews/`), превью голосов |
-| `studio/` | панель `npm run studio` (http://localhost:5177): сервер, API, страница, строки `i18n/ru.json` |
-| `examples/pompeii-short/` | эталонный ролик про Помпеи — **только читать и копировать, не менять** |
+| `engine/` | только код движка: CLI и конвейер (`src/`), шаги на Python (`py/`), рантайм stage (`stage/`), копии скриптов навыков (`vendor/`) |
+| `projects/` | ролики: `projects/<id>/` — project.json, media.json, media/, voice/, renders/, history/, director.log; proof-проекты с `"proof": true`; рендеры и кэши не в git |
+| `library/` | всё, из чего собирается ролик: looks, styles, textures, devices, captions (пресеты и families.json), transitions, motion, scenes (HTML- и JSON-рецепты, CONTRACT.md), arcs, intents, assets (шрифты, карты, GSAP), music; превью `previews/`, голоса `voices/`, снимки регрессии `regress/` |
+| `studio/` | панель `npm run studio` (http://localhost:5177): сервер, API, страница, журнал и терминал режиссёра, строки `i18n/ru.json` и `i18n/en.json` |
+| `examples/pompeii-short/` | исходный ролик про Помпеи, из которого вырос движок — **только читать и копировать, не менять** |
 | `sessions/` | архив отчётов сессий |
 | `.agents/skills/` | навыки HyperFrames |
 
@@ -32,6 +32,7 @@
 9. **Автономно.** Команды выполняет агент, ошибки чинит сам. У пользователя спрашиваем только ключи и решения из раздела «Что нужно от пользователя» в ROADMAP.md.
 10. **Прогресс сессии — в `PROGRESS.md`** по правилам раздела ниже. Итог сессии: что сделано, какими командами запускать, сколько заняло, что срезано.
 11. **ROADMAP.md — единственный план; перед заменой старая версия уходит в `roadmap/history/ГГГГ-ММ-ДД_ЧЧММ.md`.** Новый план приходит как `ROADMAP.new.md`: сессия архивирует старый, переименовывает новый и коммитит.
+12. **Регрессия по всем роликам.** `npm run regress` пересобирает все не-proof проекты и сравнивает контактные листы их MP4 со снимками `library/regress/<id>.jpg`; `npm run regress -- --record` сохраняет снимки. Запускать после изменений движка и библиотеки. Расхождение намеренное — перезаписать снимки (`--record --only <id>`) с записью в DECISIONS.md, случайное — строка в TRAPS.md и починка.
 
 ## Прогресс сессии
 

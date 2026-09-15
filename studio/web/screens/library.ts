@@ -1,4 +1,4 @@
-import { api, clear, fail, h, modal, t, toast } from "../lib.ts";
+import { api, clear, fail, go, h, modal, t, toast } from "../lib.ts";
 import type { Dict } from "../lib.ts";
 import { field, fields } from "../forms.ts";
 
@@ -6,6 +6,8 @@ import { field, fields } from "../forms.ts";
 // «apply to a beat» writes it into project.json. Music: listen, BPM, mood, looks; add a track with its license.
 
 export async function libraryScreen(main: HTMLElement, section: string): Promise<void> {
+  // looks have their own screen (sidebar «Look»), not a section of the library
+  if (section === "looks") return go("#/looks");
   const data = await api<{ sections: string[]; items: Dict[] }>("/api/library");
   const items = data.items.filter((i) => i.section === section);
   const families = [...new Set(items.map((i) => i.family).filter(Boolean))] as string[];
@@ -20,11 +22,12 @@ export async function libraryScreen(main: HTMLElement, section: string): Promise
   };
   [fam, origin].forEach((s) => (s.onchange = draw));
   search.oninput = draw;
-  const withPreview = data.items.filter((i) => i.preview || i.audio).length;
+  const shown = data.items.filter((i) => i.section !== "looks");
+  const withPreview = shown.filter((i) => i.preview || i.audio).length;
   clear(
     main,
-    h("div", { class: "header" }, h("div", null, h("h1", null, t("library.title")), h("div", { class: "sub" }, t("library.sub", { n: data.items.length, p: withPreview }))), section === "music" ? h("button", { class: "btn primary", onclick: addTrack }, t("library.addTrack")) : null),
-    h("div", { class: "sections" }, data.sections.map((s) => h("a", { href: `#/library/${s}`, class: s === section ? "on" : "" }, `${t(`library.sections.${s}`)} · ${data.items.filter((i) => i.section === s).length}`))),
+    h("div", { class: "header" }, h("div", null, h("h1", null, t("library.title")), h("div", { class: "sub" }, t("library.sub", { n: shown.length, p: withPreview }))), section === "music" ? h("button", { class: "btn primary", onclick: addTrack }, t("library.addTrack")) : null),
+    h("div", { class: "sections" }, data.sections.filter((s) => s !== "looks").map((s) => h("a", { href: `#/library/${s}`, class: s === section ? "on" : "" }, `${t(`library.sections.${s}`)} · ${data.items.filter((i) => i.section === s).length}`))),
     h("div", { class: "filters" }, families.length ? fam : null, section === "music" ? null : origin, search),
     grid,
   );

@@ -16,7 +16,7 @@ import { backgroundHostsHtml, installRuntime, layerHostsHtml, motionConfig, plan
 import { installDevices } from "./devices.ts";
 import type { VoiceLine } from "./voice.ts";
 import type { BeatWords } from "./words.ts";
-import { ENGINE_DIR, VENDOR_SKILLS, copyInto, ensureDir, fail, log, r3, run, stripAnsi, writeJson } from "./lib/util.ts";
+import { LIBRARY_DIR, VENDOR_SKILLS, copyInto, ensureDir, fail, log, r3, run, stripAnsi, writeJson } from "./lib/util.ts";
 
 export interface AssembleInput {
   spec: VideoSpec;
@@ -76,9 +76,9 @@ export function assembleProject(input: AssembleInput): { total: number; captions
 }
 
 function stage(spec: VideoSpec, buildDir: string): void {
-  copyInto(join(ENGINE_DIR, "assets", "fonts"), join(buildDir, "assets", "fonts"));
-  copyInto(join(ENGINE_DIR, "assets", "vendor"), join(buildDir, "assets", "vendor"));
-  copyInto(join(ENGINE_DIR, "styles", spec.style, "frame.md"), join(buildDir, "frame.md"));
+  copyInto(join(LIBRARY_DIR, "assets", "fonts"), join(buildDir, "assets", "fonts"));
+  copyInto(join(LIBRARY_DIR, "assets", "vendor"), join(buildDir, "assets", "vendor"));
+  copyInto(join(LIBRARY_DIR, "styles", spec.style, "frame.md"), join(buildDir, "frame.md"));
   ensureDir(join(buildDir, "compositions"));
   writeJson(join(buildDir, "hyperframes.json"), {
     $schema: "https://hyperframes.heygen.com/schema/hyperframes.json",

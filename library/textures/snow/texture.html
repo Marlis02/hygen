@@ -1,0 +1,54 @@
+<!-- hygen texture snow (from the snow particles of picture-zoom). Contract: library/scenes/CONTRACT.md, «Текстуры». -->
+<template id="__p__-template">
+<div id="root" data-composition-id="__cid__" data-start="0" data-duration="{{hygen:duration}}" data-width="1080" data-height="1920">
+  <style>
+    #root { position: relative; width: 1080px; height: 1920px; overflow: hidden; pointer-events: none; }
+    #__p__-c { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; }
+  </style>
+  <canvas id="__p__-c" class="clip" width="540" height="960" data-start="0" data-duration="{{hygen:duration}}" data-track-index="0"></canvas>
+</div>
+<script src="assets/vendor/gsap.min.js"></script>
+<script>
+(function () {
+  /*{{hygen:params}}*/
+  var ctx = document.getElementById("__p__-c").getContext("2d");
+  var W = 1080, H = 1920, TAU = Math.PI * 2, PAD = 40;
+  function rand(n) { var x = Math.sin((n + SEED * 101.3) * 91.7 + 47.3) * 43758.5453; return x - Math.floor(x); }
+  var ANG = (P.angle * Math.PI) / 180, SIN = Math.sin(ANG), COS = Math.cos(ANG);
+  var N = Math.round(420 * P.density);
+  var F = [];
+  for (var i = 0; i < N; i++) {
+    var near = rand(i * 1.9 + 0.4);
+    F.push({
+      x: rand(i * 2.3 + 1.1) * (W + 2 * PAD), y: rand(i * 3.7 + 2.9) * (H + 2 * PAD),
+      r: (1.6 + 3.6 * near * near) * P.size, v: (36 + 70 * near) * P.speed,
+      sw: (8 + 22 * rand(i * 4.4 + 0.8)) * P.sway, sp: 0.5 + 1.2 * rand(i * 5.1 + 3.3), ph: rand(i * 6.7 + 1.7) * TAU,
+      a: 0.35 + 0.55 * near
+    });
+  }
+  function wrap(v, span) { return (((v % span) + span) % span) - PAD; }
+  function draw(t) {
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, 540, 960);
+    ctx.setTransform(0.5, 0, 0, 0.5, 0, 0);
+    ctx.fillStyle = P.color;
+    for (var i = 0; i < F.length; i++) {
+      var f = F[i], d = f.v * t;
+      var y = wrap(f.y + d * COS, H + 2 * PAD);
+      var x = wrap(f.x - d * SIN + Math.sin(f.ph + f.sp * t) * f.sw, W + 2 * PAD);
+      ctx.globalAlpha = f.a * 0.22;
+      ctx.beginPath(); ctx.arc(x, y, f.r * 2.4, 0, TAU); ctx.fill();
+      ctx.globalAlpha = f.a;
+      ctx.beginPath(); ctx.arc(x, y, f.r, 0, TAU); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
+  var tl = gsap.timeline({ paused: true });
+  var clock = { t: 0 };
+  draw(0);
+  tl.fromTo(clock, { t: 0 }, { t: DUR, duration: DUR, ease: "none", onUpdate: function () { draw(clock.t); } }, 0);
+  window.__timelines = window.__timelines || {};
+  window.__timelines["__cid__"] = tl;
+})();
+</script>
+</template>

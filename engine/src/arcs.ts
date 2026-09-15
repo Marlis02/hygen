@@ -1,10 +1,10 @@
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import type { VideoSpec } from "./spec.ts";
-import { ENGINE_DIR, readJson } from "./lib/util.ts";
+import { LIBRARY_DIR, readJson } from "./lib/util.ts";
 
-// Arc v2 (ROADMAP D4): structure × hook × protagonist × ending. engine/arcs/arc.json lists the values (hooks — the 9
-// strategies of faceless-explainer/story-design.md), engine/arcs/<structure>.json the roles of its beats.
+// Arc v2 (ROADMAP D4): structure × hook × protagonist × ending. library/arcs/arc.json lists the values (hooks — the 9
+// strategies of faceless-explainer/story-design.md), library/arcs/<structure>.json the roles of its beats.
 
 interface ArcTable {
   structures: Record<string, string>;
@@ -19,10 +19,10 @@ interface StructureDef {
   required: string[];
 }
 
-export const arcTable = (): ArcTable => readJson<ArcTable>(join(ENGINE_DIR, "arcs", "arc.json"));
+export const arcTable = (): ArcTable => readJson<ArcTable>(join(LIBRARY_DIR, "arcs", "arc.json"));
 
 export function loadStructure(id: string): StructureDef | null {
-  const file = join(ENGINE_DIR, "arcs", `${id}.json`);
+  const file = join(LIBRARY_DIR, "arcs", `${id}.json`);
   return existsSync(file) ? readJson<StructureDef>(file) : null;
 }
 

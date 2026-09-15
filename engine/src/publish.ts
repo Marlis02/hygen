@@ -3,7 +3,7 @@ import { join, relative } from "node:path";
 import { mediaRecord } from "./lib/project.ts";
 import type { BeatSpec, VideoSpec } from "./spec.ts";
 import { isHtmlScene, parseBeatText } from "./spec.ts";
-import { ENGINE_DIR, ROOT_DIR, ensureDir, fail, readJson, run } from "./lib/util.ts";
+import { LIBRARY_DIR, ROOT_DIR, ensureDir, fail, readJson, run } from "./lib/util.ts";
 
 /** project.json → `publish`: what the director writes for the upload; the engine adds sources, credits, SRT and the cover. */
 export interface PublishSpec {
@@ -49,20 +49,20 @@ export function collectSources(value: unknown, out: Set<string> = new Set()): Se
 export function collectMedia(videoDir: string, spec: VideoSpec, beats: BeatSpec[]): string[] {
   const files = new Set<string>();
   const add = (value: string): void => {
-    const abs = [join(videoDir, value), join(ROOT_DIR, value), join(ENGINE_DIR, value)].find((p) => existsSync(p));
+    const abs = [join(videoDir, value), join(ROOT_DIR, value), join(LIBRARY_DIR, value)].find((p) => existsSync(p));
     if (abs) files.add(abs);
   };
   const walk = (value: unknown, key?: string): void => {
     if (typeof value === "string") {
       if (MEDIA_RE.test(value)) add(value);
-      else if (key === "map" && existsSync(join(ENGINE_DIR, "assets", "maps", `${value}.svg`))) files.add(join(ENGINE_DIR, "assets", "maps", `${value}.svg`));
+      else if (key === "map" && existsSync(join(LIBRARY_DIR, "assets", "maps", `${value}.svg`))) files.add(join(LIBRARY_DIR, "assets", "maps", `${value}.svg`));
     } else if (Array.isArray(value)) value.forEach((v) => walk(v, key));
     else if (value && typeof value === "object") for (const [k, v] of Object.entries(value)) walk(v, k);
   };
   for (const beat of beats) {
     walk(beat);
     if (beat.scene && isHtmlScene(beat.scene)) {
-      const scene = readJson<{ params: Record<string, { default?: unknown }> }>(join(ENGINE_DIR, "scenes", beat.scene, "scene.json"));
+      const scene = readJson<{ params: Record<string, { default?: unknown }> }>(join(LIBRARY_DIR, "scenes", beat.scene, "scene.json"));
       for (const [name, def] of Object.entries(scene.params)) if (beat.params?.[name] === undefined) walk(def.default, name);
     }
   }

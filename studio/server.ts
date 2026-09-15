@@ -25,6 +25,7 @@ const TYPES: Record<string, string> = {
   ".html": "text/html; charset=utf-8",
   ".css": "text/css; charset=utf-8",
   ".js": "text/javascript; charset=utf-8",
+  ".mjs": "text/javascript; charset=utf-8",
   ".ts": "text/javascript; charset=utf-8",
   ".json": "application/json; charset=utf-8",
   ".md": "text/markdown; charset=utf-8",
@@ -48,7 +49,14 @@ const TYPES: Record<string, string> = {
 };
 
 /** Folders the page may read files from (media, renders, previews, fonts); never .env or the rest of the repo. */
-const READABLE = ["projects", "library", join("engine", "assets", "fonts"), ".preview"].map((d) => join(ROOT_DIR, d) + sep);
+const READABLE = ["projects", "library", ".preview"].map((d) => join(ROOT_DIR, d) + sep);
+
+/** xterm.js for the terminal of «Режиссёр» — straight from node_modules, only these files. */
+const VENDOR: Record<string, string> = {
+  "/vendor/xterm/xterm.mjs": join(ROOT_DIR, "node_modules", "@xterm", "xterm", "lib", "xterm.mjs"),
+  "/vendor/xterm/xterm.css": join(ROOT_DIR, "node_modules", "@xterm", "xterm", "css", "xterm.css"),
+  "/vendor/xterm/addon-fit.mjs": join(ROOT_DIR, "node_modules", "@xterm", "addon-fit", "lib", "addon-fit.mjs"),
+};
 
 const tsCache = new Map<string, { mtime: number; js: string }>();
 
@@ -79,8 +87,17 @@ function serveStatic(req: IncomingMessage, res: ServerResponse, path: string): b
     sendFile(req, res, join(STUDIO, "web", "index.html"));
     return true;
   }
-  if (path === "/i18n/ru.json") {
-    sendFile(req, res, join(STUDIO, "i18n", "ru.json"));
+  const i18n = /^\/i18n\/(ru|en)\.json$/.exec(path);
+  if (i18n) {
+    const file = join(STUDIO, "i18n", `${i18n[1]}.json`);
+    if (!existsSync(file)) return false;
+    sendFile(req, res, file);
+    return true;
+  }
+  const vendor = VENDOR[path];
+  if (vendor) {
+    if (!existsSync(vendor)) return false;
+    sendFile(req, res, vendor);
     return true;
   }
   if (path.startsWith("/web/")) {
@@ -109,6 +126,19 @@ function serveStatic(req: IncomingMessage, res: ServerResponse, path: string): b
   return false;
 }
 
+const port = Number(process.env.STUDIO_PORT ?? loadConfig().studio.port ?? 5177);
+/** DNS rebinding and requests from other sites: the API answers only its own host, and a write needs the header the page sends. */
+const HOSTS = new Set([`localhost:${port}`, `127.0.0.1:${port}`]);
+
+function foreign(req: IncomingMessage): string | null {
+  if (!HOSTS.has(String(req.headers.host ?? ""))) return "чужой Host: панель отвечает только на localhost";
+  if (req.method === "GET" || req.method === "HEAD") return null;
+  if (req.headers["x-hygen"] !== "1") return "нет заголовка X-Hygen: запрос не со страницы панели";
+  const origin = req.headers.origin;
+  if (origin && !HOSTS.has(origin.replace(/^https?:\/\//, ""))) return `чужой Origin ${origin}`;
+  return null;
+}
+
 const server = createServer((req, res) => {
   const url = new URL(req.url ?? "/", "http://localhost");
   const done = (err: unknown): void => {
@@ -118,6 +148,11 @@ const server = createServer((req, res) => {
   };
   try {
     if (url.pathname.startsWith("/api/")) {
+      const refused = foreign(req);
+      if (refused) {
+        res.writeHead(403, { "Content-Type": "application/json; charset=utf-8" }).end(JSON.stringify({ error: refused }));
+        return;
+      }
       handleApi(req, res, url).then((handled) => {
         if (!handled && !res.headersSent) res.writeHead(404, { "Content-Type": "application/json; charset=utf-8" }).end(JSON.stringify({ error: `нет такого запроса: ${req.method} ${url.pathname}` }));
       }, done);
@@ -129,7 +164,6 @@ const server = createServer((req, res) => {
   }
 });
 
-const port = Number(process.env.STUDIO_PORT ?? loadConfig().studio.port ?? 5177);
 server.listen(port, "127.0.0.1", () => {
   const address = `http://localhost:${port}`;
   console.log(`hygen studio — ${address}  (остановить: Ctrl+C)`);

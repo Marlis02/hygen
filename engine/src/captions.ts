@@ -11,11 +11,11 @@ import type { BeatSpec, VideoSpec } from "./spec.ts";
 import type { BeatTiming } from "./timeline.ts";
 import type { BeatWords } from "./words.ts";
 import { CAPTION_FAMILIES, captionFamilies, checkCaptionPreset, familyOf, inkOn, textColor, textSchema, textSchemaScript } from "./text.ts";
-import { ENGINE_DIR, ensureDir, fail, hyperframesBin, lastJsonLine, pyScript, python, r3, readJson, run, writeJson } from "./lib/util.ts";
+import { LIBRARY_DIR, ensureDir, fail, hyperframesBin, lastJsonLine, pyScript, python, r3, readJson, run, writeJson } from "./lib/util.ts";
 
-// Captions as the device text.caption (engine/devices/text.caption, ROADMAP D6): the words of the voice grouped by word,
+// Captions as the device text.caption (library/devices/text.caption, ROADMAP D6): the words of the voice grouped by word,
 // phrase or line; the style of every beat — look.captions ← project.json captions ← the beat's caption; one sub-composition
-// compositions/captions.html over the whole video played by engine/devices/text.caption/device.js and its presets. The old
+// compositions/captions.html over the whole video played by library/devices/text.caption/device.js and its presets. The old
 // skin layer (captions.mjs, a plate with a hairline) is gone. Before the render the build measures the contrast under the
 // captions on snapshots and puts a wash or blur under the beats that fall below 4.5:1.
 
@@ -253,7 +253,7 @@ export function planCaptions(input: { spec: Pick<VideoSpec, "id" | "beats" | "ca
 }
 
 export function captionsHtml(cfg: CaptionCfg, style: StyleDef): string {
-  return `<!-- hygen captions (engine/src/captions.ts → engine/devices/text.caption): ${cfg.groups.length} groups — generated on every build, do not edit -->
+  return `<!-- hygen captions (engine/src/captions.ts → library/devices/text.caption): ${cfg.groups.length} groups — generated on every build, do not edit -->
 <template id="captions-template">
 <script src="assets/vendor/gsap.min.js"></script>
 <script src="assets/hygen/captions.js"></script>
@@ -306,18 +306,18 @@ export function checkCaptionPlan(buildDir: string): { ok: boolean; detail: strin
   return { ok, detail };
 }
 
-/** engine/devices/text.js + text.caption/device.js + the presets in use → assets/hygen/captions.js. */
+/** library/devices/text.js + text.caption/device.js + the presets in use → assets/hygen/captions.js. */
 export function installCaptions(dir: string, presets: string[]): void {
-  const root = join(ENGINE_DIR, "devices");
+  const root = join(LIBRARY_DIR, "devices");
   const parts = [textSchemaScript(), readFileSync(join(root, "text.js"), "utf8"), readFileSync(join(root, "text.caption", "device.js"), "utf8")];
-  for (const name of [...new Set(presets)].sort()) parts.push(readFileSync(join(root, "text.caption", "presets", `${checkCaptionPreset(name, "субтитры")}.js`), "utf8"));
+  for (const name of [...new Set(presets)].sort()) parts.push(readFileSync(join(LIBRARY_DIR, "captions", "presets", `${checkCaptionPreset(name, "субтитры")}.js`), "utf8"));
   ensureDir(join(dir, "assets", "hygen"));
   writeFileSync(join(dir, "assets", "hygen", "captions.js"), parts.join("\n"));
 }
 
 /** What a preset file declares about itself: ink "light" | "dark" (it paints its own letters) and whether it owns the plate. */
 export function presetTraits(preset: string): { ink: "light" | "dark" | null; ownsBackground: boolean } {
-  const src = readFileSync(join(ENGINE_DIR, "devices", "text.caption", "presets", `${preset}.js`), "utf8");
+  const src = readFileSync(join(LIBRARY_DIR, "captions", "presets", `${preset}.js`), "utf8");
   const ink = /\bink:\s*"(light|dark)"/.exec(src)?.[1] as "light" | "dark" | undefined;
   return { ink: ink ?? null, ownsBackground: /owns:\s*\{[^}]*background:\s*true/.test(src) };
 }

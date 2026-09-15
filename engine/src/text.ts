@@ -1,10 +1,10 @@
 import { existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
-import { ENGINE_DIR, fail, readJson } from "./lib/util.ts";
+import { LIBRARY_DIR, fail, readJson } from "./lib/util.ts";
 
-// The shared text schema of every text on screen (engine/devices/text.schema.json, ROADMAP D6): text.title, text.quote,
+// The shared text schema of every text on screen (library/devices/text.schema.json, ROADMAP D6): text.title, text.quote,
 // annotate.label, text.caption, text.kinetic take the same fields — type, font, size, case, color, background, position.
-// Caption presets (engine/devices/text.caption/presets) and their families (families.json) live here too.
+// Caption presets (library/captions/presets) and their families (families.json) live here too.
 
 export interface TextParamDef {
   type: string;
@@ -30,11 +30,11 @@ export interface TextSchema {
 let schema: TextSchema | null = null;
 
 export function textSchema(): TextSchema {
-  if (!schema) schema = readJson<TextSchema>(join(ENGINE_DIR, "devices", "text.schema.json"));
+  if (!schema) schema = readJson<TextSchema>(join(LIBRARY_DIR, "devices", "text.schema.json"));
   return schema;
 }
 
-/** Scales and bands for the browser side (engine/devices/text.js reads window.HygenTextSchema). */
+/** Scales and bands for the browser side (library/devices/text.js reads window.HygenTextSchema). */
 export const textSchemaScript = (): string => `window.HygenTextSchema = ${JSON.stringify({ scales: textSchema().scales, bands: textSchema().bands })};`;
 
 export const TEXT_FIELDS = ["type", "font", "size", "case", "color", "background", "position"];
@@ -82,7 +82,7 @@ export function inkOn(colors: Record<string, string>, bg: string): string {
 
 // ── caption presets and families ──────────────────────────────────────────────────────────────────
 
-const CAPTION_DIR = join(ENGINE_DIR, "devices", "text.caption");
+const CAPTION_DIR = join(LIBRARY_DIR, "captions");
 
 export function captionPresetNames(): string[] {
   const dir = join(CAPTION_DIR, "presets");

@@ -1,7 +1,7 @@
 import { existsSync, readFileSync, readdirSync, statfsSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
-import { ENGINE_DIR, ROOT_DIR, VENDOR_SKILLS, loadEnv, python, readJson, run, stripAnsi } from "./lib/util.ts";
+import { LIBRARY_DIR, ROOT_DIR, VENDOR_SKILLS, loadEnv, python, readJson, run, stripAnsi } from "./lib/util.ts";
 import { budgetState, globalTakes } from "./voice.ts";
 import { CONFIG_PATH, loadConfig, projectDirs } from "./lib/project.ts";
 import type { HygenConfig } from "./lib/project.ts";
@@ -49,10 +49,10 @@ export function doctor(): boolean {
     add(pkg, have === want, have ? `${have} (закреплено ${want})` : "не установлен — npm ci");
   }
 
-  const fonts = readdirSync(join(ENGINE_DIR, "assets", "fonts")).filter((f) => f.endsWith(".woff2"));
-  add("шрифты в проекте", fonts.length >= 8, `${fonts.length} woff2 в engine/assets/fonts`);
-  const vendorJs = ["gsap.min.js", "shader-transitions.global.js"].filter((f) => existsSync(join(ENGINE_DIR, "assets", "vendor", f)));
-  add("GSAP и шейдеры в проекте", vendorJs.length === 2, `engine/assets/vendor: ${vendorJs.join(", ") || "пусто"}`);
+  const fonts = readdirSync(join(LIBRARY_DIR, "assets", "fonts")).filter((f) => f.endsWith(".woff2"));
+  add("шрифты в проекте", fonts.length >= 8, `${fonts.length} woff2 в library/assets/fonts`);
+  const vendorJs = ["gsap.min.js", "shader-transitions.global.js"].filter((f) => existsSync(join(LIBRARY_DIR, "assets", "vendor", f)));
+  add("GSAP и шейдеры в проекте", vendorJs.length === 2, `library/assets/vendor: ${vendorJs.join(", ") || "пусто"}`);
   const missing = VENDORED.filter((f) => !existsSync(join(VENDOR_SKILLS, f)));
   add("скрипты навыков", missing.length === 0, missing.length ? `нет: ${missing.join(", ")}` : `${VENDORED.length} файлов в engine/vendor/skills`);
 

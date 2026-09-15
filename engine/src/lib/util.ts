@@ -8,6 +8,19 @@ export const ENGINE_DIR = resolve(dirname(fileURLToPath(import.meta.url)), "..",
 export const ROOT_DIR = resolve(ENGINE_DIR, "..");
 export const VENDOR_SKILLS = join(ENGINE_DIR, "vendor", "skills");
 
+/**
+ * library/ — everything a video is made of (looks, styles, textures, devices, captions, transitions, motion presets,
+ * scenes and recipes, arcs, intents, assets, music); engine/ keeps only code. hygen.config.json → paths.library moves it.
+ */
+export const LIBRARY_DIR = ((): string => {
+  try {
+    const cfg = JSON.parse(readFileSync(join(ROOT_DIR, "hygen.config.json"), "utf8")) as { paths?: { library?: string } };
+    return resolve(ROOT_DIR, cfg.paths?.library ?? "library");
+  } catch {
+    return join(ROOT_DIR, "library");
+  }
+})();
+
 export const r3 = (x: number): number => Math.round(x * 1000) / 1000;
 
 export class BuildError extends Error {}

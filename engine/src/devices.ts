@@ -4,11 +4,11 @@ import type { ParamDef, StyleDef } from "./contract.ts";
 import { checkValue } from "./contract.ts";
 import { normalizeWords } from "./spec.ts";
 import { SYNC_VALUES, textSchema, textSchemaScript } from "./text.ts";
-import { ENGINE_DIR, copyInto, ensureDir, fail, r3, readJson } from "./lib/util.ts";
+import { ENGINE_DIR, LIBRARY_DIR, copyInto, ensureDir, fail, r3, readJson } from "./lib/util.ts";
 
-// Devices of a stage beat (engine/scenes/CONTRACT.md, «Бит v2»): engine/devices/<type>/device.json + device.js.
+// Devices of a stage beat (library/scenes/CONTRACT.md, «Бит v2»): library/devices/<type>/device.json + device.js.
 // Checked here before the voice, resolved here once the words are timed: target in % of the frame → px, `at` word →
-// seconds inside the beat. Played by engine/devices/runtime.js on fixed z-layers stage → focus → data → annotate → text.
+// seconds inside the beat. Played by library/devices/runtime.js on fixed z-layers stage → focus → data → annotate → text.
 
 export const DEVICE_LAYERS = ["focus", "data", "annotate", "text"] as const;
 export type DeviceLayer = (typeof DEVICE_LAYERS)[number];
@@ -37,7 +37,7 @@ export interface DeviceDef {
   /** Events that visibly change the frame; offset — seconds after `at` or the name of a number param. */
   events: { label: string; offset: number | string }[];
   demo: { target?: unknown; params?: Record<string, unknown>; at?: number | string; until?: number | string; text?: string; stage?: Record<string, unknown> };
-  /** A text device takes the shared text schema (engine/devices/text.schema.json): its scale of sizes and own defaults. */
+  /** A text device takes the shared text schema (library/devices/text.schema.json): its scale of sizes and own defaults. */
   text?: { scale: string; defaults?: Record<string, unknown> };
 }
 
@@ -104,7 +104,7 @@ const NUM = (v: unknown): v is number => typeof v === "number" && Number.isFinit
 // ── registry ─────────────────────────────────────────────────────────────────────────────────────
 
 export function deviceTypes(): string[] {
-  const root = join(ENGINE_DIR, "devices");
+  const root = join(LIBRARY_DIR, "devices");
   if (!existsSync(root)) return [];
   return readdirSync(root, { withFileTypes: true })
     .filter((d) => d.isDirectory() && existsSync(join(root, d.name, "device.json")))
@@ -117,9 +117,9 @@ const cache = new Map<string, DeviceDef>();
 export function loadDevice(type: string, where = "устройство"): DeviceDef {
   const hit = cache.get(type);
   if (hit) return hit;
-  const dir = join(ENGINE_DIR, "devices", type);
+  const dir = join(LIBRARY_DIR, "devices", type);
   if (!existsSync(join(dir, "device.json"))) fail(`${where}: нет устройства «${type}»; есть: ${deviceTypes().join(", ")}`);
-  if (!existsSync(join(dir, "device.js"))) fail(`engine/devices/${type}: нет device.js`);
+  if (!existsSync(join(dir, "device.js"))) fail(`library/devices/${type}: нет device.js`);
   const d = readJson<DeviceDef>(join(dir, "device.json"));
   // the shared text schema: fields the device does not define itself; an own enum keeps its legacy values and gains the schema's
   if (d.text) {
@@ -129,7 +129,7 @@ export function loadDevice(type: string, where = "устройство"): Device
       else if (own.type === "enum" && p.values) own.values = [...new Set([...(own.values ?? []), ...p.values])];
     }
   }
-  const at = `engine/devices/${type}/device.json`;
+  const at = `library/devices/${type}/device.json`;
   const need = (cond: unknown, msg: string): void => {
     if (!cond) fail(`${at}: ${msg}`);
   };
@@ -289,7 +289,7 @@ export function checkDeviceSpec(dev: unknown, i: number, beatId: string, regions
   return def;
 }
 
-/** Devices of a timed beat → the runtime config (engine/devices/runtime.js). */
+/** Devices of a timed beat → the runtime config (library/devices/runtime.js). */
 export function resolveDevices(devices: DeviceSpec[], dominant: "stage" | number | undefined, regions: Record<string, unknown>, clock: Clock, style: StyleDef, beatId: string, beatSync?: string): ResolvedDevice[] {
   return devices.map((dev, index) => {
     const where = `${beatId}: devices[${index}] (${dev.type})`;
@@ -351,14 +351,14 @@ export function deviceFigures(dev: DeviceSpec): string[] {
   return out;
 }
 
-/** engine/devices/runtime.js + engine/stage/runtime.js + every device.js → assets/hygen/devices.js. */
+/** library/devices/runtime.js + engine/stage/runtime.js + every device.js → assets/hygen/devices.js. */
 export function installDevices(dir: string): void {
-  // text.kinetic texture: the luminance masks of registry texture-mask-text (engine/devices/vendor/texture-mask-text/masks)
-  const masks = join(ENGINE_DIR, "devices", "vendor", "texture-mask-text", "masks");
+  // text.kinetic texture: the luminance masks of registry texture-mask-text (library/devices/vendor/texture-mask-text/masks)
+  const masks = join(LIBRARY_DIR, "devices", "vendor", "texture-mask-text", "masks");
   if (existsSync(masks)) copyInto(masks, join(dir, "assets", "hygen", "masks"));
-  const parts = [textSchemaScript(), readFileSync(join(ENGINE_DIR, "devices", "text.js"), "utf8"), readFileSync(join(ENGINE_DIR, "devices", "runtime.js"), "utf8"), readFileSync(join(ENGINE_DIR, "stage", "runtime.js"), "utf8")];
+  const parts = [textSchemaScript(), readFileSync(join(LIBRARY_DIR, "devices", "text.js"), "utf8"), readFileSync(join(LIBRARY_DIR, "devices", "runtime.js"), "utf8"), readFileSync(join(ENGINE_DIR, "stage", "runtime.js"), "utf8")];
   // text.caption plays in the captions layer (engine/src/captions.ts → assets/hygen/captions.js), not inside a stage beat
-  for (const type of deviceTypes()) if (type !== "text.caption") parts.push(readFileSync(join(ENGINE_DIR, "devices", type, "device.js"), "utf8"));
+  for (const type of deviceTypes()) if (type !== "text.caption") parts.push(readFileSync(join(LIBRARY_DIR, "devices", type, "device.js"), "utf8"));
   ensureDir(join(dir, "assets", "hygen"));
   writeFileSync(join(dir, "assets", "hygen", "devices.js"), parts.join("\n"));
 }

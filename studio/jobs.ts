@@ -36,6 +36,8 @@ interface JobOptions {
   onLine?: (line: string, job: Job) => void;
   onDone?: (job: Job) => void;
   note?: string;
+  /** Environment of the child (default — the server's): claude runs without an API key of the server's environment. */
+  env?: Record<string, string>;
 }
 
 const jobs = new Map<string, Job>();
@@ -64,7 +66,7 @@ export function startJob(o: JobOptions): Job {
   const id = `${o.kind}-${++seq}`;
   const job: Job = { id, kind: o.kind, title: o.title, project: o.project, status: "running", stages: (o.stages ?? []).map((key) => ({ key, state: "wait" })), log: [], startedAt: new Date().toISOString(), note: o.note };
   jobs.set(id, job);
-  const child = spawn(o.cmd, o.args, { cwd: o.cwd, stdio: ["ignore", "pipe", "pipe"], env: { ...process.env, FORCE_COLOR: "0", NO_COLOR: "1" } });
+  const child = spawn(o.cmd, o.args, { cwd: o.cwd, stdio: ["ignore", "pipe", "pipe"], env: { ...(o.env ?? process.env), FORCE_COLOR: "0", NO_COLOR: "1" } });
   children.set(id, child);
   let tail = "";
   const feed = (chunk: Buffer): void => {

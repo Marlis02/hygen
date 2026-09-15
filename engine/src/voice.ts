@@ -249,6 +249,8 @@ export async function elevenTake(text: string, voiceId: string, model: string, l
   const alignPath = join(dir, "alignment.json");
   if (projectDir && !existsSync(wav) && moveTake(key, projectDir)) log.info(`${label}: дубль ElevenLabs перенесён из .cache/voice в ${basename(projectDir)}/voice`);
   if (existsSync(wav) && existsSync(alignPath)) return { wav, alignment: readJson<AlignedWord[]>(alignPath), chars: 0, cached: true };
+  // npm run regress rebuilds every video from its cache: a line without a take goes to Kokoro, no characters are spent
+  if (process.env.HYGEN_VOICE_CACHE_ONLY === "1") throw new BudgetError(`нет дубля в кэше проекта, а регрессия символы не тратит (реплике нужно ${text.length})`);
   const apiKey = loadEnv().ELEVENLABS_API_KEY;
   if (!apiKey) throw new Error("нет ELEVENLABS_API_KEY в .env");
   if (!voiceId) throw new Error("нет voiceId: voice.voiceId в project.json или voice.voiceId в hygen.config.json");

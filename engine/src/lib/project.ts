@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { basename, dirname, join, relative, resolve, sep } from "node:path";
-import { ENGINE_DIR, ROOT_DIR, fail, readJson, writeJson } from "./util.ts";
+import { LIBRARY_DIR, ROOT_DIR, fail, readJson, writeJson } from "./util.ts";
 
 // Project storage (ROADMAP S1): hygen.config.json in the root (no secrets), projects/<id>/ with project.json and
 // media.json next to it, media/ with asset files only, voice/, renders/ (mp4, sheets, publish/), history/;
@@ -74,7 +74,7 @@ export function projectPath(arg: string): string {
 
 // ── media ledger ─────────────────────────────────────────────────────────────────────────────────────
 
-/** One licensed file: projects/<id>/media.json, library/music/music.json or engine/assets/media.json → key → record. */
+/** One licensed file: projects/<id>/media.json, library/music/music.json or library/assets/media.json → key → record. */
 export interface MediaRecord {
   role?: string | null;
   title?: string;
@@ -101,7 +101,7 @@ export function ledgerOf(file: string): { path: string; key: string } | null {
   const abs = resolve(file);
   const music = musicDir();
   if (abs.startsWith(music + sep)) return { path: join(music, "music.json"), key: posix(relative(music, abs)) };
-  const assets = join(ENGINE_DIR, "assets");
+  const assets = join(LIBRARY_DIR, "assets");
   if (abs.startsWith(assets + sep)) return { path: join(assets, "media.json"), key: posix(relative(assets, abs)) };
   // projects/<id>/… is a project even before project.json exists (the director downloads media first, from brief.json)
   const projects = projectsDir();
@@ -136,7 +136,7 @@ export function missingLicense(rec: MediaRecord | null | undefined): string[] {
 
 export function setMediaRecord(file: string, rec: MediaRecord): string {
   const at = ledgerOf(file);
-  if (!at) fail(`${file}: файл не лежит ни в проекте, ни в library/music, ни в engine/assets — записи о лицензии негде жить`);
+  if (!at) fail(`${file}: файл не лежит ни в проекте, ни в library/music, ни в library/assets — записи о лицензии негде жить`);
   const ledger = readLedger(at.path);
   ledger[at.key] = rec;
   writeLedger(at.path, ledger);

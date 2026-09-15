@@ -2,7 +2,7 @@ import { h, t } from "./lib.ts";
 import type { Dict } from "./lib.ts";
 
 // Form fields from the engine's own definitions: params of device.json, scene.json, texture.json, text.schema.json and
-// nodes of engine/scenes/schema.json. The panel keeps no copy of the lists — a new enum value in the engine shows up here.
+// nodes of library/scenes/schema.json. The panel keeps no copy of the lists — a new enum value in the engine shows up here.
 
 export interface Def {
   type?: string;
@@ -74,7 +74,7 @@ export function jsonInput(value: unknown, onChange: (v: unknown) => void, placeh
   return ta;
 }
 
-/** A node of engine/scenes/schema.json → Def. */
+/** A node of library/scenes/schema.json → Def. */
 export function schemaDef(node: Dict | undefined): Def {
   if (!node) return { type: "json" };
   if (Array.isArray(node.enum)) return { type: "enum", values: node.enum, description: node.description };

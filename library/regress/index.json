@@ -1,0 +1,58 @@
+{
+  "great-fire-en": {
+    "recordedAt": "2026-09-15T10:14:22.161Z",
+    "head": "6f18530",
+    "beats": 7,
+    "duration_s": 42.7,
+    "voice": "elevenlabs",
+    "verify_ok": true
+  },
+  "halifax-en": {
+    "recordedAt": "2026-09-15T10:14:22.161Z",
+    "head": "6f18530",
+    "beats": 6,
+    "duration_s": 45.1,
+    "voice": "elevenlabs",
+    "verify_ok": true
+  },
+  "krakatoa-en": {
+    "recordedAt": "2026-09-15T10:14:22.161Z",
+    "head": "6f18530",
+    "beats": 6,
+    "duration_s": 42.967,
+    "voice": "elevenlabs",
+    "verify_ok": true
+  },
+  "molasses-flood-en": {
+    "recordedAt": "2026-09-15T10:14:22.161Z",
+    "head": "6f18530",
+    "beats": 6,
+    "duration_s": 43.067,
+    "voice": "elevenlabs",
+    "verify_ok": true
+  },
+  "odyssey-en": {
+    "recordedAt": "2026-09-15T10:14:22.162Z",
+    "head": "6f18530",
+    "beats": 7,
+    "duration_s": 47.567,
+    "voice": "elevenlabs + Kokoro ×4",
+    "verify_ok": true
+  },
+  "pompeii-en": {
+    "recordedAt": "2026-09-15T10:14:22.160Z",
+    "head": "6f18530",
+    "beats": 6,
+    "duration_s": 56.366,
+    "voice": "kokoro",
+    "verify_ok": false
+  },
+  "titanic-en": {
+    "recordedAt": "2026-09-15T10:14:22.161Z",
+    "head": "6f18530",
+    "beats": 6,
+    "duration_s": 43.5,
+    "voice": "elevenlabs",
+    "verify_ok": true
+  }
+}

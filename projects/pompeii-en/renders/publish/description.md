@@ -6,4 +6,4 @@ Sources:
 - https://en.wikipedia.org/wiki/Pyroclastic_flow
 
 Media:
-- engine/assets/maps/bay-of-naples.svg — hygen project, own work. local:examples/pompeii-short/compositions/frames/02-context.html
+- library/assets/maps/bay-of-naples.svg — hygen project, own work. local:examples/pompeii-short/compositions/frames/02-context.html

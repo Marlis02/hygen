@@ -1,22 +1,40 @@
-// Shared helpers of the studio page: strings (studio/i18n/ru.json), a DOM builder, the API client, toasts, dialogs,
+// Shared helpers of the studio page: strings (studio/i18n/<lang>.json), a DOM builder, the API client, toasts, dialogs,
 // and a job view that polls a long command of the server (build, preview, download, doctor, director).
 
 export type Dict = Record<string, any>;
 let strings: Dict = {};
+let fallback: Dict = {};
+export const LANGS = ["ru", "en"];
 
+/** Language of the panel (Настройки → язык): localStorage, Russian by default. */
+export function lang(): string {
+  try {
+    const v = localStorage.getItem("studio.lang");
+    return v && LANGS.includes(v) ? v : "ru";
+  } catch {
+    return "ru";
+  }
+}
+
+const lookup = (from: Dict, key: string): any => key.split(".").reduce<any>((o, k) => (o == null ? undefined : o[k]), from);
+
+/** studio/i18n/<lang>.json; a key missing there falls back to ru.json. */
 export async function loadStrings(): Promise<void> {
-  strings = await (await fetch("/i18n/ru.json")).json();
+  const load = async (code: string): Promise<Dict> => (await fetch(`/i18n/${code}.json`)).json();
+  fallback = await load("ru");
+  strings = lang() === "ru" ? fallback : await load(lang()).catch(() => fallback);
+  document.documentElement.lang = lang();
 }
 
 /** A string of i18n/ru.json by dotted key with {name} placeholders; a missing key shows itself. */
 export function t(key: string, vars?: Record<string, unknown>): string {
-  const v = key.split(".").reduce<any>((o, k) => (o == null ? undefined : o[k]), strings);
+  const v = lookup(strings, key) ?? lookup(fallback, key);
   const s = typeof v === "string" ? v : key;
   return vars ? s.replace(/\{(\w+)\}/g, (_: string, k: string) => (vars[k] === undefined || vars[k] === null ? "" : String(vars[k]))) : s;
 }
 
 /** A raw node of the strings (an object of labels). */
-export const tn = (key: string): any => key.split(".").reduce<any>((o, k) => (o == null ? undefined : o[k]), strings);
+export const tn = (key: string): any => lookup(strings, key) ?? lookup(fallback, key);
 
 type Child = Node | string | number | null | undefined | false | Child[];
 
@@ -53,7 +71,7 @@ export async function api<T = any>(path: string, opts: { method?: string; body?:
   const params = Object.entries(opts.query ?? {}).filter(([, v]) => v !== undefined && v !== null && v !== "");
   const q = params.length ? `?${new URLSearchParams(params.map(([k, v]) => [k, String(v)])).toString()}` : "";
   const method = opts.method ?? (opts.body !== undefined || opts.raw ? "POST" : "GET");
-  const res = await fetch(path + q, { method, headers: opts.raw ? {} : opts.body !== undefined ? { "Content-Type": "application/json" } : {}, body: opts.raw ?? (opts.body !== undefined ? JSON.stringify(opts.body) : undefined) });
+  const res = await fetch(path + q, { method, headers: { "X-Hygen": "1", ...(opts.raw || opts.body === undefined ? {} : { "Content-Type": "application/json" }) }, body: opts.raw ?? (opts.body !== undefined ? JSON.stringify(opts.body) : undefined) });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.error ?? `HTTP ${res.status}`);
   return data as T;
@@ -155,8 +173,8 @@ export function mountJob(box: HTMLElement, id: string, onDone?: (job: Dict) => v
 }
 
 export const fmtSec = (s: number | null | undefined): string => (typeof s === "number" ? `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, "0")}` : "—");
-export const fmtBytes = (n: number): string => (n > 1e6 ? `${(n / 1e6).toFixed(1)} МБ` : `${Math.max(1, Math.round(n / 1e3))} КБ`);
-export const fmtDate = (iso: string | null | undefined): string => (iso ? new Date(iso).toLocaleString("ru-RU", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) : "—");
+export const fmtBytes = (n: number): string => (n > 1e6 ? `${(n / 1e6).toFixed(1)} ${t("units.mb")}` : `${Math.max(1, Math.round(n / 1e3))} ${t("units.kb")}`);
+export const fmtDate = (iso: string | null | undefined): string => (iso ? new Date(iso).toLocaleString(lang() === "en" ? "en-GB" : "ru-RU", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) : "—");
 
 export async function copyText(text: string): Promise<void> {
   try {

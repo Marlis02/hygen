@@ -1,0 +1,339 @@
+{
+  "id": "pompeii-copy-en",
+  "title": "Pompeii: a city erased in 18 hours (copy)",
+  "status": "draft",
+  "format": "1080x1920",
+  "fps": 30,
+  "language": "en",
+  "style": "documentary-dark",
+  "captions": "word-by-word",
+  "voice": {
+    "engine": "kokoro",
+    "voice": "am_michael",
+    "speed": 1
+  },
+  "beats": [
+    {
+      "id": "01-hook",
+      "scene": "counter-title",
+      "text": "In [18|eighteen] hours, a thriving city ceased to exist.",
+      "pad": [
+        0.3,
+        0.4
+      ],
+      "params": {
+        "value": 18,
+        "format": "int",
+        "unit": "HOURS",
+        "heat": "burn-cool"
+      },
+      "anchors": {
+        "ignite": "eighteen",
+        "unit": "hours",
+        "cool": "exist"
+      },
+      "cues": {
+        "1.33": "thriving",
+        "1.98": "city",
+        "2.27": "ceased"
+      },
+      "sources": {
+        "value": "https://en.wikipedia.org/wiki/Eruption_of_Mount_Vesuvius_in_79_AD"
+      }
+    },
+    {
+      "id": "02-context",
+      "scene": "map-marker",
+      "text": "Pompeii was a Roman port city. About [11,000|eleven thousand] residents. Baths, an amphitheater, an aqueduct. The volcano next door was thought to be just a mountain.",
+      "pad": [
+        0.2,
+        0.4
+      ],
+      "params": {
+        "map": "bay-of-naples",
+        "marker": {
+          "x": 682,
+          "y": 554
+        },
+        "label": "POMPEII",
+        "region": [
+          "BAY OF",
+          "NAPLES"
+        ],
+        "counterValue": 11000,
+        "counterPrefix": "≈",
+        "counterLabel": "RESIDENTS",
+        "items": [
+          "BATHS",
+          "AMPHITHEATER",
+          "AQUEDUCT"
+        ],
+        "peak": true,
+        "peakLabel": "VESUVIUS",
+        "peakNote": "“JUST A MOUNTAIN”"
+      },
+      "anchors": {
+        "route": "port",
+        "routeEnd": "city",
+        "counter": "about",
+        "counterLabel": "residents",
+        "item1": "baths",
+        "item2": "amphitheater",
+        "item3": "aqueduct",
+        "peak": "volcano",
+        "peakLabel": "thought",
+        "peakNote": "just"
+      },
+      "cues": {
+        "0.61": "roman",
+        "2.43": "eleven",
+        "3.03": "thousand",
+        "6.49": "next",
+        "7.63": "mountain"
+      },
+      "sources": {
+        "counterValue": "https://en.wikipedia.org/wiki/Pompeii"
+      }
+    },
+    {
+      "id": "03-eruption",
+      "scene": "scale-gauge",
+      "text": "[79 AD.|Seventy-nine A.D.] Vesuvius hurls a column of ash [30|thirty] kilometers high. Then the sky rains pumice, several centimeters an hour. Roofs give way.",
+      "pad": [
+        0.2,
+        0.4
+      ],
+      "params": {
+        "direction": "up",
+        "value": 30,
+        "unit": "KM",
+        "scenery": "volcano",
+        "dateValue": 79,
+        "dateSuffix": "AD",
+        "word": "PUMICE"
+      },
+      "anchors": {
+        "dateSuffix": "ad",
+        "rise": "vesuvius",
+        "value": "kilometers",
+        "fall": "then",
+        "word": "pumice",
+        "layer": "several",
+        "collapse": "roofs",
+        "rumble": "way"
+      },
+      "cues": {
+        "2.46": "hurls",
+        "3.07": "column",
+        "3.45": "ash",
+        "3.83": "thirty",
+        "5.46": "rains",
+        "6.99": "centimeters",
+        "7.66": "hour",
+        "8.49": "give"
+      },
+      "sources": {
+        "value": "https://en.wikipedia.org/wiki/Eruption_of_Mount_Vesuvius_in_79_AD",
+        "dateValue": "https://en.wikipedia.org/wiki/Eruption_of_Mount_Vesuvius_in_79_AD"
+      }
+    },
+    {
+      "id": "04-collapse",
+      "scene": "pyroclastic-flow",
+      "text": "By morning, the column collapses. A red-hot avalanche races down the slope at about [100|a hundred] kilometers an hour. The city is sealed under [4–6|four to six] meters of ash.",
+      "pad": [
+        0.6,
+        0.4
+      ],
+      "params": {
+        "speedValue": 100,
+        "speedUnit": "KM/H",
+        "depthFrom": 4,
+        "depthTo": 6,
+        "depthUnit": "M",
+        "depthLabel": "ASH LAYER"
+      },
+      "anchors": {
+        "collapse": "column",
+        "flood": "red",
+        "approx": "about",
+        "speedLand": "kilometers",
+        "speedUnit": "an",
+        "cool": "city",
+        "strata": "sealed",
+        "depthLabel": "under",
+        "depthFrom": "four",
+        "depthTo": "six",
+        "depthUnit": "meters"
+      },
+      "cues": {
+        "0.76": "morning",
+        "1.37": "collapses",
+        "3.02": "avalanche",
+        "3.38": "races",
+        "3.73": "slope",
+        "4.17": "at",
+        "4.92": "hundred",
+        "5.72": "hour"
+      },
+      "sources": {
+        "speedValue": "https://en.wikipedia.org/wiki/Pyroclastic_flow",
+        "depthFrom": "https://en.wikipedia.org/wiki/Pompeii",
+        "depthTo": "https://en.wikipedia.org/wiki/Pompeii"
+      }
+    },
+    {
+      "id": "05-return",
+      "scene": "year-odometer",
+      "text": "Pompeii wasn't found again until [1748.|seventeen forty-eight.] More than a century later, archaeologists began pouring plaster into the voids left by the bodies.",
+      "pad": [
+        0.2,
+        0.4
+      ],
+      "params": {
+        "year": 1748,
+        "delta": 115,
+        "deltaSign": "+",
+        "deltaUnit": "YEARS",
+        "section": true,
+        "voids": true,
+        "voidLabel": "PLASTER"
+      },
+      "anchors": {
+        "year": "seventeen",
+        "yearLand": "eight.end",
+        "delta": "century",
+        "section": "archaeologists",
+        "voids": "began",
+        "fill": "pouring",
+        "leader": "plaster"
+      },
+      "cues": {
+        "0.80": "found",
+        "1.21": "until",
+        "2.28": "forty",
+        "2.57": "eight",
+        "5.87": "voids",
+        "6.42": "left",
+        "6.72": "bodies"
+      },
+      "sources": {
+        "year": "https://en.wikipedia.org/wiki/Pompeii",
+        "delta": "https://en.wikipedia.org/wiki/Pompeii"
+      }
+    },
+    {
+      "id": "06-finale",
+      "scene": "fraction-finale",
+      "text": "A third of the city is still buried.",
+      "pad": [
+        2,
+        1.6
+      ],
+      "params": {
+        "numerator": 1,
+        "denominator": 3,
+        "label": "STILL BURIED"
+      },
+      "anchors": {
+        "slash": "city",
+        "fill": "still",
+        "outline": "buried"
+      },
+      "sources": {
+        "numerator": "https://en.wikipedia.org/wiki/Pompeii",
+        "denominator": "https://en.wikipedia.org/wiki/Pompeii"
+      }
+    },
+    {
+      "id": "07-new",
+      "text": "New line of the voice.",
+      "sees": "",
+      "stage": {
+        "type": "color",
+        "color": "night",
+        "glow": true
+      },
+      "devices": [],
+      "dominant": "stage"
+    }
+  ],
+  "transitions": [
+    {
+      "from": "03-eruption",
+      "to": "04-collapse",
+      "type": [
+        "flash",
+        "ash-burst"
+      ],
+      "duration": 0.6
+    }
+  ],
+  "music": false,
+  "sound": {
+    "events": false,
+    "drone": {
+      "peak": "03-eruption:vesuvius+0.3",
+      "cut": "06-finale:start",
+      "volume": 0.42,
+      "carve": 0.65
+    },
+    "ash": {
+      "at": "03-eruption:start",
+      "until": "04-collapse:end",
+      "swell": "03-eruption:then",
+      "debris": "03-eruption:roofs",
+      "volume": 0.5,
+      "carve": 0.6
+    },
+    "hits": [
+      {
+        "at": "02-context:start",
+        "volume": 0.55,
+        "carve": 0.75
+      },
+      {
+        "at": "03-eruption:start",
+        "volume": 0.55,
+        "carve": 0.75
+      },
+      {
+        "at": "04-collapse:start+0.3",
+        "heavy": true,
+        "volume": 0.62,
+        "carve": 0.75
+      },
+      {
+        "at": "05-return:start",
+        "volume": 0.55,
+        "carve": 0.75
+      },
+      {
+        "at": "06-finale:start",
+        "volume": 0.42
+      }
+    ]
+  },
+  "publish": {
+    "titles": [
+      "Pompeii: 18 hours that erased a Roman city",
+      "The city that vanished in 18 hours: Pompeii, 79 AD",
+      "Why a third of Pompeii is still buried"
+    ],
+    "description": "In 79 AD Vesuvius buried the Roman port of Pompeii: a 30-kilometre column of ash, a burning avalanche and four to six metres of ash. The city was found again in 1748, its victims were cast in plaster more than a century later, and a third of it is still underground.",
+    "tags": [
+      "pompeii",
+      "vesuvius",
+      "79 ad",
+      "roman history",
+      "ancient rome",
+      "volcano",
+      "archaeology",
+      "plaster casts",
+      "natural disaster",
+      "italy",
+      "history shorts",
+      "documentary"
+    ]
+  }
+}

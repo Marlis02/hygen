@@ -1,0 +1,30 @@
+{
+  "id": "ember",
+  "name": "Угли",
+  "sampleLine": "18 hours",
+  "about": {
+    "mood": "Жар и пепел: тёплый оранжевый акцент на ночи и пепельном сером, огонь загорается и остывает, тишина между ударами.",
+    "topics": "Извержения, пожары, осады, взрывы, металлургия — всё, где главный герой огонь или пепел.",
+    "avoid": "Вода, лёд, космос, болезни и холодные темы: оранжевый там врёт. Не добавлять движения поверх: ember — мир Помпей, Great Fire и Odyssey, любую правку проверять npm run regress."
+  },
+  "palette": {
+    "accent": "#FF5A1F",
+    "secondary": "#8EC3E6",
+    "groundTint": null,
+    "temperature": "warm",
+    "textColor": "#ECE7DE"
+  },
+  "textures": [],
+  "motion": {
+    "camera": { "preset": "none" },
+    "parallax": { "enabled": false },
+    "type": {},
+    "post": []
+  },
+  "transitions": { "default": "hard-cut", "hit": ["flash", "ash-burst"] },
+  "grain": 1,
+  "vignette": { "alpha": 0.6, "clear": 55 },
+  "sound": { "hit": "thud", "whoosh": "ash" },
+  "captions": { "family": "calm", "preset": "plain", "activeWord": "none" },
+  "typography": { "kinetic": false }
+}

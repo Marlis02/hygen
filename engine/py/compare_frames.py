@@ -2,8 +2,10 @@
 """Regression check: two contact sheets (tile by tile) or two folders of snapshots (file by file).
 
 A tile «matches» when its mean absolute difference is at most --tile (default 3.0 of 255) and no
-60×60 px block of it differs by more than --block (default 40). Grain and particle noise stay far below
-that; a leaked colour, a moved element or a missing layer do not.
+60×60 px block of it differs by more than --block (default 40). The mean is taken over lightly blurred
+tiles (3×3): film grain differs between two renders of the same engine — up to 3.1 per pixel on a bright
+film-memory frame — and averages out, while a leaked colour, a moved element or a missing layer do not.
+The block is taken over the raw difference.
 
     python3 compare_frames.py a.contact.jpg b.contact.jpg --cols 6 --rows 2
     python3 compare_frames.py build-a/snapshots-verify build-b/snapshots-verify
@@ -31,7 +33,8 @@ def load(path, size=None):
 def diff(a, b, block):
     d = np.abs(a - b).mean(axis=2)
     k = max(3, int(round(block)))
-    return float(d.mean()), float(uniform_filter(d, size=k).max())
+    soft = np.abs(uniform_filter(a, size=(3, 3, 1)) - uniform_filter(b, size=(3, 3, 1))).mean(axis=2)
+    return float(soft.mean()), float(uniform_filter(d, size=k).max())
 
 
 def main():
@@ -45,6 +48,7 @@ def main():
     ap.add_argument("--json", default=None)
     a = ap.parse_args()
     rows = []
+    sizes = None
     if os.path.isdir(a.a):
         fa = sorted(glob.glob(os.path.join(a.a, "**", "*.png"), recursive=True))
         fb = sorted(glob.glob(os.path.join(a.b, "**", "*.png"), recursive=True))
@@ -55,6 +59,7 @@ def main():
             rows.append({"tile": os.path.basename(pa), "mean": round(m, 2), "block": round(blk, 1)})
     else:
         ia, ib = load(a.a), load(a.b)
+        sizes = {"a": [ia.shape[1], ia.shape[0]], "b": [ib.shape[1], ib.shape[0]]}
         if ia.shape != ib.shape:
             ib = load(a.b, (ia.shape[1], ia.shape[0]))
         cols = a.cols or max(1, ia.shape[1] // 216)
@@ -73,7 +78,7 @@ def main():
     print(f"{'✓' if ok else '✗'} совпало {len(ok_rows)} из {len(rows)} (порог: среднее ≤ {a.tile}, блок ≤ {a.block})")
     if a.json:
         with open(a.json, "w", encoding="utf-8") as f:
-            json.dump({"ok": bool(ok), "tiles": rows}, f, ensure_ascii=False, indent=2)
+            json.dump({"ok": bool(ok), "tiles": rows, "sizes": sizes}, f, ensure_ascii=False, indent=2)
     sys.exit(0 if ok else 1)
 
 

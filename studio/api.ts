@@ -1,4 +1,4 @@
-import { copyFileSync, cpSync, existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { copyFileSync, cpSync, existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, statSync, watch, writeFileSync } from "node:fs";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { homedir } from "node:os";
 import { basename, delimiter, extname, join, relative, sep } from "node:path";
@@ -8,7 +8,7 @@ import { SECTIONS, libraryCatalog, previewIndex } from "../engine/src/library.ts
 import type { LibraryItem } from "../engine/src/library.ts";
 import { CONFIG_PATH, LICENSES, ROLES, checkProjectMedia, loadConfig, missingLicense, musicDir, projectDirs, projectsDir, readLedger, snapshotHistory, writeLedger } from "../engine/src/lib/project.ts";
 import type { MediaRecord } from "../engine/src/lib/project.ts";
-import { ENGINE_DIR, ROOT_DIR, loadEnv, readJson, runAsync, sha, writeJson } from "../engine/src/lib/util.ts";
+import { ENGINE_DIR, LIBRARY_DIR, ROOT_DIR, loadEnv, readJson, runAsync, sha, writeJson } from "../engine/src/lib/util.ts";
 import { SECRET_KEYS } from "../engine/src/doctor.ts";
 import { expandBeat } from "../engine/src/intents.ts";
 import { lookIds, loadLook } from "../engine/src/look.ts";
@@ -17,6 +17,8 @@ import { isHtmlScene, loadSpec, parseBeatText } from "../engine/src/spec.ts";
 import type { BeatSpec, VideoSpec } from "../engine/src/spec.ts";
 import { CAMERA_REASONS, STAGE_TYPES, TREATMENTS } from "../engine/src/stage.ts";
 import { budgetState, resolveVoice } from "../engine/src/voice.ts";
+import { DirectorRecorder, claudeEnv, directorAllowlist, directorArgs, directorJournal } from "./director.ts";
+import { openClaude, pasteShort, resizeTerminal, startTerminal, stopTerminal, streamTerminal, terminalState, writeTerminal } from "./terminal.ts";
 
 // The local API of the studio over the engine: every write goes to project.json, media.json, music.json, a look file
 // or hygen.config.json — the same files the CLI and the director read, so editing JSON by hand keeps working.
@@ -112,7 +114,15 @@ function projectDir(name: string, needSpec = true): string {
 }
 
 const readProject = (dir: string): VideoSpec & Record<string, any> => readJson(join(dir, "project.json"));
-const writeProject = (dir: string, p: unknown): void => writeJson(join(dir, "project.json"), p);
+/** Writes of the panel itself: the file watch of a project must not reload the page after its own save. */
+const selfWrites = new Map<string, number>();
+const markSelf = (dir: string): void => {
+  selfWrites.set(dir, Date.now());
+};
+const writeProject = (dir: string, p: unknown): void => {
+  markSelf(dir);
+  writeJson(join(dir, "project.json"), p);
+};
 
 /** Quick check after an edit: the schema and the resolver (loadSpec) and the media ledger; the build does the rest. */
 function validate(dir: string): { ok: boolean; error: string | null } {
@@ -332,6 +342,7 @@ route("POST", "/api/projects/:id/history/:name/rollback", ({ m }) => {
   const snap = join(dir, "history", name);
   if (!/^[\w.-]+$/.test(name) || !existsSync(join(snap, "project.json"))) throw new HttpError(404, `в history/${name} нет project.json`);
   const before = snapshotHistory(dir, `перед откатом к ${name}`);
+  markSelf(dir);
   copyFileSync(join(snap, "project.json"), join(dir, "project.json"));
   if (existsSync(join(snap, "media.json"))) copyFileSync(join(snap, "media.json"), join(dir, "media.json"));
   return { restored: name, saved: before ? basename(before) : null, ...validate(dir) };
@@ -349,6 +360,7 @@ route("POST", "/api/projects/:id/media", async ({ req, url, m }) => {
   mkdirSync(mediaDir, { recursive: true });
   let name = `${stem}${ext === ".jpeg" ? ".jpg" : ext}`;
   for (let k = 2; existsSync(join(mediaDir, name)); k++) name = `${stem}-${k}${ext === ".jpeg" ? ".jpg" : ext}`;
+  markSelf(dir);
   writeFileSync(join(mediaDir, name), await rawBody(req));
   const ledger = readLedger(join(dir, "media.json"));
   ledger[name] = { role: null, title: basename(original, extname(original)), source: "", author: "", license: "", url: "", added: today() };
@@ -373,6 +385,7 @@ route("PUT", "/api/projects/:id/media/:name", async ({ req, m }) => {
   }
   if (b.crop !== undefined) rec.crop = b.crop ?? undefined;
   ledger[name] = rec;
+  markSelf(dir);
   writeLedger(join(dir, "media.json"), ledger);
   return { record: rec, missing: missingLicense(rec) };
 });
@@ -382,6 +395,7 @@ route("DELETE", "/api/projects/:id/media/:name", ({ m, url }) => {
   const name = decodeURIComponent(m[2] as string);
   const p = readProject(dir);
   if (JSON.stringify(p.beats).includes(`media/${name}`) && url.searchParams.get("force") !== "1") throw new HttpError(409, `media/${name} используется в битах — сначала уберите его из битов`);
+  markSelf(dir);
   rmSync(join(dir, "media", name), { force: true });
   const ledger = readLedger(join(dir, "media.json"));
   delete ledger[name];
@@ -556,15 +570,15 @@ route("POST", "/api/jobs/:id/stop", ({ m }) => ({ stopped: stopJob(decodeURIComp
 // ── schema for the forms ─────────────────────────────────────────────────────────────────────────────
 
 route("GET", "/api/schema", () => {
-  const schema = readJson<{ $defs: Record<string, unknown> }>(join(ENGINE_DIR, "scenes", "schema.json"));
-  const devicesDir = join(ENGINE_DIR, "devices");
+  const schema = readJson<{ $defs: Record<string, unknown> }>(join(LIBRARY_DIR, "scenes", "schema.json"));
+  const devicesDir = join(LIBRARY_DIR, "devices");
   const devices = Object.fromEntries(
     readdirSync(devicesDir)
       .filter((d) => existsSync(join(devicesDir, d, "device.json")))
       .sort()
       .map((d) => [d, readJson(join(devicesDir, d, "device.json"))]),
   );
-  const dirIds = (d: string, file: string): string[] => readdirSync(join(ENGINE_DIR, d)).filter((n) => existsSync(join(ENGINE_DIR, d, n, file))).sort();
+  const dirIds = (d: string, file: string): string[] => readdirSync(join(LIBRARY_DIR, d)).filter((n) => existsSync(join(LIBRARY_DIR, d, n, file))).sort();
   return {
     defs: schema.$defs,
     stageTypes: STAGE_TYPES,
@@ -574,14 +588,14 @@ route("GET", "/api/schema", () => {
     tones: ["accent", "cold"],
     devices,
     text: readJson(join(devicesDir, "text.schema.json")),
-    captionFamilies: readJson(join(devicesDir, "text.caption", "families.json")),
-    arcs: readJson(join(ENGINE_DIR, "arcs", "arc.json")),
-    intents: readdirSync(join(ENGINE_DIR, "intents")).filter((f) => f.endsWith(".json")).sort().map((f) => readJson<Record<string, unknown>>(join(ENGINE_DIR, "intents", f))),
+    captionFamilies: readJson(join(LIBRARY_DIR, "captions", "families.json")),
+    arcs: readJson(join(LIBRARY_DIR, "arcs", "arc.json")),
+    intents: readdirSync(join(LIBRARY_DIR, "intents")).filter((f) => f.endsWith(".json")).sort().map((f) => readJson<Record<string, unknown>>(join(LIBRARY_DIR, "intents", f))),
     scenes: dirIds("scenes", "scene.json").map((id) => {
-      const s = readJson<Record<string, any>>(join(ENGINE_DIR, "scenes", id, "scene.json"));
+      const s = readJson<Record<string, any>>(join(LIBRARY_DIR, "scenes", id, "scene.json"));
       return { id, name: s.name, use: s.use, params: s.params, anchors: s.anchors };
     }),
-    recipes: readdirSync(join(ENGINE_DIR, "scenes", "recipes")).filter((f) => f.endsWith(".json")).sort().map((f) => readJson<Record<string, unknown>>(join(ENGINE_DIR, "scenes", "recipes", f))),
+    recipes: readdirSync(join(LIBRARY_DIR, "scenes", "recipes")).filter((f) => f.endsWith(".json")).sort().map((f) => readJson<Record<string, unknown>>(join(LIBRARY_DIR, "scenes", "recipes", f))),
     looks: lookIds(),
     textures: dirIds("textures", "texture.json"),
     transitions: dirIds("transitions", "transition.json"),
@@ -652,19 +666,20 @@ route("POST", "/api/library/apply", async ({ req }) => {
   return { applied: `${item.section}/${item.id}`, ...validate(dir) };
 });
 
-route("GET", "/api/looks", () => ({ looks: lookIds().map((id) => ({ id, look: readJson(join(ENGINE_DIR, "looks", id, "look.json")) })), families: readJson(join(ENGINE_DIR, "devices", "text.caption", "families.json")) }));
+route("GET", "/api/looks", () => ({ looks: lookIds().map((id) => ({ id, look: readJson(join(LIBRARY_DIR, "looks", id, "look.json")) })), families: readJson(join(LIBRARY_DIR, "captions", "families.json")) }));
 
 route("POST", "/api/looks", async ({ req }) => {
-  const b = await body<{ id: string; name: string; extends: string; accent?: string; secondary?: string; mood?: string; family?: string; textures?: string[]; camera?: string; grain?: number }>(req);
+  const b = await body<{ id: string; name: string; extends: string; accent?: string; secondary?: string; mood?: string; family?: string; textures?: string[]; camera?: string; grain?: number; sampleLine?: string }>(req);
   if (!ID_RE.test(b.id ?? "")) throw new HttpError(400, "id look — строчная латиница, цифры и дефис");
-  const dir = join(ENGINE_DIR, "looks", b.id);
+  const dir = join(LIBRARY_DIR, "looks", b.id);
   if (existsSync(dir)) throw new HttpError(409, `look ${b.id} уже есть`);
   if (!lookIds().includes(b.extends)) throw new HttpError(400, "основа — один из встроенных look");
-  const base = readJson<Record<string, any>>(join(ENGINE_DIR, "looks", b.extends, "look.json"));
+  const base = readJson<Record<string, any>>(join(LIBRARY_DIR, "looks", b.extends, "look.json"));
   const look = structuredClone(base);
   look.id = b.id;
   look.name = b.name || b.id;
   if (b.mood) look.about = { ...(look.about ?? {}), mood: b.mood };
+  if (b.sampleLine) look.sampleLine = String(b.sampleLine).trim().slice(0, 60);
   const hex = /^#[0-9A-Fa-f]{6}$/;
   if (b.accent) {
     if (!hex.test(b.accent)) throw new HttpError(400, "акцент — #RRGGBB");
@@ -675,7 +690,7 @@ route("POST", "/api/looks", async ({ req }) => {
     look.palette.secondary = b.secondary.toUpperCase();
   }
   if (b.family) {
-    const families = readJson<Record<string, string[]>>(join(ENGINE_DIR, "devices", "text.caption", "families.json"));
+    const families = readJson<Record<string, string[]>>(join(LIBRARY_DIR, "captions", "families.json"));
     if (!families[b.family]) throw new HttpError(400, "семейство субтитров — calm, explainer или energetic");
     look.captions = { ...(look.captions ?? {}), family: b.family, preset: families[b.family]?.[0] };
   }
@@ -808,6 +823,7 @@ route("POST", "/api/director/check", () => {
     cmd: bin,
     args: ["-p", "Reply with exactly one word: ok", "--output-format", "json", "--max-turns", "1"],
     cwd: ROOT_DIR,
+    env: claudeEnv(),
     onLine: (line) => {
       out += line + "\n";
     },
@@ -855,50 +871,31 @@ route("GET", "/api/brief/:id", ({ m }) => {
   return { brief: readOpt(join(dir, "brief.json")), project: existsSync(join(dir, "project.json")), media: existsSync(join(dir, "media.json")) ? Object.keys(readLedger(join(dir, "media.json"))).length : 0, research: existsSync(join(dir, "research.md")), job: job ? { id: job.id, status: job.status } : null };
 });
 
-/** stream-json of claude -p → one readable line per tool call and per text of the assistant. */
-function directorLine(raw: string): string | null {
-  const s = raw.trim();
-  if (!s.startsWith("{")) return s || null;
-  try {
-    const ev = JSON.parse(s) as Record<string, any>;
-    if (ev.type === "assistant") {
-      const parts = (ev.message?.content ?? []) as Record<string, any>[];
-      return (
-        parts
-          .map((c) => (c.type === "text" ? String(c.text).trim().split("\n")[0]?.slice(0, 240) : c.type === "tool_use" ? `▸ ${c.name}: ${String(c.input?.command ?? c.input?.file_path ?? c.input?.pattern ?? c.input?.url ?? c.input?.skill ?? "").slice(0, 200)}` : ""))
-          .filter(Boolean)
-          .join("\n") || null
-      );
-    }
-    if (ev.type === "result") return `${ev.is_error ? "✗" : "✓"} итог: ${String(ev.result ?? "").split("\n")[0]?.slice(0, 300)} · ${Math.round((ev.duration_ms ?? 0) / 1000)} с${ev.total_cost_usd ? ` · $${Number(ev.total_cost_usd).toFixed(2)}` : ""}`;
-    if (ev.type === "system" && ev.subtype === "init") return `claude: модель ${ev.model ?? "?"}, навыков и команд ${(ev.slash_commands ?? []).length}`;
-    return null;
-  } catch {
-    return s;
-  }
-}
-
 const DIRECTOR_STAGES = ["research", "script", "media", "project", "build"];
 
 route("POST", "/api/director/run", async ({ req }) => {
   const b = await body<{ id: string }>(req);
   const dir = projectDir(b.id, false);
+  const id = basename(dir);
   if (!existsSync(join(dir, "brief.json"))) throw new HttpError(400, "сначала бриф");
   const bin = findClaude();
   if (!bin) throw new HttpError(404, "claude не найден");
-  const running = runningJob("director", b.id);
+  const running = runningJob("director", id);
   if (running) return running;
+  // every line of the run goes to projects/<id>/director.log, refusals of the allowlist as their own events
+  const recorder = new DirectorRecorder(dir, { project: id, prompt: `/short ${id}`, permissionMode: "dontAsk", allowedTools: directorAllowlist(id) });
   return startJob({
     kind: "director",
-    title: `/short ${b.id}`,
-    project: b.id,
+    title: `/short ${id}`,
+    project: id,
     cmd: bin,
-    args: ["-p", `/short ${b.id}`, "--output-format", "stream-json", "--verbose", "--permission-mode", "acceptEdits", "--allowedTools", "Bash,Read,Write,Edit,Glob,Grep,WebFetch,WebSearch,Skill,TodoWrite"],
+    args: directorArgs(id),
     cwd: ROOT_DIR,
+    env: claudeEnv(),
     stages: DIRECTOR_STAGES,
-    transform: directorLine,
+    transform: (line) => recorder.line(line),
     stageOf: (line) => {
-      if (!line.startsWith("▸")) return null;
+      if (!line.includes("▸")) return null;
       if (/npm run build/.test(line)) return "build";
       if (/project\.json/.test(line)) return "project";
       if (/npm run media|media\.json/.test(line)) return "media";
@@ -906,5 +903,68 @@ route("POST", "/api/director/run", async ({ req }) => {
       if (/WebFetch|WebSearch|wikipedia/i.test(line)) return "research";
       return null;
     },
+    onDone: (job) => recorder.end(job.exitCode),
   });
+});
+
+// ── «Режиссёр» of a project: the journal and the watch of its files ─────────────────────────────────────────
+
+route("GET", "/api/projects/:id/director", ({ m }) => {
+  const dir = projectDir(m[1] as string);
+  const id = basename(dir);
+  const job = listJobs(id).find((j) => j.kind === "director");
+  return { ...directorJournal(dir, id), claude: findClaude(), job: job ? { id: job.id, status: job.status } : null };
+});
+
+/** Server-sent events when project.json or media.json change outside the panel (claude in the terminal, an editor). */
+route("GET", "/api/projects/:id/watch", ({ req, res, m }) => {
+  const dir = projectDir(m[1] as string);
+  res.writeHead(200, { "Content-Type": "text/event-stream; charset=utf-8", "Cache-Control": "no-cache", Connection: "keep-alive" });
+  res.write(": project.json, media.json\n\n");
+  const changed = new Set<string>();
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const watcher = watch(dir, (_event, name) => {
+    const file = String(name ?? "");
+    if (file !== "project.json" && file !== "media.json") return;
+    if (Date.now() - (selfWrites.get(dir) ?? 0) < 1500) return;
+    changed.add(file);
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      res.write(`event: change\ndata: ${JSON.stringify({ files: [...changed], at: new Date().toISOString() })}\n\n`);
+      changed.clear();
+    }, 400);
+  });
+  const ping = setInterval(() => res.write(": ping\n\n"), 20_000);
+  req.on("close", () => {
+    watcher.close();
+    clearInterval(ping);
+    clearTimeout(timer);
+  });
+});
+
+// ── terminal (studio/terminal.ts) ───────────────────────────────────────────────────────────────────────────
+
+route("GET", "/api/terminal", () => terminalState());
+route("GET", "/api/terminal/stream", ({ req, res }) => streamTerminal(req, res));
+route("POST", "/api/terminal/start", async ({ req }) => {
+  const b = await body<{ cols?: number; rows?: number }>(req);
+  return startTerminal(b.cols, b.rows);
+});
+route("POST", "/api/terminal/input", async ({ req }) => {
+  writeTerminal((await body<{ data: string }>(req)).data);
+  return { ok: true };
+});
+route("POST", "/api/terminal/resize", async ({ req }) => {
+  const b = await body<{ cols?: number; rows?: number }>(req);
+  resizeTerminal(b.cols, b.rows);
+  return { ok: true };
+});
+route("POST", "/api/terminal/stop", () => stopTerminal());
+route("POST", "/api/terminal/claude", async ({ req }) => {
+  const b = await body<{ cols?: number; rows?: number }>(req);
+  return openClaude(b.cols, b.rows);
+});
+route("POST", "/api/terminal/short", async ({ req }) => {
+  const b = await body<{ id: string; cols?: number; rows?: number }>(req);
+  return pasteShort(basename(projectDir(b.id)), b.cols, b.rows);
 });

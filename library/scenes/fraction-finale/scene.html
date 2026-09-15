@@ -1,0 +1,391 @@
+<!-- hygen scene fraction-finale (from Pompeii 06-finale). Times in the script are REFERENCE times; the build warps them onto the current voice. Contract: library/scenes/CONTRACT.md -->
+<template id="__p__-template">
+  <div id="root" data-composition-id="__cid__" data-duration="{{hygen:duration}}" data-width="1080" data-height="1920">
+    <script src="assets/vendor/gsap.min.js"></script>
+
+    <style>
+{{hygen:fontfaces}}
+    </style>
+
+    <style>
+      #root {
+        position: relative;
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+      }
+
+      /* ground: night, full-bleed, full duration (a clip layer, never painted on #root) */
+      #__p__-ground {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 1080px;
+        height: 1920px;
+        background-color: {{hygen:color.night}};
+      }
+
+      /* static content clip + the stage inside it that fades out in Scene 5 */
+      #__p__-content,
+      #__p__-stage {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 1080px;
+        height: 1920px;
+      }
+
+      /* Scene 1: the dying spark, on the fraction's axis (midpoint of the slash-to-be) */
+      #__p__-spark {
+        position: absolute;
+        left: 545px;
+        top: 760px;
+        width: 0;
+        height: 0;
+      }
+      #__p__-spark-glow {
+        position: absolute;
+        left: -44px;
+        top: -44px;
+        width: 88px;
+        height: 88px;
+        border-radius: 50%;
+        background: radial-gradient(
+          circle closest-side,
+          rgba({{hygen:rgb.hero}}, 0.25) 0%,
+          rgba({{hygen:rgb.hero}}, 0.1) 45%,
+          rgba({{hygen:rgb.hero}}, 0) 100%
+        );
+      }
+      #__p__-spark-core {
+        position: absolute;
+        left: -5px;
+        top: -5px;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background-color: {{hygen:color.heroDeep}};
+      }
+
+      /* the fraction: fixed-width counter boxes; final type size is static, only transform animates */
+      .__p__-counter {
+        position: absolute;
+        top: 535px;
+        width: 320px;
+        height: 447px;
+      }
+      /* box x is offset by the measured ink shift of the lining-tabular glyphs so ink centres land at x 300 / 790
+         (set from the script per digit) */
+      #__p__-one {
+        left: 131px;
+      }
+      #__p__-three {
+        left: 624px;
+      }
+      .__p__-digit {
+        display: block;
+        width: 320px;
+        height: 447px;
+        font-family: {{hygen:font.display}};
+        font-weight: 600;
+        font-size: 520px;
+        line-height: 447px;
+        letter-spacing: 0;
+        font-variant-numeric: lining-nums tabular-nums;
+        text-align: center;
+        white-space: nowrap;
+        color: {{hygen:color.text}};
+      }
+      /* scale about each figure's ink centre (grow in place, no drift) */
+      #__p__-one-value {
+        transform-origin: 168.7px 224.2px;
+      }
+      #__p__-three-value {
+        transform-origin: 165.7px 226.8px;
+      }
+
+      /* hero marks: fraction slash + highlighted segment outlines share one canvas-sized SVG */
+      #__p__-marks {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 1080px;
+        height: 1920px;
+        overflow: visible;
+      }
+      #__p__-slash {
+        fill: none;
+        stroke: {{hygen:color.hero}};
+        stroke-width: 10;
+        stroke-linecap: butt;
+      }
+      #__p__-slash-glow {
+        fill: none;
+        stroke: {{hygen:color.hero}};
+        stroke-opacity: 0.45;
+        stroke-width: 22;
+        stroke-linecap: butt;
+      }
+      .__p__-outline {
+        fill: none;
+        stroke: {{hygen:color.hero}};
+        stroke-width: 2;
+        stroke-linecap: butt;
+        stroke-linejoin: miter;
+      }
+
+      /* segmented scale: x 140–940, 22 px tall, 14 px gaps, centre y 1170 (segments built by the script) */
+      .__p__-fill {
+        position: absolute;
+        top: 1159px;
+        height: 22px;
+        background-color: {{hygen:color.ashLight}};
+        transform-origin: 0% 50%;
+      }
+
+      /* label under the highlighted segments; right edge flush with the scale end (x 940), clear of the right rail */
+      #__p__-label {
+        position: absolute;
+        right: 140px;
+        top: 1221px;
+        height: 28px;
+        margin-right: -0.2em; /* cancels the trailing tracking so the last glyph ends at x 940 */
+        font-family: {{hygen:font.body}};
+        font-weight: 600;
+        font-size: 28px;
+        line-height: 28px;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        white-space: nowrap;
+        color: {{hygen:color.muted}};
+      }
+    </style>
+
+    <div id="__p__-ground" class="clip" data-start="0" data-duration="{{hygen:duration}}" data-track-index="0"></div>
+
+    <div id="__p__-content" class="clip" data-start="0" data-duration="{{hygen:duration}}" data-track-index="1">
+      <div id="__p__-stage">
+        <div id="__p__-spark">
+          <div id="__p__-spark-glow"></div>
+          <div id="__p__-spark-core"></div>
+        </div>
+
+        <div id="__p__-one" class="__p__-counter">
+          <span id="__p__-one-value" class="__p__-digit">0</span>
+        </div>
+        <div id="__p__-three" class="__p__-counter">
+          <span id="__p__-three-value" class="__p__-digit">0</span>
+        </div>
+
+        <div id="__p__-scale"></div>
+
+        <svg id="__p__-marks" width="1080" height="1920" viewBox="0 0 1080 1920" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <defs>
+            <filter id="__p__-glow-blur" filterUnits="userSpaceOnUse" x="390" y="460" width="310" height="600">
+              <fegaussianblur stdDeviation="9" />
+            </filter>
+          </defs>
+          <line id="__p__-slash-glow" x1="455" y1="1000" x2="635" y2="520" filter="url(#__p__-glow-blur)" />
+          <line id="__p__-slash" x1="455" y1="1000" x2="635" y2="520" />
+          <g id="__p__-outlines"></g>
+        </svg>
+
+        <div id="__p__-label"></div>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+  /*{{hygen:params}}*/
+        // reference cues, seconds from the start of THIS clip (0.00–2.00 is deliberate silence):
+        // numerator@2.00 · slash@2.22 · fill@2.74 · outline@3.30 · label@3.60 · speech ends@3.77
+
+        var SVGNS = "http://www.w3.org/2000/svg";
+        var stage = document.getElementById("__p__-stage");
+        var spark = document.getElementById("__p__-spark");
+        var sparkGlow = document.getElementById("__p__-spark-glow");
+        var sparkCore = document.getElementById("__p__-spark-core");
+        var oneBox = document.getElementById("__p__-one");
+        var oneValue = document.getElementById("__p__-one-value");
+        var threeBox = document.getElementById("__p__-three");
+        var threeValue = document.getElementById("__p__-three-value");
+        var slash = document.getElementById("__p__-slash");
+        var slashGlow = document.getElementById("__p__-slash-glow");
+        var scaleEl = document.getElementById("__p__-scale");
+        var outlinesG = document.getElementById("__p__-outlines");
+        var label = document.getElementById("__p__-label");
+
+        var NUM = P.numerator;
+        var DEN = P.denominator;
+
+        // measured ink shift / ink centre of the lining-tabular glyphs in the 320 px box: «1» and «3» from Pompeii,
+        // other figures are close to «3»
+        var INK = { "1": [9, 168.7, 224.2], "3": [6, 165.7, 226.8] };
+        function ink(d) {
+          return INK[String(d)] || [6, 166, 226];
+        }
+        var inkN = ink(NUM);
+        var inkD = ink(DEN);
+        oneBox.style.left = 300 - 160 - inkN[0] + "px";
+        oneValue.style.transformOrigin = inkN[1] + "px " + inkN[2] + "px";
+        threeBox.style.left = 790 - 160 - inkD[0] + "px";
+        threeValue.style.transformOrigin = inkD[1] + "px " + inkD[2] + "px";
+        // two-digit figures (D5): a double-width box scaled down around its centre, centres pushed away from the slash
+        function widen(box, value, centre) {
+          box.style.width = "640px";
+          value.style.width = "640px";
+          box.style.left = centre - 320 + "px";
+          box.style.transform = "scale(0.6)";
+          box.style.transformOrigin = "320px 223.5px";
+          value.style.transformOrigin = "320px 224px";
+        }
+        if (NUM >= 10) widen(oneBox, oneValue, 262);
+        if (DEN >= 10) widen(threeBox, threeValue, 828);
+
+        label.textContent = P.label;
+
+        // ── segmented scale: DEN segments on x 140–940, gap 14; the last NUM are hero outlines ──
+        var SEG_X0 = 140;
+        var SEG_X1 = 940;
+        var SEG_GAP = 14;
+        var segW = (SEG_X1 - SEG_X0 - SEG_GAP * (DEN - 1)) / DEN;
+        var nOutline = Math.min(NUM, DEN);
+        var nFill = DEN - nOutline;
+        var fills = [];
+        var outlines = [];
+        if (P.segments && DEN <= 24) {
+          for (var i = 0; i < DEN; i++) {
+            var a = SEG_X0 + i * (segW + SEG_GAP);
+            var b = a + segW;
+            if (i < nFill) {
+              var f = document.createElement("div");
+              f.id = "__p__-seg-" + (i + 1);
+              f.className = "__p__-fill";
+              f.style.left = Math.round(a) + "px";
+              f.style.width = Math.round(b) - Math.round(a) + "px";
+              scaleEl.appendChild(f);
+              fills.push(f);
+            } else {
+              var x0 = Math.round(a) + 1;
+              var x1 = Math.round(b) - 1;
+              ["top", "bottom"].forEach(function (side) {
+                var p = document.createElementNS(SVGNS, "path");
+                p.setAttribute("id", "__p__-seg-" + (i + 1) + "-" + side);
+                p.setAttribute("class", "__p__-outline");
+                var yy = side === "top" ? 1160 : 1180;
+                p.setAttribute("d", "M " + x0 + " 1170 V " + yy + " H " + x1 + " V 1170");
+                outlinesG.appendChild(p);
+                outlines.push(p);
+              });
+            }
+          }
+        }
+
+        // Stroke length: measured with getTotalLength(); if the element isn't measurable yet,
+        // derive the same length from its own geometry (line coordinates or absolute M/L/H/V data).
+        function strokeLength(el) {
+          var len = 0;
+          try {
+            len = el.getTotalLength();
+          } catch (e) {
+            len = 0;
+          }
+          if (len > 0) return len;
+          if (el.tagName.toLowerCase() === "line") {
+            return Math.hypot(
+              el.x2.baseVal.value - el.x1.baseVal.value,
+              el.y2.baseVal.value - el.y1.baseVal.value
+            );
+          }
+          var t = (el.getAttribute("d") || "").trim().split(/[\s,]+/);
+          var x = 0, y = 0, k = 0, nx, ny;
+          len = 0;
+          while (k < t.length) {
+            var c = t[k++];
+            if (c === "M") { x = +t[k++]; y = +t[k++]; }
+            else if (c === "L") { nx = +t[k++]; ny = +t[k++]; len += Math.hypot(nx - x, ny - y); x = nx; y = ny; }
+            else if (c === "H") { nx = +t[k++]; len += Math.abs(nx - x); x = nx; }
+            else if (c === "V") { ny = +t[k++]; len += Math.abs(ny - y); y = ny; }
+          }
+          return len;
+        }
+
+        // One dash the length of the path (+ a slightly longer gap so an undrawn stroke leaves no seam).
+        function prepDraw(el, len) {
+          el.style.strokeDasharray = len + " " + (len + 8);
+          el.style.strokeDashoffset = String(len);
+        }
+
+        var slashLen = strokeLength(slash);
+        prepDraw(slash, slashLen);
+        prepDraw(slashGlow, slashLen);
+        var outlineLens = outlines.map(function (o) {
+          var len = strokeLength(o);
+          prepDraw(o, len);
+          return len;
+        });
+
+        var tl = gsap.timeline({ paused: true });
+  /*{{hygen:warp}}*/
+
+        // ── Scene 1 (0.00–2.00): black silence. One hero-deep spark smoulders out by 1.90 ──
+        if (P.spark) {
+          tl.fromTo(spark, { y: 0, scale: 1 }, { y: -12, scale: 0.6, duration: 1.9, ease: "sine.inOut" }, 0);
+          tl.fromTo(sparkCore, { opacity: 1 }, { opacity: 0, duration: 1.9, ease: "power2.in" }, 0);
+          // the glow breathes down unevenly (hand-set, deterministic values), then dies with the core
+          tl.fromTo(sparkGlow, { opacity: 1 }, { opacity: 0.5, duration: 0.5, ease: "sine.inOut" }, 0);
+          tl.to(sparkGlow, { opacity: 0.85, duration: 0.35, ease: "sine.inOut" }, 0.5);
+          tl.to(sparkGlow, { opacity: 0.35, duration: 0.45, ease: "sine.inOut" }, 0.85);
+          tl.to(sparkGlow, { opacity: 0.5, duration: 0.25, ease: "sine.inOut" }, 1.3);
+          tl.to(sparkGlow, { opacity: 0, duration: 0.35, ease: "power2.in" }, 1.55);
+        } else {
+          spark.style.display = "none";
+        }
+
+        // ── Scene 2 (2.00–2.75): the fraction ──
+        // numerator 2.00: counts 0 → NUM; value and scale 0.8 → 1 share one tween (same timing + ease)
+        tl.fromTo(
+          oneValue,
+          { textContent: 0, scale: 0.8 },
+          { textContent: NUM, scale: 1, snap: { textContent: 1 }, duration: 0.35, ease: "power3.out" },
+          2.0
+        );
+        tl.fromTo(oneBox, { opacity: 0 }, { opacity: 1, duration: 0.16, ease: "power2.out" }, 2.0);
+        // slash 2.22: the hero fraction bar draws bottom → top (its glow draws with it)
+        tl.fromTo(slash, { strokeDashoffset: slashLen }, { strokeDashoffset: 0, duration: 0.3, ease: "power2.out" }, 2.22);
+        tl.fromTo(slashGlow, { strokeDashoffset: slashLen }, { strokeDashoffset: 0, duration: 0.3, ease: "power2.out" }, 2.22);
+        // 2.35 → 2.75: denominator counts 0 → DEN
+        tl.fromTo(
+          threeValue,
+          { textContent: 0, scale: 0.8 },
+          { textContent: DEN, scale: 1, snap: { textContent: 1 }, duration: 0.4, ease: "power3.out" },
+          2.35
+        );
+        tl.fromTo(threeBox, { opacity: 0 }, { opacity: 1, duration: 0.16, ease: "power2.out" }, 2.35);
+
+        // ── Scene 3 (2.74–3.60): the segmented scale ──
+        // fill 2.74: the plain segments fill left → right, 0.1 s apart (compressed when there are many)
+        var FILL_STAGGER = nFill > 1 ? Math.min(0.1, 0.5 / (nFill - 1)) : 0;
+        fills.forEach(function (f, j) {
+          tl.fromTo(f, { scaleX: 0 }, { scaleX: 1, duration: 0.4, ease: "power2.out" }, 2.74 + j * FILL_STAGGER);
+        });
+        // outline 3.30: the highlighted segments draw as empty hero outlines (both halves sweep left → right)
+        outlines.forEach(function (o, j) {
+          tl.fromTo(o, { strokeDashoffset: outlineLens[j] }, { strokeDashoffset: 0, duration: 0.35, ease: "power2.out" }, 3.3);
+        });
+        // label 3.60
+        tl.fromTo(label, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.4, ease: "power1.out" }, 3.6);
+
+        // ── Scene 4 (3.77–4.92): still hold of the final card. Nothing moves; only the hero glow cools slightly ──
+        tl.to(slashGlow, { opacity: 0.55, duration: 1.1, ease: "sine.inOut" }, 3.8);
+
+        // ── Scene 5 (4.92–5.367): final frame, all content fades to clean night ──
+        if (P.fade) tl.to(stage, { opacity: 0, duration: 0.447, ease: "power2.in" }, 4.92);
+
+        window.__timelines = window.__timelines || {};
+        W.apply(tl);
+        window.__timelines["__cid__"] = tl;
+      })();
+    </script>
+  </div>
+</template>

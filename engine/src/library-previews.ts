@@ -34,12 +34,27 @@ const KINETIC: Record<string, Record<string, unknown>> = {
   "behind-subject": { text: "LOOK UP", position: "center", size: "xl" },
 };
 
+/**
+ * A look previews on its own line (look.json → sampleLine): a figure with a unit («18 hours», «2:40 hours», «4,800 km»)
+ * counts up in counter-title with the world's textures, grain and camera; any other line is typed on the question card.
+ */
+function lookArgs(item: LibraryItem): string[] {
+  const line = String(item.facts?.sampleLine ?? "").trim();
+  const counter = (params: Record<string, unknown>): string[] => ["counter-title", "--look", item.id, "--params", JSON.stringify(params)];
+  const clock = /^(\d{1,2}):(\d{2})\s+(\S{1,9})$/.exec(line);
+  if (clock) return counter({ value: Number(clock[1]) * 60 + Number(clock[2]), format: "clock", unit: (clock[3] as string).toUpperCase() });
+  const figure = /^(\d{1,3}(?:,\d{3})+|\d+)\s+(\S{1,9})$/.exec(line);
+  if (figure) return counter({ value: Number((figure[1] as string).replace(/,/g, "")), format: (figure[1] as string).includes(",") ? "thousands" : "int", unit: (figure[2] as string).toUpperCase() });
+  if (line) return ["question-card", "--look", item.id, "--text", line, "--dur", "4", "--clip", "3", "--beat", JSON.stringify({ data: { text: line, kicker: "The question" } })];
+  return ["counter-title", "--look", item.id];
+}
+
 /** `npm run scene` arguments that preview the item (null — no video). */
 function sceneArgs(item: LibraryItem): string[] | null {
   const short = ["--text", LINE, "--dur", "4", "--clip", "3"];
   switch (item.section) {
     case "looks":
-      return ["counter-title", "--look", item.id];
+      return lookArgs(item);
     case "textures":
       return ["counter-title", "--textures", JSON.stringify([{ id: item.id }])];
     case "devices": {

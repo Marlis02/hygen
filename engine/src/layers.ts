@@ -8,11 +8,11 @@ import { checkCamera, checkPost, checkTransitionRef, checkTypeMap, transitionIds
 import type { BeatSpec, VideoSpec } from "./spec.ts";
 import type { Depth, TextureRef } from "./textures.ts";
 import { BLENDS, DEPTH_Z, checkTextureRefs, renderTexture, resolveTexture } from "./textures.ts";
-import { ENGINE_DIR, ROOT_DIR, copyInto, ensureDir, fail, fileSha, pyScript, python, r3, readJson, run, sha } from "./lib/util.ts";
+import { LIBRARY_DIR, ROOT_DIR, copyInto, ensureDir, fail, fileSha, pyScript, python, r3, readJson, run, sha } from "./lib/util.ts";
 
 // Video-level layers over the scenes: texture sub-compositions, media backgrounds, the engine camera and
 // parallax, post effects, transitions over the cuts and the type presets injected into scenes. Shared by the
-// build (index.html) and the scene preview; played by engine/motion/runtime.js.
+// build (index.html) and the scene preview; played by library/motion/runtime.js.
 
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
 const rgbStr = (hex: string): string => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)).join(",");
@@ -159,7 +159,7 @@ export function videoSeed(id: string): number {
 }
 
 /**
- * Script injected into a scene right before W.apply(tl) (engine/motion/runtime.js → HygenMotion.type): type
+ * Script injected into a scene right before W.apply(tl) (library/motion/runtime.js → HygenMotion.type): type
  * presets of its text slots and their fg parallax. Empty when the beat needs neither — the scene stays as authored.
  */
 export function typeInjection(input: { beat: BeatSpec; scene: SceneDef; look: LookDef; style: StyleDef; compositionId: string; start: number; duration: number; index: number; hits: number[]; seed: number }): string {
@@ -220,7 +220,7 @@ export interface PlannedTransition {
   flashDur: number;
 }
 
-export const transitionDuration = (id: string): number => readJson<{ duration: number }>(join(ENGINE_DIR, "transitions", id, "transition.json")).duration;
+export const transitionDuration = (id: string): number => readJson<{ duration: number }>(join(LIBRARY_DIR, "transitions", id, "transition.json")).duration;
 
 /**
  * Every cut gets a transition: project.json transitions → the beat's own (transition) → the look's hit transition
@@ -477,10 +477,10 @@ export function postOverlays(needs: MotionNeeds): { css: string; html: string } 
   return { css: css.join("\n      "), html: html.map((h) => `\n      ${h}`).join("") };
 }
 
-/** engine/motion/runtime.js + every engine/transitions/<id>/transition.js → assets/hygen/runtime.js. */
+/** library/motion/runtime.js + every library/transitions/<id>/transition.js → assets/hygen/runtime.js. */
 export function installRuntime(dir: string): void {
-  const root = join(ENGINE_DIR, "transitions");
-  const parts = [readFileSync(join(ENGINE_DIR, "motion", "runtime.js"), "utf8")];
+  const root = join(LIBRARY_DIR, "transitions");
+  const parts = [readFileSync(join(LIBRARY_DIR, "motion", "runtime.js"), "utf8")];
   for (const id of transitionIds()) {
     const file = join(root, id, "transition.js");
     if (existsSync(file)) parts.push(readFileSync(file, "utf8"));

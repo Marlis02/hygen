@@ -8,15 +8,17 @@ import type { TextureRef } from "./textures.ts";
 import { checkTextureRefs } from "./textures.ts";
 import { checkCaptionFields } from "./captions.ts";
 import { captionFamilies, familyOf } from "./text.ts";
-import { ENGINE_DIR, fail, readJson } from "./lib/util.ts";
+import { LIBRARY_DIR, fail, readJson } from "./lib/util.ts";
 
-// The look of one video (engine/looks/<id>/look.json or an inline object in project.json): palette over the
+// The look of one video (library/looks/<id>/look.json or an inline object in project.json): palette over the
 // style tokens, textures, motion, transitions, grain, vignette and sound hints. Scenes never read it — the
 // build hands them the looked token table, the engine layers read the same palette as CSS variables.
 
 export interface LookDef {
   id: string;
   name: string;
+  /** The line on the world's preview in the library (npm run library:previews): «18 hours», «Why is the sky blue?». */
+  sampleLine?: string;
   about: { mood: string; topics: string; avoid: string };
   palette: {
     accent: string;
@@ -40,14 +42,14 @@ export interface LookDef {
   grain: number;
   vignette: { alpha: number; clear: number };
   sound: { hit: string; whoosh: string };
-  /** Caption defaults of the world (engine/devices/text.caption): family calm | explainer | energetic, preset, activeWord and any caption field. */
+  /** Caption defaults of the world (library/devices/text.caption): family calm | explainer | energetic, preset, activeWord and any caption field. */
   captions: { family: string; preset: string; activeWord: string; [key: string]: string };
   /** kinetic: true — a typographic world, text.kinetic is not limited to 2 beats of a video. */
   typography: { kinetic: boolean };
 }
 
 const HEX_RE = /^#[0-9A-Fa-f]{6}$/;
-const TOP_KEYS = ["$schema", "id", "name", "about", "palette", "textures", "motion", "transitions", "grain", "vignette", "sound", "captions", "typography"];
+const TOP_KEYS = ["$schema", "id", "name", "sampleLine", "about", "palette", "textures", "motion", "transitions", "grain", "vignette", "sound", "captions", "typography"];
 const PALETTE_KEYS = ["accent", "secondary", "groundTint", "temperature", "textColor", "colors"];
 const MOTION_KEYS = ["camera", "parallax", "type", "post"];
 
@@ -109,7 +111,7 @@ function retint(hex: string, tintHex: string): string {
 // ── load ─────────────────────────────────────────────────────────────────────────────────────────
 
 export function lookIds(): string[] {
-  const root = join(ENGINE_DIR, "looks");
+  const root = join(LIBRARY_DIR, "looks");
   if (!existsSync(root)) return [];
   return readdirSync(root, { withFileTypes: true })
     .filter((d) => d.isDirectory() && existsSync(join(root, d.name, "look.json")))
@@ -118,7 +120,7 @@ export function lookIds(): string[] {
 }
 
 function readLookFile(id: string, where: string): Record<string, unknown> {
-  const path = join(ENGINE_DIR, "looks", id, "look.json");
+  const path = join(LIBRARY_DIR, "looks", id, "look.json");
   if (!existsSync(path)) fail(`${where}: нет look «${id}» (есть: ${lookIds().join(", ")})`);
   return readJson<Record<string, unknown>>(path);
 }
@@ -149,7 +151,7 @@ export function loadLook(ref: unknown, where = "project.json: look"): LookDef {
     if (typeof ref.id !== "string") raw.id = typeof ref.extends === "string" ? `${ref.extends}-custom` : "custom";
     if (typeof ref.name !== "string" && typeof raw.name !== "string") raw.name = String(raw.id);
   } else {
-    fail(`${where}: строка (id из engine/looks) или объект look`);
+    fail(`${where}: строка (id из library/looks) или объект look`);
   }
   return validateLook(raw, where);
 }

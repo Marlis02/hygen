@@ -2,6 +2,13 @@ import { api, clear, confirmBox, fail, h, mountJob, t, toast } from "../lib.ts";
 import type { Dict } from "../lib.ts";
 import { field, fields, group, jsonInput, put, schemaDef } from "../forms.ts";
 
+let reopen = new Set<string>();
+
+/** Beat cards to open again when the tab is drawn anew (a save, a build, a change of project.json from outside). */
+export function setReopenBeats(ids: string[]): void {
+  reopen = new Set(ids.filter(Boolean));
+}
+
 // «Биты»: a card per beat — line, what the viewer sees, intent / scene / stage, devices, captions, look overrides,
 // sync, camera. Lists and param types come from /api/schema (device.json, scene.json, schema.json, text.schema.json).
 
@@ -19,6 +26,7 @@ export function beatsTab(id: string, data: Dict, schema: Dict, reload: () => voi
   };
   box.appendChild(h("div", { class: "row between", style: "margin-bottom:12px" }, h("div", { class: "muted" }, t("beats.about")), h("button", { class: "btn", onclick: add }, t("beats.add"))));
   p.beats.forEach((beat: Dict, i: number) => box.appendChild(beatCard(id, data, schema, beat, i, reload)));
+  reopen = new Set();
   return box;
 }
 
@@ -37,7 +45,7 @@ function beatCard(id: string, data: Dict, schema: Dict, beat: Dict, index: numbe
     h("div", null, h("div", { class: "line" }, beat.text), beat.sees ? h("div", { class: "sees" }, `👁 ${beat.sees}`) : null),
     h("div", { class: "row", style: "justify-content:flex-end" }, beat.intent ? h("span", { class: "chip" }, `intent ${beat.intent}`) : null, beat.scene ? h("span", { class: "chip" }, `scene ${beat.scene}`) : null, beat.stage ? h("span", { class: "chip" }, `stage ${beat.stage.type}`) : null, devs.map((d) => h("span", { class: "chip" }, d.type))),
   );
-  const details = h("details", { class: "beat" }, summary, h("div", { class: "inner" }, h("div", null, editor, status), side));
+  const details = h("details", { class: "beat", "data-beat": beat.id }, summary, h("div", { class: "inner" }, h("div", null, editor, status), side));
   let drawn = false;
   details.addEventListener("toggle", () => {
     if (details.open && !drawn) {
@@ -342,6 +350,11 @@ function beatCard(id: string, data: Dict, schema: Dict, beat: Dict, index: numbe
     }
   }
 
-  if (index === 0 && location.hash.endsWith("/beats") && false) details.open = true;
+  if (reopen.has(beat.id)) {
+    details.open = true;
+    drawn = true;
+    drawEditor();
+    drawSide();
+  }
   return details;
 }

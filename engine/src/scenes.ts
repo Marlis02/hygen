@@ -9,7 +9,7 @@ import type { BeatWords } from "./words.ts";
 import { typeInjection, videoSeed } from "./layers.ts";
 import { clockOf, writeStageBeat } from "./stage.ts";
 import type { LookDef } from "./look.ts";
-import { ENGINE_DIR, ensureDir, log } from "./lib/util.ts";
+import { LIBRARY_DIR, ensureDir, log } from "./lib/util.ts";
 
 export interface SceneEvent {
   /** Reference time inside the scene. */
@@ -33,11 +33,11 @@ export interface SceneBuild {
 }
 
 export function warpHelper(warp: { ref: number[]; act: number[] }): string {
-  const warpJs = readFileSync(join(ENGINE_DIR, "scenes", "_runtime", "warp.js"), "utf8");
+  const warpJs = readFileSync(join(LIBRARY_DIR, "scenes", "_runtime", "warp.js"), "utf8");
   return warpJs.replace("__HYGEN_REF__", JSON.stringify(warp.ref)).replace("__HYGEN_ACT__", JSON.stringify(warp.act));
 }
 
-/** Events of a scene that apply to these params (engine/scenes/<id>/scene.json → events). */
+/** Events of a scene that apply to these params (library/scenes/<id>/scene.json → events). */
 export function sceneEvents(scene: SceneDef, params: Record<string, unknown>): SceneEvent[] {
   return scene.events
     .filter((ev) => evalCondition(ev.if, params))

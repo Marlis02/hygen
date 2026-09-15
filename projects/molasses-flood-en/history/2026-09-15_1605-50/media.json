@@ -1,0 +1,42 @@
+{
+  "aftermath-panorama.jpg": {
+    "role": "hero",
+    "title": "BostonMolassesDisaster",
+    "source": "Wikimedia Commons",
+    "author": "BPL",
+    "license": "Public domain",
+    "url": "https://commons.wikimedia.org/wiki/File:BostonMolassesDisaster.jpg",
+    "added": "2026-09-15",
+    "notes": "Original 3000×2388 jpg file (4.0 MB). Date: Taken on 15 January 1919. Description: Twenty one people were killed on Commercial Street in the North End when a tank of molasses ruptured and exploded. An eight foot wave of the syrupy brown liquid moved down Commercial Street at a spee…"
+  },
+  "blackstrap-molasses.jpg": {
+    "role": "place",
+    "title": "Blackstrapmolasses",
+    "source": "Wikimedia Commons",
+    "author": "Badagnani",
+    "license": "CC BY 3.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Blackstrapmolasses.JPG",
+    "added": "2026-09-15",
+    "notes": "Original 2048×1536 jpg file (1.1 MB). Date: 2008-05-28. Description: Organically produced blackstrap molasses produced in Paraguay. License: https://creativecommons.org/licenses/by/3.0"
+  },
+  "el-structure.jpg": {
+    "role": "evidence",
+    "title": "Boston 1919 molasses disaster - el train structure",
+    "source": "Wikimedia Commons",
+    "author": "Unknown author",
+    "license": "Public domain",
+    "url": "https://commons.wikimedia.org/wiki/File:Boston_1919_molasses_disaster_-_el_train_structure.jpg",
+    "added": "2026-09-15",
+    "notes": "Original 1024×767 jpg file (205 KB). Date: 1919. Description: Elevated train structure damaged by shrapnel from the 1919 Boston Molasses Disaster"
+  },
+  "tank-scale.png": {
+    "role": "evidence",
+    "title": "Boston Molasses Flood Aftermath (original tank scale superimposed)",
+    "source": "Wikimedia Commons",
+    "author": "Jacione",
+    "license": "CC BY-SA 4.0",
+    "url": "https://commons.wikimedia.org/wiki/File:Boston_Molasses_Flood_Aftermath_(original_tank_scale_superimposed).png",
+    "added": "2026-09-15",
+    "notes": "Original 1200×672 png file (935 KB). Date: 2023-12-01. Description: On 15 January 1919, a storage tank at the Purity Distilling Company in Boston, MA burst, releasing 2.3 million gallons of molasses. The resulting flood destroyed nearby buildings and claimed the live… License: https://creativecommons.org/licenses/by-sa/4.0 Used as the hook: the 50 ft × 90 ft outline of the tank drawn over the 1919 aftermath photo."
+  }
+}

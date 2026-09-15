@@ -2,11 +2,11 @@ import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import type { ParamDef, StyleDef } from "./contract.ts";
 import { LITERAL_COLOR_RE, checkValue, toneColors } from "./contract.ts";
-import { ENGINE_DIR, fail, readJson } from "./lib/util.ts";
+import { LIBRARY_DIR, fail, readJson } from "./lib/util.ts";
 
-// Texture library (engine/textures/<id>/texture.json + texture.html): full-frame layers over the scene and
+// Texture library (library/textures/<id>/texture.json + texture.html): full-frame layers over the scene and
 // under the captions — rain, smoke, embers, grain. A texture is a HyperFrames sub-composition with its own
-// paused timeline; the scene never knows it is there. Contract: engine/scenes/CONTRACT.md, «Текстуры».
+// paused timeline; the scene never knows it is there. Contract: library/scenes/CONTRACT.md, «Текстуры».
 
 export interface TextureRef {
   id: string;
@@ -41,7 +41,7 @@ const TOKEN = /^[a-z][A-Za-z0-9]*$/;
 const TEMPLATE_TOKEN_RE = /\{\{hygen:([a-z]+)(?:\.([A-Za-z0-9]+))?\}\}/g;
 
 export function textureIds(): string[] {
-  const root = join(ENGINE_DIR, "textures");
+  const root = join(LIBRARY_DIR, "textures");
   if (!existsSync(root)) return [];
   return readdirSync(root, { withFileTypes: true })
     .filter((d) => d.isDirectory() && existsSync(join(root, d.name, "texture.json")))
@@ -54,11 +54,11 @@ const cache = new Map<string, TextureDef>();
 export function loadTexture(id: string): TextureDef {
   const hit = cache.get(id);
   if (hit) return hit;
-  const dir = join(ENGINE_DIR, "textures", id);
-  if (!existsSync(join(dir, "texture.json"))) fail(`нет текстуры engine/textures/${id} (есть: ${textureIds().join(", ")})`);
-  if (!existsSync(join(dir, "texture.html"))) fail(`нет шаблона engine/textures/${id}/texture.html`);
+  const dir = join(LIBRARY_DIR, "textures", id);
+  if (!existsSync(join(dir, "texture.json"))) fail(`нет текстуры library/textures/${id} (есть: ${textureIds().join(", ")})`);
+  if (!existsSync(join(dir, "texture.html"))) fail(`нет шаблона library/textures/${id}/texture.html`);
   const t = readJson<TextureDef>(join(dir, "texture.json"));
-  const where = `engine/textures/${id}/texture.json`;
+  const where = `library/textures/${id}/texture.json`;
   const need = (cond: unknown, msg: string): void => {
     if (!cond) fail(`${where}: ${msg}`);
   };
@@ -158,7 +158,7 @@ export function resolveTexture(ref: TextureRef, style: StyleDef, where: string, 
 }
 
 export function lintTexture(id: string, html: string): void {
-  const where = `engine/textures/${id}/texture.html`;
+  const where = `library/textures/${id}/texture.html`;
   const need = (cond: unknown, msg: string): void => {
     if (!cond) fail(`${where}: ${msg}`);
   };
@@ -174,7 +174,7 @@ export function lintTexture(id: string, html: string): void {
 
 /** texture.html → sub-composition: `var P = params, S = {colors, rgb}, SEED, DUR` and the colour tokens. */
 export function renderTexture(res: ResolvedTexture, compositionId: string, duration: number, style: StyleDef): string {
-  const template = readFileSync(join(ENGINE_DIR, "textures", res.def.id, "texture.html"), "utf8");
+  const template = readFileSync(join(LIBRARY_DIR, "textures", res.def.id, "texture.html"), "utf8");
   lintTexture(res.def.id, template);
   const colors = toneColors(style, "accent");
   const S = { colors, rgb: Object.fromEntries(Object.entries(colors).map(([k, v]) => [k, rgbOf(v)])) };
@@ -185,7 +185,7 @@ export function renderTexture(res: ResolvedTexture, compositionId: string, durat
     if (kind === "duration" && name === undefined) return String(duration);
     if (kind === "color" && name && colors[name]) return colors[name] as string;
     if (kind === "rgb" && name && colors[name]) return rgbOf(colors[name] as string);
-    return fail(`engine/textures/${res.def.id}/texture.html: неизвестный токен ${whole}`);
+    return fail(`library/textures/${res.def.id}/texture.html: неизвестный токен ${whole}`);
   });
   return html;
 }

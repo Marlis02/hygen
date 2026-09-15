@@ -1,10 +1,10 @@
 import { existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
-import { ENGINE_DIR, fail, readJson } from "./lib/util.ts";
+import { LIBRARY_DIR, fail, readJson } from "./lib/util.ts";
 
-// Registries of the motion library (engine/motion/*.json) and of the transitions (engine/transitions/<id>/):
+// Registries of the motion library (library/motion/*.json) and of the transitions (library/transitions/<id>/):
 // what a look or a beat may name, with the parameters checked here. The runtime that plays them is
-// engine/motion/runtime.js (host-root layers) and engine/motion/type.js (inside a scene).
+// library/motion/runtime.js (host-root layers) and library/motion/type.js (inside a scene).
 
 export interface CameraSpec {
   preset: string;
@@ -29,8 +29,8 @@ interface Registry {
 }
 
 const registry = (name: string): Registry => {
-  const path = join(ENGINE_DIR, "motion", `${name}.json`);
-  if (!existsSync(path)) fail(`нет реестра engine/motion/${name}.json`);
+  const path = join(LIBRARY_DIR, "motion", `${name}.json`);
+  if (!existsSync(path)) fail(`нет реестра library/motion/${name}.json`);
   return readJson<Registry>(path);
 };
 
@@ -39,7 +39,7 @@ export const typePresets = (): string[] => Object.keys(registry("type").presets)
 export const postEffects = (): string[] => Object.keys(registry("post").presets);
 
 export function transitionIds(): string[] {
-  const root = join(ENGINE_DIR, "transitions");
+  const root = join(LIBRARY_DIR, "transitions");
   if (!existsSync(root)) return [];
   return readdirSync(root, { withFileTypes: true })
     .filter((d) => d.isDirectory() && existsSync(join(root, d.name, "transition.json")))

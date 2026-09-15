@@ -2,7 +2,7 @@ import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { join, relative } from "node:path";
 import { libraryDir, musicDir, readLedger } from "./lib/project.ts";
-import { ENGINE_DIR, ROOT_DIR, readJson } from "./lib/util.ts";
+import { LIBRARY_DIR, ROOT_DIR, readJson } from "./lib/util.ts";
 
 // The library as one catalog (ROADMAP S1): looks, textures, devices (with their modes), text.kinetic modes, caption
 // presets, transitions, HTML scene recipes, JSON recipes, music. The studio shows it; `npm run library:previews`
@@ -47,8 +47,8 @@ const originOf = (raw: unknown): { origin: "own" | "registry"; originRef?: strin
 };
 
 function looks(): LibraryItem[] {
-  return dirs(join(ENGINE_DIR, "looks")).map((id) => {
-    const file = join(ENGINE_DIR, "looks", id, "look.json");
+  return dirs(join(LIBRARY_DIR, "looks")).map((id) => {
+    const file = join(LIBRARY_DIR, "looks", id, "look.json");
     const l = readJson<Record<string, any>>(file);
     return {
       section: "looks",
@@ -57,7 +57,7 @@ function looks(): LibraryItem[] {
       description: [l.about?.mood, l.about?.topics ? `Темы: ${[].concat(l.about.topics).join(", ")}` : ""].filter(Boolean).join(" "),
       family: l.captions?.family,
       origin: "own",
-      facts: { accent: l.palette?.accent, captions: l.captions, textures: (l.textures ?? []).map((t: { id: string }) => t.id), camera: l.motion?.camera?.preset, transitions: l.transitions, kinetic: l.typography?.kinetic ?? false },
+      facts: { sampleLine: l.sampleLine, accent: l.palette?.accent, captions: l.captions, textures: (l.textures ?? []).map((t: { id: string }) => t.id), camera: l.motion?.camera?.preset, transitions: l.transitions, kinetic: l.typography?.kinetic ?? false },
       files: [rel(file)],
       apply: { target: "project", set: { look: id } },
     };
@@ -65,8 +65,8 @@ function looks(): LibraryItem[] {
 }
 
 function textures(): LibraryItem[] {
-  return dirs(join(ENGINE_DIR, "textures")).map((id) => {
-    const dir = join(ENGINE_DIR, "textures", id);
+  return dirs(join(LIBRARY_DIR, "textures")).map((id) => {
+    const dir = join(LIBRARY_DIR, "textures", id);
     const t = readJson<Record<string, any>>(join(dir, "texture.json"));
     return { section: "textures", id, name: t.name ?? id, description: t.use ?? "", family: t.layer?.depth, origin: "own", params: t.params, facts: { layer: t.layer }, files: filesOf(dir), apply: { target: "beat", push: "textures", value: { id } } };
   });
@@ -75,9 +75,9 @@ function textures(): LibraryItem[] {
 /** Devices; a device with an enum `mode` (or `shape`/`kind` when there is no mode) gives one item per value. text.kinetic and text.caption have their own sections. */
 function devices(): LibraryItem[] {
   const out: LibraryItem[] = [];
-  for (const type of dirs(join(ENGINE_DIR, "devices"))) {
+  for (const type of dirs(join(LIBRARY_DIR, "devices"))) {
     if (type === "text.kinetic" || type === "text.caption") continue;
-    const dir = join(ENGINE_DIR, "devices", type);
+    const dir = join(LIBRARY_DIR, "devices", type);
     if (!existsSync(join(dir, "device.json"))) continue;
     const d = readJson<Record<string, any>>(join(dir, "device.json"));
     const base = { section: "devices" as const, name: d.name ?? type, family: d.layer, ...originOf(d.origin), params: d.params, files: filesOf(dir) };
@@ -96,7 +96,7 @@ function devices(): LibraryItem[] {
 }
 
 function kinetic(): LibraryItem[] {
-  const dir = join(ENGINE_DIR, "devices", "text.kinetic");
+  const dir = join(LIBRARY_DIR, "devices", "text.kinetic");
   const d = readJson<Record<string, any>>(join(dir, "device.json"));
   const about = String(d.params.mode.description ?? "");
   return (d.params.mode.values as string[]).map((mode) => {
@@ -116,7 +116,7 @@ function kinetic(): LibraryItem[] {
 }
 
 function captions(): LibraryItem[] {
-  const dir = join(ENGINE_DIR, "devices", "text.caption");
+  const dir = join(LIBRARY_DIR, "captions");
   const families = readJson<Record<string, string[]>>(join(dir, "families.json"));
   const out: LibraryItem[] = [];
   for (const [family, presets] of Object.entries(families)) {
@@ -132,7 +132,7 @@ function captions(): LibraryItem[] {
         description: description.trim(),
         family,
         ...originOf(/origin:\s*"([^"]+)"/.exec(src)?.[1]),
-        files: [rel(file), rel(join(dir, "device.js"))].filter((f) => existsSync(join(ROOT_DIR, f))),
+        files: [rel(file), rel(join(LIBRARY_DIR, "devices", "text.caption", "device.js"))].filter((f) => existsSync(join(ROOT_DIR, f))),
         apply: { target: "beat", set: { "caption.preset": preset } },
       });
     }
@@ -141,23 +141,23 @@ function captions(): LibraryItem[] {
 }
 
 function transitions(): LibraryItem[] {
-  return dirs(join(ENGINE_DIR, "transitions")).map((id) => {
-    const dir = join(ENGINE_DIR, "transitions", id);
+  return dirs(join(LIBRARY_DIR, "transitions")).map((id) => {
+    const dir = join(LIBRARY_DIR, "transitions", id);
     const t = readJson<Record<string, any>>(join(dir, "transition.json"));
     return { section: "transitions", id, name: t.name ?? id, description: t.use ?? "", ...originOf(t.origin), facts: { duration: t.duration }, files: filesOf(dir), apply: { target: "beat", set: { transition: id } } };
   });
 }
 
 function scenes(): LibraryItem[] {
-  return dirs(join(ENGINE_DIR, "scenes")).filter((id) => existsSync(join(ENGINE_DIR, "scenes", id, "scene.json"))).map((id) => {
-    const dir = join(ENGINE_DIR, "scenes", id);
+  return dirs(join(LIBRARY_DIR, "scenes")).filter((id) => existsSync(join(LIBRARY_DIR, "scenes", id, "scene.json"))).map((id) => {
+    const dir = join(LIBRARY_DIR, "scenes", id);
     const s = readJson<Record<string, any>>(join(dir, "scene.json"));
     return { section: "scenes", id, name: s.name ?? id, description: s.use ?? "", family: s.hero ? "hero" : undefined, origin: "own", params: s.params, files: filesOf(dir), apply: { target: "beat", set: { scene: id }, replaceStage: true } };
   });
 }
 
 function recipes(): LibraryItem[] {
-  const dir = join(ENGINE_DIR, "scenes", "recipes");
+  const dir = join(LIBRARY_DIR, "scenes", "recipes");
   return readdirSync(dir).filter((n) => n.endsWith(".json")).sort().map((n) => {
     const id = n.replace(/\.json$/, "");
     const r = readJson<Record<string, any>>(join(dir, n));

@@ -25,7 +25,7 @@ export interface VerifyResult {
 /**
  * Autocheck of the final MP4 (py/verify_mp4.py): format, duration and size, loudness and peaks, blank
  * scenes, frozen scenes and events, settle frames compared with fresh composition snapshots — plus a
- * source link for every figure on screen (engine/scenes/CONTRACT.md, «Источники»).
+ * source link for every figure on screen (library/scenes/CONTRACT.md, «Источники»).
  */
 export function verifyVideo(videoDir: string, spec: VideoSpec, opts: VerifyOptions): VerifyResult {
   const buildDir = join(videoDir, "build");

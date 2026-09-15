@@ -10,11 +10,12 @@ import { parseBeatText } from "./spec.ts";
 import type { BeatTiming } from "./timeline.ts";
 import { wordTime } from "./timeline.ts";
 import type { BeatWords } from "./words.ts";
+import { mediaRecord } from "./lib/project.ts";
 import { ROOT_DIR, ensureDir, fail, fileSha, hyperframesBin, lastJsonLine, log, pyScript, python, r3, run, sha } from "./lib/util.ts";
 
-// Stage of a beat v2 (engine/scenes/CONTRACT.md, «Бит v2», «Stage»): the base of the frame — media | split | map | color —
+// Stage of a beat v2 (library/scenes/CONTRACT.md, «Бит v2», «Stage»): the base of the frame — media | split | map | color —
 // written by the build as a sub-composition with fixed z-layers (stage → focus → data → annotate → text) and played by
-// engine/stage/runtime.js + engine/devices/runtime.js. Video is real footage: trim (in/out → data-media-start), rate
+// engine/stage/runtime.js + library/devices/runtime.js. Video is real footage: trim (in/out → data-media-start), rate
 // (data-playback-rate), stop-frames (an exact ffmpeg frame as an <img> clip between two video clips), reverse and the
 // treatments baked once into a cache (engine/py/media_stage.py), crop/pan on an inner wrapper.
 
@@ -99,7 +100,7 @@ export function checkStageBeat(beat: BeatSpec, style: StyleDef, videoDir: string
     if (st.labels !== undefined && (!Array.isArray(st.labels) || st.labels.length !== 2 || st.labels.some((l) => typeof l !== "string" || l.length > 16))) fail(`${where}: labels — две строки ≤ 16`);
   }
   if (type === "map") {
-    if (typeof st.map !== "string") fail(`${where}: map — имя силуэта engine/assets/maps/<имя>.svg`);
+    if (typeof st.map !== "string") fail(`${where}: map — имя силуэта library/assets/maps/<имя>.svg`);
     loadMap(st.map as string, where);
     for (const [i, mk] of ((st.markers ?? []) as unknown[]).entries()) {
       pctPoint(mk, `${where}: markers[${i}]`);
@@ -328,8 +329,10 @@ function prepareMedia(m: Record<string, unknown>, key: string, ctx: Ctx, extraHo
     }
   } else {
     const info = py(["probe", file]) as { duration: number };
-    const tIn = (m.in as number | undefined) ?? 0;
-    const tOut = Math.min((m.out as number | undefined) ?? info.duration, info.duration);
+    // media.json → trim of the file (the sliders of «Ассеты») is the in/out of a beat that does not set its own
+    const trim = mediaRecord(file)?.trim;
+    const tIn = (m.in as number | undefined) ?? trim?.in ?? 0;
+    const tOut = Math.min((m.out as number | undefined) ?? trim?.out ?? info.duration, info.duration);
     if (tIn >= tOut - 0.05) fail(`${where}: in ${tIn} с за концом исходника (${info.duration} с)`);
     const rate = (m.rate as number | undefined) ?? 1;
     const k = sha({ v: 1, f: fileSha(file), tIn, tOut, reverse: m.reverse === true, treatment, inks, fps: ctx.fps });

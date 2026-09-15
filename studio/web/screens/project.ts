@@ -1,15 +1,47 @@
 import { api, clear, confirmBox, copyText, fail, fmtDate, fmtSec, h, mountJob, statusPill, t, tn, toast } from "../lib.ts";
 import type { Dict } from "../lib.ts";
-import { beatsTab } from "./beats.ts";
+import { beatsTab, setReopenBeats } from "./beats.ts";
+import { directorTab } from "./director.ts";
 import { assetsTab } from "./assets.ts";
 import { rollback } from "./projects.ts";
 
-const TABS = ["beats", "assets", "publish", "verify", "history"];
+const TABS = ["beats", "assets", "director", "publish", "verify", "history"];
+
+let watcher: EventSource | null = null;
+
+/** Leaving the project screens: stop following its files. */
+export function stopProjectWatch(): void {
+  watcher?.close();
+  watcher = null;
+}
+
+/** project.json or media.json changed outside the panel (claude in the terminal, an editor): re-read the cards. */
+function watchProject(id: string, reload: () => void): void {
+  stopProjectWatch();
+  const es = new EventSource(`/api/projects/${encodeURIComponent(id)}/watch`);
+  es.addEventListener("change", (e) => {
+    const files = (JSON.parse((e as MessageEvent).data).files as string[]).join(", ");
+    toast(t("project.changedOutside", { files }), "info");
+    reload();
+  });
+  watcher = es;
+}
 
 export async function projectScreen(main: HTMLElement, id: string, tab: string): Promise<void> {
   const [data, schema] = await Promise.all([api<Dict>(`/api/projects/${id}`), api<Dict>("/api/schema")]);
   const p = data.project;
-  const reload = (): void => void projectScreen(main, id, tab).catch(fail);
+  // a reload keeps the open beat cards and the scroll: after a save, a build or a change of the files from outside
+  const reload = (): void => {
+    setReopenBeats([...main.querySelectorAll<HTMLElement>("details.beat[open]")].map((d) => d.dataset.beat ?? ""));
+    const y = window.scrollY;
+    projectScreen(main, id, tab).then(() => window.scrollTo(0, y), fail);
+  };
+  try {
+    localStorage.setItem("studio.lastProject", id);
+  } catch {
+    // private mode: «Режиссёр» in the sidebar just opens the project list
+  }
+  watchProject(id, reload);
   const jobBox = h("div");
   const runBuild = async (render: boolean): Promise<void> => {
     try {
@@ -52,6 +84,7 @@ export async function projectScreen(main: HTMLElement, id: string, tab: string):
   else if (tab === "publish") body.appendChild(publishTab(id, data, reload));
   else if (tab === "verify") body.appendChild(verifyTab(data));
   else if (tab === "history") body.appendChild(historyTab(id, data, reload));
+  else if (tab === "director") body.appendChild(await directorTab(id, reload));
   else body.appendChild(beatsTab(id, data, schema, reload));
 }
 

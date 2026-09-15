@@ -1,10 +1,10 @@
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import type { BeatSpec } from "./spec.ts";
-import { ENGINE_DIR, fail, readJson, sha } from "./lib/util.ts";
+import { LIBRARY_DIR, fail, readJson, sha } from "./lib/util.ts";
 
-// Intent resolver (engine/scenes/CONTRACT.md, «Бит v2»): a table, not heuristics over the text. An intent
-// (engine/intents/<id>.json) or a JSON recipe (engine/scenes/recipes/<id>.json, used as `scene`) gives a default stage,
+// Intent resolver (library/scenes/CONTRACT.md, «Бит v2»): a table, not heuristics over the text. An intent
+// (library/intents/<id>.json) or a JSON recipe (library/scenes/recipes/<id>.json, used as `scene`) gives a default stage,
 // default devices, dominant and camera; placeholders take the beat's shorthand fields — $target, $at[±s], $data.<key>
 // — and every explicit field of the beat wins. Pure function of project.json and the tables: the same input gives the
 // same expanded beat (build/beats.expanded.json).
@@ -33,15 +33,15 @@ function tableIds(dir: string): string[] {
     .sort();
 }
 
-export const intentIds = (): string[] => tableIds(join(ENGINE_DIR, "intents"));
-export const recipeIds = (): string[] => tableIds(join(ENGINE_DIR, "scenes", "recipes"));
-export const isRecipe = (id: string): boolean => existsSync(join(ENGINE_DIR, "scenes", "recipes", `${id}.json`));
+export const intentIds = (): string[] => tableIds(join(LIBRARY_DIR, "intents"));
+export const recipeIds = (): string[] => tableIds(join(LIBRARY_DIR, "scenes", "recipes"));
+export const isRecipe = (id: string): boolean => existsSync(join(LIBRARY_DIR, "scenes", "recipes", `${id}.json`));
 
 function loadTemplate(kind: "intent" | "recipe", id: string): TemplateDef {
-  const file = kind === "intent" ? join(ENGINE_DIR, "intents", `${id}.json`) : join(ENGINE_DIR, "scenes", "recipes", `${id}.json`);
+  const file = kind === "intent" ? join(LIBRARY_DIR, "intents", `${id}.json`) : join(LIBRARY_DIR, "scenes", "recipes", `${id}.json`);
   if (!existsSync(file)) fail(`нет ${kind === "intent" ? "intent" : "рецепта"} «${id}»; есть: ${(kind === "intent" ? intentIds() : recipeIds()).join(", ")}`);
   const t = readJson<TemplateDef>(file);
-  const where = kind === "intent" ? `engine/intents/${id}.json` : `engine/scenes/recipes/${id}.json`;
+  const where = kind === "intent" ? `library/intents/${id}.json` : `library/scenes/recipes/${id}.json`;
   if (t.id !== id) fail(`${where}: id «${t.id}» не совпадает с именем файла`);
   if (!isObj(t.stage) || !Array.isArray(t.stage.types) || !t.stage.types.length) fail(`${where}: stage.types — список допустимых stage`);
   if (!Array.isArray(t.devices)) fail(`${where}: devices — список`);
@@ -105,7 +105,7 @@ export function expandBeat(beat: BeatSpec, htmlScene: (id: string) => boolean): 
   let tpl: TemplateDef | null = null;
   let kind = "";
   if (beat.scene !== undefined) {
-    if (!isRecipe(beat.scene)) fail(`${beat.id}: нет сцены engine/scenes/${beat.scene}/scene.json и рецепта engine/scenes/recipes/${beat.scene}.json`);
+    if (!isRecipe(beat.scene)) fail(`${beat.id}: нет сцены library/scenes/${beat.scene}/scene.json и рецепта library/scenes/recipes/${beat.scene}.json`);
     if (beat.intent !== undefined) fail(`${beat.id}: рецепт ${beat.scene} и intent ${beat.intent} вместе — выбери одно`);
     tpl = loadRecipe(beat.scene);
     kind = `рецепт ${beat.scene}`;
@@ -146,7 +146,7 @@ export function expandBeat(beat: BeatSpec, htmlScene: (id: string) => boolean): 
 /** Hash of everything the resolver reads: the beats and the tables. */
 export function resolverInputHash(beats: BeatSpec[]): string {
   const tables: string[] = [];
-  for (const id of intentIds()) tables.push(readFileSync(join(ENGINE_DIR, "intents", `${id}.json`), "utf8"));
-  for (const id of recipeIds()) tables.push(readFileSync(join(ENGINE_DIR, "scenes", "recipes", `${id}.json`), "utf8"));
+  for (const id of intentIds()) tables.push(readFileSync(join(LIBRARY_DIR, "intents", `${id}.json`), "utf8"));
+  for (const id of recipeIds()) tables.push(readFileSync(join(LIBRARY_DIR, "scenes", "recipes", `${id}.json`), "utf8"));
   return sha({ beats, tables });
 }

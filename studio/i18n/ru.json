@@ -1,9 +1,40 @@
 {
   "app": { "title": "hygen studio" },
-  "common": { "ok": "Готово", "cancel": "Отмена", "save": "Сохранить", "copy": "Копировать", "copied": "Скопировано", "loading": "Загрузка…", "yes": "да", "no": "нет" },
-  "nav": { "projects": "Проекты", "new": "Новый ролик", "library": "Библиотека", "looks": "Look", "settings": "Настройки", "tagline": "studio", "foot": "локально · 127.0.0.1" },
+  "common": {
+    "ok": "Готово",
+    "cancel": "Отмена",
+    "save": "Сохранить",
+    "copy": "Копировать",
+    "copied": "Скопировано",
+    "loading": "Загрузка…",
+    "yes": "да",
+    "no": "нет"
+  },
+  "units": { "mb": "МБ", "kb": "КБ" },
+  "nav": {
+    "projects": "Проекты",
+    "new": "Новый ролик",
+    "library": "Библиотека",
+    "looks": "Look",
+    "director": "Режиссёр",
+    "settings": "Настройки",
+    "tagline": "studio",
+    "foot": "локально · 127.0.0.1"
+  },
   "status": { "draft": "черновик", "built": "собран", "verified": "проверен", "published": "выложен" },
-  "stages": { "voice": "голос", "timings": "тайминги", "composition": "композиция", "render": "рендер", "master": "мастеринг", "verify": "проверка", "research": "исследование", "script": "сценарий", "media": "медиа", "project": "project.json", "build": "сборка" },
+  "stages": {
+    "voice": "голос",
+    "timings": "тайминги",
+    "composition": "композиция",
+    "render": "рендер",
+    "master": "мастеринг",
+    "verify": "проверка",
+    "research": "исследование",
+    "script": "сценарий",
+    "media": "медиа",
+    "project": "project.json",
+    "build": "сборка"
+  },
   "job": {
     "log": "лог",
     "stop": "Остановить",
@@ -13,7 +44,12 @@
       "revoice": "Старый дубль бита убран в history/, остальные реплики — из кэша."
     }
   },
-  "form": { "default": "по умолчанию: {v}", "defaultShort": "(по умолчанию)", "atHint": "слово реплики, start, speech, end или секунды", "listHint": "через запятую" },
+  "form": {
+    "default": "по умолчанию: {v}",
+    "defaultShort": "(по умолчанию)",
+    "atHint": "слово реплики, start, speech, end или секунды",
+    "listHint": "через запятую"
+  },
   "projects": {
     "title": "Проекты",
     "sub": "{n} роликов и {proof} proof в projects/",
@@ -33,13 +69,14 @@
     "building": "собирается"
   },
   "project": {
-    "tabs": { "beats": "Биты", "assets": "Ассеты", "publish": "Publish", "verify": "Проверка", "history": "История" },
+    "tabs": { "beats": "Биты", "assets": "Ассеты", "director": "Режиссёр", "publish": "Publish", "verify": "Проверка", "history": "История" },
     "invalid": "project.json не собирается:",
     "noMp4": "MP4 ещё нет — нажмите «Собрать»",
     "contact": "Контактный лист",
     "noContact": "Контактного листа нет",
     "buildInfo": "сборка {s} с · {d}",
-    "statusSaved": "Статус сохранён"
+    "statusSaved": "Статус сохранён",
+    "changedOutside": "{files} изменён вне панели — карточки перечитаны"
   },
   "build": { "run": "Собрать", "noRender": "Без рендера", "done": "Сборка готова", "failed": "Сборка упала — см. лог" },
   "beats": {
@@ -51,13 +88,22 @@
     "text": "реплика",
     "sees": "что видит зритель",
     "seesHint": "Одно предложение режиссёра до выбора intent (research.md → Beats).",
-    "roleHint": "Роль в арке: hook, setup, turn, peak, ending… (engine/arcs).",
-    "groups": { "line": "Реплика", "intent": "Intent", "scene": "Сцена", "stage": "Stage", "devices": "Устройства (0–3)", "caption": "Субтитры бита", "look": "Look, ритм и камера", "advanced": "Источники, паузы и весь JSON бита" },
+    "roleHint": "Роль в арке: hook, setup, turn, peak, ending… (library/arcs).",
+    "groups": {
+      "line": "Реплика",
+      "intent": "Intent",
+      "scene": "Сцена",
+      "stage": "Stage",
+      "devices": "Устройства (0–3)",
+      "caption": "Субтитры бита",
+      "look": "Look, ритм и камера",
+      "advanced": "Источники, паузы и весь JSON бита"
+    },
     "requires": "нужно",
     "intentStageHint": "Необязательно: поля stage поверх умолчания intent (например src).",
     "anchorsHint": "якорь → слово реплики: {list}",
     "splitHint": "Поля media: {\"src\": \"media/before.jpg\"}",
-    "mapHint": "Имя силуэта engine/assets/maps/<имя>.svg",
+    "mapHint": "Имя силуэта library/assets/maps/<имя>.svg",
     "regionsHint": "{\"имя\": {\"x\":10,\"y\":40,\"w\":30,\"h\":10}} — проценты кадра",
     "explainsHint": "Что объясняет пометка — обязательно у annotate.*",
     "figuresHint": "Цифры в {list} — нужен source",
@@ -119,7 +165,7 @@
     "removeText": "media/{name} и его запись в media.json будут удалены.",
     "trim": "обрезка видео",
     "trimLabel": "in {a} с → out {b} с · {d} с",
-    "trimHint": "Сохраняется в media.json → trim; в бите in/out ставятся полями stage.",
+    "trimHint": "Сохраняется в media.json → trim и становится in/out бита, если у бита они не заданы.",
     "search": "Поиск Commons и Pexels",
     "searchAbout": "тот же npm run media, только лицензии PD, CC0, CC BY, CC BY-SA и Pexels",
     "searchPlaceholder": "Halifax harbour 1917",
@@ -158,19 +204,41 @@
     "fixDefault": "открыть лог сборки и отчёт renders/<id>.verify.json",
     "warnDefault": "проверка прошла, но посмотрите предупреждения на контактном листе",
     "checks": {
-      "format": { "title": "Формат и длительность", "fix": "MP4 не 1080×1920 / 30 fps или длиннее плана — пересобрать; если длительность разошлась, смотреть переходы (TRAPS «Лишние кадры»)" },
+      "format": {
+        "title": "Формат и длительность",
+        "fix": "MP4 не 1080×1920 / 30 fps или длиннее плана — пересобрать; если длительность разошлась, смотреть переходы (TRAPS «Лишние кадры»)"
+      },
       "size": { "title": "Размер файла", "fix": "больше 25 МБ на 10 с — проверить bitrate.crf в настройках (18 по умолчанию)" },
       "loudness": { "title": "Громкость", "fix": "не −14 LUFS или пик выше −1,5 dBTP — пересобрать: мастеринг идёт в сборке" },
       "blank": { "title": "Пустые сцены", "fix": "в MP4 есть пустой бит — смотреть кадр на листе, чаще всего это медиа без файла или перекрытие слоем" },
-      "frozen": { "title": "Застывшие сцены", "fix": "бит не двигается или событие не меняет кадр — добавить движение (камера с причиной, устройство) или проверить слово события", "warn": "посмотреть биты из списка на листе" },
-      "settled": { "title": "Кадры = снимки", "fix": "кадр MP4 разошёлся со снимком композиции — смотреть лист; играющее видео в момент settle сравнивать нельзя" },
+      "frozen": {
+        "title": "Застывшие сцены",
+        "fix": "бит не двигается или событие не меняет кадр — добавить движение (камера с причиной, устройство) или проверить слово события",
+        "warn": "посмотреть биты из списка на листе"
+      },
+      "settled": {
+        "title": "Кадры = снимки",
+        "fix": "кадр MP4 разошёлся со снимком композиции — смотреть лист; играющее видео в момент settle сравнивать нельзя"
+      },
       "sources": { "title": "Источники цифр", "fix": "у цифры на экране нет ссылки — добавить source устройству или sources.text биту" },
       "media": { "title": "Лицензии медиа", "fix": "во вкладке «Ассеты» заполнить красные записи: источник, автор, лицензия, ссылка" },
-      "grammar": { "title": "Грамматика битов", "fix": "исправить бит из текста ошибки: один stage, ≤ 3 устройств, dominant, explains у пометок", "warn": "ритм: после плотного бита — пауза, intent не подряд, текст ≤ 7 слов" },
+      "grammar": {
+        "title": "Грамматика битов",
+        "fix": "исправить бит из текста ошибки: один stage, ≤ 3 устройств, dominant, explains у пометок",
+        "warn": "ритм: после плотного бита — пауза, intent не подряд, текст ≤ 7 слов"
+      },
       "expanded": { "title": "Развёртка intents", "fix": "резолвер дал разный результат — сообщить в сессию движка" },
-      "uniqueness": { "title": "Уникальность", "fix": "ролик похож на один из двух последних: сменить look, арку или последовательность stage", "warn": "совпадение 40–60 % — стоит развести кадры" },
+      "uniqueness": {
+        "title": "Уникальность",
+        "fix": "ролик похож на один из двух последних: сменить look, арку или последовательность stage",
+        "warn": "совпадение 40–60 % — стоит развести кадры"
+      },
       "publish": { "title": "Publish", "fix": "не хватает названий, тегов или кредитов — заполнить publish в project.json и пересобрать" },
-      "text": { "title": "Текст на экране", "fix": "контраст под субтитрами ниже 4,5:1 без подложки — поставить background у субтитров бита", "warn": "движок сам подложил wash или blur — посмотреть кадр" }
+      "text": {
+        "title": "Текст на экране",
+        "fix": "контраст под субтитрами ниже 4,5:1 без подложки — поставить background у субтитров бита",
+        "warn": "движок сам подложил wash или blur — посмотреть кадр"
+      }
     }
   },
   "history": {
@@ -188,7 +256,17 @@
   "library": {
     "title": "Библиотека",
     "sub": "{n} элементов, превью у {p}",
-    "sections": { "looks": "Looks", "textures": "Текстуры", "devices": "Устройства", "kinetic": "text.kinetic", "captions": "Субтитры", "transitions": "Переходы", "scenes": "Сцены", "recipes": "Рецепты", "music": "Музыка" },
+    "sections": {
+      "looks": "Looks",
+      "textures": "Текстуры",
+      "devices": "Устройства",
+      "kinetic": "text.kinetic",
+      "captions": "Субтитры",
+      "transitions": "Переходы",
+      "scenes": "Сцены",
+      "recipes": "Рецепты",
+      "music": "Музыка"
+    },
     "allFamilies": "все семейства",
     "origin": { "all": "свои и реестр", "own": "своё", "registry": "реестр HyperFrames" },
     "search": "поиск",
@@ -199,7 +277,12 @@
     "applyBeat": "Применить к биту",
     "applyProject": "Применить к проекту",
     "applyTitle": "Применить «{name}»",
-    "applyHint": { "devices": "Устройство добавится в бит (не больше 3); параметры — из demo, поправить во вкладке «Биты».", "textures": "Текстура добавится к биту поверх текстур look.", "set": "Поле бита заменится этим элементом.", "project": "Поле проекта заменится этим элементом." },
+    "applyHint": {
+      "devices": "Устройство добавится в бит (не больше 3); параметры — из demo, поправить во вкладке «Биты».",
+      "textures": "Текстура добавится к биту поверх текстур look.",
+      "set": "Поле бита заменится этим элементом.",
+      "project": "Поле проекта заменится этим элементом."
+    },
     "project": "проект",
     "beat": "бит",
     "apply": "Применить",
@@ -223,7 +306,7 @@
     "transitions": "переходы",
     "kinetic": "кинетика без лимита",
     "create": "Новый look",
-    "createHint": "Новый мир строится от встроенного: всё, что не задано, берётся у основы. Сохраняется в engine/looks/<id>/look.json и сразу проверяется движком.",
+    "createHint": "Новый мир строится от встроенного: всё, что не задано, берётся у основы. Сохраняется в library/looks/<id>/look.json и сразу проверяется движком.",
     "idHint": "латиница, например harbour-frost",
     "name": "название",
     "base": "основа",
@@ -233,13 +316,23 @@
     "grain": "зерно",
     "mood": "настроение",
     "createGo": "Создать look",
-    "created": "Look {id} создан"
+    "created": "Look {id} создан",
+    "sample": "реплика превью",
+    "sampleHint": "Строка на превью мира, например 18 hours или Why is the sky blue?"
   },
   "settings": {
     "title": "Настройки",
     "sub": "hygen.config.json — все команды читают его. Секреты — только в .env.",
     "saved": "hygen.config.json сохранён",
-    "sections": { "voice": "Голос", "budgets": "Бюджеты", "bitrate": "Битрейт", "short": "Длина Short", "paths": "Пути", "studio": "Панель", "look": "Look по умолчанию" },
+    "sections": {
+      "voice": "Голос",
+      "budgets": "Бюджеты",
+      "bitrate": "Битрейт",
+      "short": "Длина Short",
+      "paths": "Пути",
+      "studio": "Панель",
+      "look": "Look по умолчанию"
+    },
     "about": {
       "voice": "Провайдер и голос по умолчанию; project.json и флаг --voice сильнее.",
       "budgets": "Потолок символов ElevenLabs с последнего сброса.",
@@ -264,7 +357,10 @@
     "chars": "символов",
     "doctor": "Проверить окружение",
     "doctorOk": "Окружение готово",
-    "doctorFail": "doctor нашёл проблемы — см. лог"
+    "doctorFail": "doctor нашёл проблемы — см. лог",
+    "language": "Язык панели",
+    "languageAbout": "Только интерфейс панели в этом браузере; ролики, движок и сообщения CLI не меняются.",
+    "langs": { "ru": "Русский", "en": "English" }
   },
   "newvideo": {
     "title": "Новый ролик",
@@ -297,5 +393,72 @@
     "directorDone": "Режиссёр закончил",
     "directorFail": "Режиссёр остановился с ошибкой — см. лог",
     "projectAppeared": "project.json появился — проект готов к правкам"
+  },
+  "director": {
+    "title": "Режиссёр",
+    "homeSub": "Терминал панели и журнал режиссёра — выберите проект",
+    "journal": "Журнал режиссёра",
+    "run": "Запустить /short (claude -p)",
+    "manual": "Сделан вручную: у проекта нет director.log — режиссёр из панели его не делал. Ниже — то, что лежит в файлах проекта.",
+    "allowlist": "Разрешения claude -p · {n}",
+    "allowlistAbout": "Всё, что не в списке, — отказ (--permission-mode dontAsk); каждый отказ записывается в director.log.",
+    "cols": {
+      "when": "когда",
+      "source": "откуда",
+      "prompt": "команда",
+      "model": "модель",
+      "duration": "длительность",
+      "tokens": "токены",
+      "cost": "стоимость",
+      "denied": "отказы"
+    },
+    "source": { "studio": "из панели", "transcript": "из транскрипта Claude Code" },
+    "turns": "ходов {n}",
+    "tokensLine": "вход {input} · выход {output} · кэш {read} / {write}",
+    "brief": "Бриф",
+    "noBrief": "Брифа нет — проект начат не через «Новый ролик»",
+    "briefFields": { "topic": "тема", "look": "look", "voice": "голос", "seconds": "длина, с", "wishes": "пожелания", "createdAt": "создан" },
+    "lookByDirector": "выбирает режиссёр",
+    "concept": "Концепция и арка",
+    "noConcept": "В research.md нет раздела Concept",
+    "media": "Медиа: что искал и что выбрал",
+    "searches": "запросы npm run media",
+    "noSearches": "запросов в журнале нет",
+    "gets": "скачано",
+    "getFailed": "не скачалось",
+    "whyChosen": "что выбрано и почему (research.md → Media)",
+    "licenses": "лицензии (media.json)",
+    "mediaCols": { "file": "файл", "role": "роль", "license": "лицензия", "author": "автор", "source": "источник" },
+    "beats": "Intents по битам",
+    "beatCols": { "id": "бит", "role": "роль", "sees": "что видит зритель", "frame": "кадр", "devices": "устройства", "dominant": "ведёт" },
+    "grammar": "Грамматика",
+    "grammarOk": "ошибок нет",
+    "density": "плотность по битам",
+    "spend": "Расход",
+    "eleven": "ElevenLabs: дублей {takes}, символов {chars}",
+    "noEleven": "ElevenLabs не тратился (Kokoro или кэш)",
+    "takes": "дубли по репликам",
+    "tokensTotal": "Токены Claude: {line}",
+    "costTotal": "стоимость ${cost}",
+    "noTokens": "токенов в журнале нет",
+    "denied": "Отказы allowlist",
+    "noDenied": "отказов нет",
+    "log": "строк {n} · {size}",
+    "noLog": "director.log нет"
+  },
+  "terminal": {
+    "title": "Терминал",
+    "hint": "cwd {cwd} · проект {project}",
+    "start": "Запустить",
+    "claude": "Открыть claude здесь",
+    "short": "/short для этого проекта",
+    "shortNone": "сначала откройте проект",
+    "stop": "Завершить",
+    "stopTitle": "Завершить терминал?",
+    "stopText": "Shell и всё, что в нём запущено (в том числе claude), будут остановлены.",
+    "running": "работает · {process}",
+    "stopped": "не запущен",
+    "exited": "процесс завершён, код {code}",
+    "noXterm": "xterm.js не загрузился: {e} — npm install в корне репозитория"
   }
 }

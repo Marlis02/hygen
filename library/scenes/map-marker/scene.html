@@ -1,0 +1,586 @@
+<!-- hygen scene map-marker (from Pompeii 02-context). Times in the script are REFERENCE times; the build warps them onto the current voice. Contract: library/scenes/CONTRACT.md -->
+<template id="__p__-template">
+<script src="assets/vendor/gsap.min.js"></script>
+
+<style>
+{{hygen:fontfaces}}
+</style>
+
+<style>
+  #root {
+    position: relative;
+    width: 1080px;
+    height: 1920px;
+    overflow: hidden;
+  }
+  /* full-bleed ash ground (background clip, lowest track) */
+  #__p__-ground {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 1080px;
+    height: 1920px;
+    background-color: {{hygen:color.ground}};
+  }
+  /* full-duration scene clip */
+  #__p__-scene {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 1080px;
+    height: 1920px;
+    overflow: hidden;
+    z-index: 25; /* above the opaque ash layer that covers this beat in the render; below vignette (30) and captions (35) */
+  }
+  /* multi-phase camera: one wrapper around all content; its transform has a single writer */
+  #__p__-camera {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 1080px;
+    height: 1920px;
+    transform-origin: 50% 50%;
+  }
+  #__p__-map {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 1080px;
+    height: 1920px;
+    overflow: visible;
+  }
+  /* map annotations — canvas px, baselines placed from the font metrics */
+  #__p__-region {
+    position: absolute;
+    left: 110px;
+    top: 720px;
+    font-family: {{hygen:font.body}};
+    font-weight: 500;
+    font-size: 26px;
+    line-height: 30px;
+    letter-spacing: 0.18em;
+    color: rgba({{hygen:rgb.muted}}, 0.8);
+    white-space: nowrap;
+  }
+  .__p__-line {
+    display: block;
+  }
+  #__p__-label {
+    position: absolute;
+    left: 704px;
+    top: 526px;
+    font-family: {{hygen:font.display}};
+    font-weight: 600;
+    font-size: 60px;
+    line-height: 60px;
+    letter-spacing: 0.06em;
+    color: {{hygen:color.text}};
+    white-space: nowrap;
+  }
+  #__p__-peak-label {
+    position: absolute;
+    left: 700px;
+    top: 251px;
+    font-family: {{hygen:font.body}};
+    font-weight: 600;
+    font-size: 30px;
+    line-height: 30px;
+    letter-spacing: 0.22em;
+    color: {{hygen:color.muted}};
+    white-space: nowrap;
+  }
+  #__p__-peak-note {
+    position: absolute;
+    left: 700px;
+    top: 291px;
+    font-family: {{hygen:font.body}};
+    font-weight: 500;
+    font-size: 24px;
+    line-height: 26px;
+    letter-spacing: 0.1em;
+    font-feature-settings: "case" 1;
+    color: rgba({{hygen:rgb.muted}}, 0.7);
+    white-space: nowrap;
+  }
+  /* counter lockup: prefix + fixed-width tabular figure box, optically centred on x 540 */
+  #__p__-prefix {
+    position: absolute;
+    left: 209.5px;
+    top: 1103px;
+    font-family: {{hygen:font.display}};
+    font-weight: 500;
+    font-size: 110px;
+    line-height: 110px;
+    color: {{hygen:color.muted}};
+    white-space: nowrap;
+  }
+  #__p__-count-box {
+    position: absolute;
+    left: 273.7px;
+    top: 1056.5px;
+    width: 597px;
+    height: 230px;
+  }
+  #__p__-count {
+    width: 597px;
+    height: 230px;
+    text-align: left;
+    font-family: {{hygen:font.display}};
+    font-weight: 700;
+    font-size: 230px;
+    line-height: 230px;
+    letter-spacing: -0.01em;
+    font-variant-numeric: lining-nums tabular-nums;
+    color: {{hygen:color.text}};
+    white-space: nowrap;
+    /* scale pivots on the figures' left ink edge at mid figure height, so the prefix gap holds while it grows */
+    transform-origin: 17px 116px;
+  }
+  #__p__-counter-label {
+    position: absolute;
+    left: 120px;
+    top: 1275px;
+    width: 840px;
+    text-align: center;
+    text-indent: 0.22em;
+    font-family: {{hygen:font.body}};
+    font-weight: 600;
+    font-size: 34px;
+    line-height: 34px;
+    letter-spacing: 0.22em;
+    color: {{hygen:color.muted}};
+    white-space: nowrap;
+  }
+  #__p__-row {
+    position: absolute;
+    left: 120px;
+    top: 1357px;
+    width: 840px;
+    height: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    font-family: {{hygen:font.body}};
+    font-weight: 600;
+    font-size: 30px;
+    line-height: 30px;
+    letter-spacing: 0.14em;
+    font-feature-settings: "case" 1;
+    color: rgba({{hygen:rgb.text}}, 0.9);
+    white-space: nowrap;
+  }
+  .__p__-word {
+    display: block;
+    margin-right: -0.14em;
+  }
+  .__p__-sep {
+    display: block;
+    margin: 0 0.62em;
+    letter-spacing: 0;
+    color: {{hygen:color.muted}};
+  }
+</style>
+
+<div id="root" data-composition-id="__cid__" data-start="0" data-duration="{{hygen:duration}}" data-width="1080" data-height="1920">
+  <div id="__p__-ground" class="clip" data-start="0" data-duration="{{hygen:duration}}" data-track-index="0"></div>
+
+  <div id="__p__-scene" class="clip" data-start="0" data-duration="{{hygen:duration}}" data-track-index="1">
+    <div id="__p__-camera" data-layout-allow-overflow="">
+      <svg id="__p__-map" viewBox="0 0 1080 1920" width="1080" height="1920" aria-hidden="true">
+        <defs>
+          <clippath id="__p__-map-clip">
+            <rect x="60" y="150" width="960" height="840" />
+          </clippath>
+          <clippath id="__p__-cone-clip">
+            <rect x="0" y="0" width="1080" height="420" />
+          </clippath>
+          <mask id="__p__-route-mask" maskUnits="userSpaceOnUse" x="0" y="0" width="1080" height="1100">
+            <path id="__p__-route-reveal" d="M682 554 Q626 598 548 600" fill="none" stroke="{{hygen:color.white}}" stroke-width="10" stroke-linecap="butt" />
+          </mask>
+          <radialgradient id="__p__-glow-grad" cx="0.5" cy="0.5" r="0.5">
+            <stop offset="0" stop-color="{{hygen:color.hero}}" stop-opacity="1" />
+            <stop offset="0.4" stop-color="{{hygen:color.hero}}" stop-opacity="0.55" />
+            <stop offset="1" stop-color="{{hygen:color.hero}}" stop-opacity="0" />
+          </radialgradient>
+        </defs>
+
+        <g id="__p__-atlas" clip-path="url(#__p__-map-clip)">
+          <path id="__p__-grid" d="M180.5 150 V990 M300.5 150 V990 M420.5 150 V990 M540.5 150 V990 M660.5 150 V990 M780.5 150 V990 M900.5 150 V990 M60 270.5 H1020 M60 390.5 H1020 M60 510.5 H1020 M60 630.5 H1020 M60 750.5 H1020 M60 870.5 H1020" fill="none" stroke="rgba({{hygen:rgb.text}},0.06)" stroke-width="1" />
+          <g id="__p__-peak" clip-path="url(#__p__-cone-clip)">
+            <g id="__p__-cone">
+              <polygon points="330,420 478,262 528,262 676,420" fill="{{hygen:color.ashDeep}}" />
+              <polyline points="330,420 478,262 528,262 676,420" fill="none" stroke="{{hygen:color.text}}" stroke-width="1.5" stroke-linejoin="miter" />
+            </g>
+          </g>
+          <g id="__p__-glow">
+            <ellipse cx="503" cy="258" rx="66" ry="44" fill="url(#__p__-glow-grad)" />
+          </g>
+          <path id="__p__-sea" d="M60 990 Z" fill="{{hygen:color.plane}}" />
+          <path id="__p__-coast" d="M60 990" fill="none" stroke="rgba({{hygen:rgb.text}},0.75)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+          <path id="__p__-route" d="M682 554 Q626 598 548 600" fill="none" stroke="rgba({{hygen:rgb.text}},0.6)" stroke-width="2" stroke-dasharray="10 12" mask="url(#__p__-route-mask)" />
+          <circle id="__p__-anchor" cx="548" cy="600" r="3.5" fill="rgba({{hygen:rgb.text}},0.6)" />
+        </g>
+
+        <rect id="__p__-frame" x="60.5" y="150.5" width="959" height="839" fill="none" stroke="rgba({{hygen:rgb.text}},0.16)" stroke-width="1" />
+        <path id="__p__-leader" d="M538 266 H684" fill="none" stroke="{{hygen:color.ashLight}}" stroke-width="1" />
+        <circle id="__p__-ring" cx="682" cy="554" r="12" fill="none" stroke="{{hygen:color.hero}}" stroke-width="2" opacity="0" />
+        <circle id="__p__-dot" cx="682" cy="554" r="12" fill="{{hygen:color.hero}}" />
+        <path id="__p__-rule-l" d="M540 1030.5 H90" fill="none" stroke="rgba({{hygen:rgb.text}},0.16)" stroke-width="1" />
+        <path id="__p__-rule-r" d="M540 1030.5 H990" fill="none" stroke="rgba({{hygen:rgb.text}},0.16)" stroke-width="1" />
+      </svg>
+
+      <div id="__p__-region"></div>
+      <div id="__p__-label"></div>
+      <div id="__p__-peak-label"></div>
+      <div id="__p__-peak-note"></div>
+
+      <div id="__p__-prefix"></div>
+      <div id="__p__-count-box"><div id="__p__-count" data-layout-allow-overlap="">0</div></div>
+      <div id="__p__-counter-label" data-layout-allow-overlap=""></div>
+
+      <div id="__p__-row"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function () {
+  /*{{hygen:params}}*/
+    var D = 8.291;
+    var byId = function (id) {
+      return document.getElementById(id);
+    };
+    var tl = gsap.timeline({ paused: true });
+  /*{{hygen:warp}}*/
+
+    var hide = function (el) {
+      el.style.display = "none";
+    };
+    // deterministic text fit: advance estimate in em per character (no measuring before the fonts load);
+    // the Pompeii defaults fit and keep their static size
+    function fitFont(el, text, basePx, emPerChar, avail) {
+      var est = text.length * emPerChar * basePx;
+      if (est <= avail || avail <= 0) return basePx;
+      var px = Math.max(basePx * 0.5, (basePx * avail) / est);
+      el.style.fontSize = px.toFixed(1) + "px";
+      return px;
+    }
+
+    // ── map silhouette ──
+    var sea = byId("__p__-sea");
+    var coast = byId("__p__-coast");
+    sea.setAttribute("d", P.map.water);
+    sea.setAttribute("fill-rule", P.map.fillRule || "nonzero");
+    coast.setAttribute("d", P.map.coast);
+
+    // ── marker + label ──
+    var MX = P.marker.x;
+    var MY = P.marker.y;
+    var ring = byId("__p__-ring");
+    var dot = byId("__p__-dot");
+    ring.setAttribute("cx", MX);
+    ring.setAttribute("cy", MY);
+    dot.setAttribute("cx", MX);
+    dot.setAttribute("cy", MY);
+    var labelEl = byId("__p__-label");
+    var LEFT_SIDE = P.labelSide === "left";
+    labelEl.textContent = P.label;
+    var labelPx = fitFont(labelEl, P.label, 60, 0.68, LEFT_SIDE ? MX - 22 - 40 : 1040 - (MX + 22));
+    labelEl.style.lineHeight = labelPx.toFixed(1) + "px";
+    labelEl.style.top = MY - 28 + (60 - labelPx) / 2 + "px";
+    if (LEFT_SIDE) {
+      labelEl.style.left = "auto";
+      labelEl.style.right = 1080 - (MX - 22) + "px";
+      labelEl.style.marginRight = "-0.06em"; // trailing tracking: the last glyph ends at marker.x − 22
+    } else {
+      labelEl.style.left = MX + 22 + "px";
+    }
+    if (!P.label) hide(labelEl);
+
+    // ── region label ──
+    var regionEl = byId("__p__-region");
+    regionEl.style.left = P.regionAt.x + "px";
+    regionEl.style.top = P.regionAt.y + "px";
+    P.region.forEach(function (line, i) {
+      var span = document.createElement("span");
+      span.id = "__p__-region-" + (i + 1);
+      span.className = "__p__-line";
+      span.textContent = line;
+      regionEl.appendChild(span);
+    });
+    if (!P.region.length) hide(regionEl);
+
+    // ── route: quadratic curve, control point placed like Pompeii's (M682 554 Q626 598 548 600) ──
+    var routeReveal = byId("__p__-route-reveal");
+    var route = byId("__p__-route");
+    var anchorDot = byId("__p__-anchor");
+    var RX = P.routeTo.x;
+    var RY = P.routeTo.y;
+    var r1 = function (v) {
+      return String(Math.round(v * 10) / 10);
+    };
+    var CT = 9528 / 20072; // along marker → end
+    var CS = -3320 / 20072; // along the normal (−dy, dx)
+    var rdx = RX - MX;
+    var rdy = RY - MY;
+    var routeD = "M" + MX + " " + MY + " Q" + r1(MX + CT * rdx - CS * rdy) + " " + r1(MY + CT * rdy + CS * rdx) + " " + RX + " " + RY;
+    route.setAttribute("d", routeD);
+    routeReveal.setAttribute("d", routeD);
+    anchorDot.setAttribute("cx", RX);
+    anchorDot.setAttribute("cy", RY);
+    if (!P.route) {
+      hide(route);
+      hide(anchorDot);
+    }
+
+    // ── counter lockup ──
+    var HAS_COUNT = P.counterValue > 0;
+    var prefixEl = byId("__p__-prefix");
+    var countBox = byId("__p__-count-box");
+    var countEl = byId("__p__-count");
+    var counterLabelEl = byId("__p__-counter-label");
+    var ruleL = byId("__p__-rule-l");
+    var ruleR = byId("__p__-rule-r");
+    function fmt(n) {
+      var s = String(Math.round(n));
+      return P.counterFormat === "thousands" ? s.replace(/\B(?=(\d{3})+(?!\d))/g, ",") : s;
+    }
+    var finalText = fmt(P.counterValue);
+    var em = 0;
+    for (var fi = 0; fi < finalText.length; fi++) em += /\d/.test(finalText[fi]) ? 0.5 : 0.25;
+    var BOX_W = (597 * em) / 2.75; // «11,000» = 2.75 em fills the 597 px box
+    var PREFIX_W = P.counterPrefix ? 64.2 : 0;
+    var LOCK_W = PREFIX_W + BOX_W;
+    var LOCK_K = Math.min(1, 900 / LOCK_W);
+    var lockLeft = 540.1 - (LOCK_W * LOCK_K) / 2;
+    prefixEl.textContent = P.counterPrefix;
+    prefixEl.style.left = lockLeft.toFixed(1) + "px";
+    countBox.style.left = (lockLeft + PREFIX_W * LOCK_K).toFixed(1) + "px";
+    countBox.style.width = BOX_W.toFixed(1) + "px";
+    countEl.style.width = BOX_W.toFixed(1) + "px";
+    if (LOCK_K < 1) {
+      prefixEl.style.transformOrigin = "0% 50%";
+      prefixEl.style.transform = "scale(" + LOCK_K.toFixed(4) + ")";
+      countBox.style.transformOrigin = "0% 50%";
+      countBox.style.transform = "scale(" + LOCK_K.toFixed(4) + ")";
+    }
+    counterLabelEl.textContent = P.counterLabel;
+    fitFont(counterLabelEl, P.counterLabel, 34, 0.9, 840);
+    if (!HAS_COUNT) {
+      [prefixEl, countBox, counterLabelEl, ruleL, ruleR].forEach(hide);
+    }
+    if (!P.counterPrefix) hide(prefixEl);
+    if (!P.counterLabel) hide(counterLabelEl);
+
+    // ── row of words ──
+    var row = byId("__p__-row");
+    var ITEM_AT = [4.03, 4.5, 5.21];
+    var itemGroups = [];
+    P.items.slice(0, 3).forEach(function (word, i) {
+      var group = [];
+      if (i > 0) {
+        var sep = document.createElement("span");
+        sep.id = "__p__-s" + i;
+        sep.className = "__p__-sep";
+        sep.textContent = "·";
+        row.appendChild(sep);
+        group.push(sep);
+      }
+      var w = document.createElement("span");
+      w.id = "__p__-w" + (i + 1);
+      w.className = "__p__-word";
+      w.textContent = word;
+      row.appendChild(w);
+      group.push(w);
+      itemGroups.push(group);
+    });
+    if (!itemGroups.length) hide(row);
+
+    // ── peak ──
+    var peakLabelEl = byId("__p__-peak-label");
+    var peakNoteEl = byId("__p__-peak-note");
+    var leader = byId("__p__-leader");
+    var glow = byId("__p__-glow");
+    peakLabelEl.textContent = P.peakLabel;
+    peakNoteEl.textContent = P.peakNote;
+    fitFont(peakLabelEl, P.peakLabel, 30, 0.84, 340);
+    fitFont(peakNoteEl, P.peakNote, 24, 0.7, 340);
+    if (!P.peak) {
+      [byId("__p__-peak"), leader, peakLabelEl, peakNoteEl, glow].forEach(hide);
+    }
+    if (!P.peakNote) hide(peakNoteEl);
+    if (!P.peakGlow) hide(glow);
+    // peakAt (D5): the crater point moves the cone, its glow, the leader and both labels together; right of x 640
+    // the leader and the labels go to the left of the cone
+    var PEAK = P.peakAt || { x: 503, y: 262 };
+    var pdx = PEAK.x - 503, pdy = PEAK.y - 262;
+    if (pdx || pdy) {
+      byId("__p__-peak").setAttribute("transform", "translate(" + pdx + " " + pdy + ")");
+      glow.setAttribute("transform", "translate(" + pdx + " " + pdy + ")");
+      var leftSide = PEAK.x > 640;
+      leader.setAttribute("d", leftSide ? "M" + (468 + pdx) + " " + (266 + pdy) + " H" + (322 + pdx) : "M" + (538 + pdx) + " " + (266 + pdy) + " H" + (684 + pdx));
+      [[peakLabelEl, 251], [peakNoteEl, 291]].forEach(function (pair) {
+        var node = pair[0];
+        node.style.top = pair[1] + pdy + "px";
+        if (leftSide) {
+          node.style.left = "auto";
+          node.style.right = 1080 - (318 + pdx) + "px";
+          node.style.textAlign = "right";
+        } else {
+          node.style.left = 700 + pdx + "px";
+        }
+      });
+    }
+
+    // ── setup: measure every drawn stroke once (getTotalLength), hide it behind its own dash gap ──
+    function prepDraw(el, fallback) {
+      var len = el.getTotalLength ? el.getTotalLength() : 0;
+      if (!(len > 1)) len = fallback;
+      len = Math.ceil(len) + 2;
+      el.style.strokeDasharray = len + " " + (len + 24);
+      el.style.strokeDashoffset = String(len);
+      return len;
+    }
+    var coastLen = prepDraw(coast, 1239);
+    var routeLen = prepDraw(routeReveal, Math.hypot(rdx, rdy) * 1.08);
+    var ruleLen = prepDraw(ruleL, 450);
+    prepDraw(ruleR, 450);
+    var leaderLen = prepDraw(leader, 146);
+
+    // ── multi-phase camera: pull-back 0.965 → focus 1.0 (lands 2.0s) → slow push 1.025 on the peak ──
+    // Phase scale and sine drift are both pure functions of timeline time, composed in ONE writer,
+    // so any seek order produces the same transform.
+    var camera = byId("__p__-camera");
+    var easeFocus = gsap.parseEase("power2.out");
+    var easePush = gsap.parseEase("power2.inOut");
+    var PHASE_1_SCALE = 0.965;
+    var PHASE_2_SCALE = 1;
+    var PHASE_3_SCALE = 1.025;
+    var PHASE_2_AT = 0.15;
+    var PHASE_2_DUR = 1.85;
+    var PHASE_3_AT = 6.13;
+    var PHASE_3_DUR = D - 6.13;
+    var DRIFT_CYCLES = 1;
+    var DRIFT_AMP_X = 4;
+    var DRIFT_AMP_Y = 2;
+    var DRIFT_FREQ_RATIO = 1.3;
+    function phaseScale(t) {
+      if (t <= PHASE_2_AT) return PHASE_1_SCALE;
+      if (t < PHASE_2_AT + PHASE_2_DUR) return PHASE_1_SCALE + (PHASE_2_SCALE - PHASE_1_SCALE) * easeFocus((t - PHASE_2_AT) / PHASE_2_DUR);
+      if (t <= PHASE_3_AT) return PHASE_2_SCALE;
+      if (t < PHASE_3_AT + PHASE_3_DUR) return PHASE_2_SCALE + (PHASE_3_SCALE - PHASE_2_SCALE) * easePush((t - PHASE_3_AT) / PHASE_3_DUR);
+      return PHASE_3_SCALE;
+    }
+    function writeCamera(t) {
+      var p = (Math.PI * 2 * DRIFT_CYCLES * t) / D;
+      var dx = Math.sin(p) * DRIFT_AMP_X;
+      var dy = Math.sin(p * DRIFT_FREQ_RATIO) * DRIFT_AMP_Y;
+      camera.style.transform = "scale(" + phaseScale(t).toFixed(5) + ") translate(" + dx.toFixed(3) + "px, " + dy.toFixed(3) + "px)";
+    }
+    // The hero ring (spreads once on the marker) and the 0 → value count are written by the same
+    // full-span driver: a seek that lands past a finished segment still writes its final state.
+    var easeCount = gsap.parseEase("power2.out");
+    var RING_AT = 0.2;
+    var RING_DUR = 0.9;
+    var COUNT_AT = 2.12;
+    var COUNT_DUR = 1.1;
+    var COUNT_TO = P.counterValue;
+    var shownCount = "";
+    // one hero ring: r 12 → 60, opacity 0.8 → 0
+    function writeRing(t) {
+      var p = (t - RING_AT) / RING_DUR;
+      if (p <= 0 || p >= 1) {
+        ring.setAttribute("opacity", "0");
+        return;
+      }
+      ring.setAttribute("r", (12 + 48 * (1 - (1 - p) * (1 - p))).toFixed(2));
+      ring.setAttribute("opacity", (0.8 * (1 - p * p)).toFixed(3));
+    }
+    function writeCount(t) {
+      if (!HAS_COUNT) return;
+      var p = Math.min(1, Math.max(0, (t - COUNT_AT) / COUNT_DUR));
+      var text = fmt(COUNT_TO * easeCount(p));
+      if (text !== shownCount) {
+        countEl.textContent = text;
+        shownCount = text;
+      }
+    }
+    function writeDriven(t) {
+      writeCamera(t);
+      writeRing(t);
+      writeCount(t);
+    }
+    var drive = { t: 0 };
+    writeDriven(0);
+    tl.fromTo(drive, { t: 0 }, { t: D, duration: D, ease: "none", onUpdate: function () { writeDriven(W.ref(drive.t)); } }, 0);
+
+    // ── Scene 1 (0.00–1.40): coastline draws, sea settles under it, the place is marked ──
+    tl.fromTo(coast, { strokeDashoffset: coastLen }, { strokeDashoffset: 0, duration: 1.1, ease: "power2.inOut" }, 0);
+    tl.fromTo(sea, { opacity: 0 }, { opacity: 1, duration: 1.15, ease: "power1.inOut" }, 0.05);
+    // marker 0.20 — hero dot pops in place, no overshoot
+    tl.fromTo(
+      dot,
+      { opacity: 0, scale: 0.6, svgOrigin: MX + " " + MY },
+      { opacity: 1, scale: 1, svgOrigin: MX + " " + MY, duration: 0.5, ease: "power3.out" },
+      0.2
+    );
+    // (the hero ring is written by the driver above)
+    // label — mask reveal away from the marker
+    tl.fromTo(
+      labelEl,
+      { clipPath: LEFT_SIDE ? "inset(-30% 0% -30% 100%)" : "inset(-30% 100% -30% 0%)" },
+      { clipPath: "inset(-30% 0% -30% 0%)", duration: 0.5, ease: "power2.out" },
+      0.2
+    );
+    // region label settles from 0.9s
+    tl.fromTo(regionEl, { opacity: 0 }, { opacity: 1, duration: 0.6, ease: "power1.out" }, 0.9);
+
+    // ── Scene 2 (0.97–1.90): dashed route from the marker ──
+    if (P.route) {
+      tl.fromTo(routeReveal, { strokeDashoffset: routeLen }, { strokeDashoffset: 0, duration: 0.65, ease: "power2.out" }, 0.97);
+      tl.fromTo(
+        anchorDot,
+        { opacity: 0, scale: 0.4, svgOrigin: RX + " " + RY },
+        { opacity: 1, scale: 1, svgOrigin: RX + " " + RY, duration: 0.35, ease: "power3.out" },
+        1.42
+      );
+    }
+
+    // ── Scene 3 (2.12–3.60): hairline draws centre-out, prefix fades, 0 → value, label rises ──
+    if (HAS_COUNT) {
+      tl.fromTo([ruleL, ruleR], { strokeDashoffset: ruleLen }, { strokeDashoffset: 0, duration: 0.4, ease: "power2.out" }, 2.12);
+      tl.fromTo(prefixEl, { opacity: 0 }, { opacity: 1, duration: 0.5, ease: "power1.out" }, 2.12);
+      tl.fromTo(countBox, { opacity: 0 }, { opacity: 1, duration: 0.25, ease: "power1.out" }, 2.12);
+      // (the count text is written by the driver; the scale is a plain tween)
+      tl.fromTo(countEl, { scale: 0.6 }, { scale: 1, duration: 1.1, ease: "power2.out" }, 2.12);
+      tl.fromTo(counterLabelEl, { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 3.29);
+    }
+
+    // ── Scene 4 (4.03–5.60): up to three words, each on its anchor; separator arrives with the next word ──
+    itemGroups.forEach(function (group, i) {
+      tl.fromTo(group, { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.35, ease: "power3.out" }, ITEM_AT[i]);
+    });
+
+    // ── Scene 5 (6.13–8.291): the peak — cone grows out of the land (clipped at its base line) ──
+    if (P.peak) {
+      tl.fromTo(byId("__p__-cone"), { y: 160 }, { y: 0, duration: 0.9, ease: "power3.out" }, 6.13);
+      // 6.49 — leader draws from the crater shoulder to the label, label wipes on as it lands
+      tl.fromTo(leader, { strokeDashoffset: leaderLen }, { strokeDashoffset: 0, duration: 0.4, ease: "power2.out" }, 6.49);
+      tl.fromTo(
+        peakLabelEl,
+        { clipPath: "inset(-30% 100% -30% 0%)" },
+        { clipPath: "inset(-30% 0% -30% 0%)", duration: 0.4, ease: "power2.out" },
+        6.78
+      );
+      // 7.24 — the ironic note, quietly
+      if (P.peakNote) tl.fromTo(peakNoteEl, { opacity: 0, y: 6 }, { opacity: 1, y: 0, duration: 0.6, ease: "power1.out" }, 7.24);
+      // 7.90 → end — a barely-there hero glow wakes in the crater, then hold
+      if (P.peakGlow) tl.fromTo(glow, { opacity: 0 }, { opacity: 0.28, duration: D - 7.9, ease: "power1.in" }, 7.9);
+    }
+
+    window.__timelines = window.__timelines || {};
+    W.apply(tl);
+    window.__timelines["__cid__"] = tl;
+  })();
+</script>
+</template>

@@ -1,0 +1,36 @@
+{
+  "$schema": "../schema.json",
+  "id": "picture-zoom",
+  "name": "Картина или фото с наездом и частицами",
+  "use": "A licensed painting or photo with a slow push toward a point, particles drifting over it, an optional big title and a small credit line. For the one real image of the story.",
+  "ref": { "duration": 5.0, "speechStart": 0.2, "speechEnd": 4.6 },
+  "duration": { "min": 3, "max": 9 },
+  "settle": 4.8,
+  "depth": 1,
+  "text": {
+    "title": {"el": "title", "kind": "title", "at": "title"},
+    "credit": {"el": "credit", "kind": "label", "at": "credit"}
+  },
+  "params": {
+    "image": { "type": "image", "default": "library/assets/media/volaire-vesuvius.jpg", "description": "Файл картинки от папки ролика (или library/assets/...); рядом обязателен <файл>.license.json." },
+    "fit": { "type": "enum", "values": ["cover", "band"], "default": "cover", "description": "cover — картинка на весь кадр с кадрированием; band — целиком по ширине полосой, за ней размытая и затемнённая копия (для широких фото)." },
+    "crop": { "type": "number", "default": 0.5, "min": 0, "max": 1, "description": "Для cover: какая часть по горизонтали в кадре (0 — левый край, 1 — правый)." },
+    "focus": { "type": "point", "default": { "x": 324, "y": 864 }, "description": "Точка кадра, к которой идёт наезд." },
+    "zoomFrom": { "type": "number", "default": 1.04, "min": 1, "max": 2, "description": "Масштаб в начале." },
+    "zoomTo": { "type": "number", "default": 1.17, "min": 1, "max": 2.5, "description": "Масштаб в конце." },
+    "particles": { "type": "enum", "values": ["ash", "embers", "snow", "none"], "default": "ash", "description": "ash — пепел с редкими угольками; embers — угольки; snow — светлые хлопья без угольков; none — без частиц." },
+    "tint": { "type": "number", "default": 0, "min": 0, "max": 0.8, "description": "Тонировка цветом героя-глубоким поверх картинки (для ч/б фото), 0 — без." },
+    "title": { "type": "string", "default": "", "maxLength": 22, "description": "Крупная подпись внизу контентной зоны; пустая — без подписи." },
+    "credit": { "type": "string", "default": "PIERRE-JACQUES VOLAIRE", "maxLength": 34, "description": "Автор (кредит справа сверху); пустая — без кредита." },
+    "creditSub": { "type": "string", "default": "“The Eruption of Vesuvius”, 1771", "maxLength": 48, "description": "Вторая строка кредита: название, год, лицензия." }
+  },
+  "anchors": {
+    "credit": { "at": 0.35, "description": "Кредит проявляется." },
+    "title": { "at": 1.2, "description": "Крупная подпись стирается внутрь." }
+  },
+  "events": [
+    { "anchor": "title", "label": "title", "if": "title" }
+  ],
+  "seed": { "default": 0, "affects": "particle layout" },
+  "safeZone": { "contentMaxY": 1420, "rightRail": true }
+}

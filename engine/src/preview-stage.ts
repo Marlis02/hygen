@@ -18,9 +18,9 @@ import { finishPreview } from "./preview.ts";
 import type { BeatSpec } from "./spec.ts";
 import { isHtmlScene, parseBeatText } from "./spec.ts";
 import { checkStageBeat, writeStageFrame } from "./stage.ts";
-import { ENGINE_DIR, ROOT_DIR, copyInto, ensureDir, fail, hyperframesBin, log, r3, run, stripAnsi, writeJson } from "./lib/util.ts";
+import { LIBRARY_DIR, ROOT_DIR, copyInto, ensureDir, fail, hyperframesBin, log, r3, run, stripAnsi, writeJson } from "./lib/util.ts";
 
-// Preview of a stage beat without a voice (engine/scenes/CONTRACT.md, «Проверка без голоса»):
+// Preview of a stage beat without a voice (library/scenes/CONTRACT.md, «Проверка без голоса»):
 //   npm run scene -- --device annotate.arrow           the device's demo on its neutral stage
 //   npm run scene -- --stage media --src <file>        a stage alone (plus --beat '{"stage":{…},"devices":[…]}')
 //   npm run scene -- quote-card                        a JSON recipe with its demo data
@@ -117,8 +117,8 @@ export function previewStage(opts: StagePreviewOptions): boolean {
   const dir = join(ROOT_DIR, ".preview", name);
   rmSync(dir, { recursive: true, force: true });
   ensureDir(dir);
-  copyInto(join(ENGINE_DIR, "assets", "fonts"), join(dir, "assets", "fonts"));
-  copyInto(join(ENGINE_DIR, "assets", "vendor"), join(dir, "assets", "vendor"));
+  copyInto(join(LIBRARY_DIR, "assets", "fonts"), join(dir, "assets", "fonts"));
+  copyInto(join(LIBRARY_DIR, "assets", "vendor"), join(dir, "assets", "vendor"));
   installDevices(dir);
   writeJson(join(dir, "hyperframes.json"), { $schema: "https://hyperframes.heygen.com/schema/hyperframes.json", paths: { blocks: "compositions", components: "compositions/components", assets: "assets" } });
   writeJson(join(dir, "meta.json"), { id: name, name });
@@ -177,8 +177,8 @@ function previewCaption(opts: StagePreviewOptions, look: LookDef, style: StyleDe
   const dir = join(ROOT_DIR, ".preview", name);
   rmSync(dir, { recursive: true, force: true });
   ensureDir(dir);
-  copyInto(join(ENGINE_DIR, "assets", "fonts"), join(dir, "assets", "fonts"));
-  copyInto(join(ENGINE_DIR, "assets", "vendor"), join(dir, "assets", "vendor"));
+  copyInto(join(LIBRARY_DIR, "assets", "fonts"), join(dir, "assets", "fonts"));
+  copyInto(join(LIBRARY_DIR, "assets", "vendor"), join(dir, "assets", "vendor"));
   installDevices(dir);
   const caption = { group: "phrase", ...((extra.caption as Record<string, unknown> | undefined) ?? {}), preset };
   checkCaptionFields(caption, "--beat caption");

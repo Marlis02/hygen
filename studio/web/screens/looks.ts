@@ -3,7 +3,7 @@ import type { Dict } from "../lib.ts";
 import { field, fields } from "../forms.ts";
 
 // «Look»: the worlds of the engine with their preview and defaults (captions, textures, camera); a new look is made
-// from a built-in one by a form and saved as engine/looks/<id>/look.json.
+// from a built-in one by a form and saved as library/looks/<id>/look.json. The preview of every look shows its sampleLine.
 
 export async function looksScreen(main: HTMLElement): Promise<void> {
   const [looks, lib, schema] = await Promise.all([api("/api/looks"), api("/api/library"), api("/api/schema")]);
@@ -29,6 +29,7 @@ export async function looksScreen(main: HTMLElement): Promise<void> {
         { class: "body" },
         h("div", { class: "title" }, `${look.name} `, h("span", { class: "chip mono" }, id)),
         h("div", { class: "meta" }, look.about?.mood ?? ""),
+        look.sampleLine ? h("div", { class: "sample" }, h("span", { class: "muted small" }, `${t("looks.sample")}: `), `“${look.sampleLine}”`) : null,
         h("table", { class: "plain" }, [
           [t("looks.palette"), h("span", null, h("span", { class: "swatch", style: `background:${look.palette?.accent}` }), " ", look.palette?.accent, " · ", h("span", { class: "swatch", style: `background:${look.palette?.secondary}` }), " ", look.palette?.secondary ?? "")],
           [t("looks.captions"), `${look.captions?.family ?? "calm"} · ${look.captions?.preset ?? "plain"}${look.captions?.activeWord ? ` · ${look.captions.activeWord}` : ""}`],
@@ -89,6 +90,7 @@ function createForm(looks: Dict, schema: Dict): HTMLElement {
       field("camera", { type: "enum" }, undefined, (x) => (v.camera = x), { options: ["none", "push-in", "pull-out", "pan", "tilt", "handheld"], label: t("looks.camera") }),
       field("grain", { type: "number", min: 0, max: 2 }, undefined, (x) => (v.grain = x), { label: t("looks.grain") }),
       field("mood", { type: "text" }, undefined, (x) => (v.mood = x), { label: t("looks.mood") }),
+      field("sampleLine", { type: "string", description: t("looks.sampleHint") }, undefined, (x) => (v.sampleLine = x), { label: t("looks.sample") }),
     ),
     h("div", { class: "field wide", style: "margin-top:10px" }, h("label", { class: "field-name" }, t("looks.textures")), texBox),
     h("div", { class: "row", style: "margin-top:12px" }, h("button", { class: "btn primary", onclick: submit }, t("looks.createGo"))),

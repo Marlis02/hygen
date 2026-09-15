@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Media of a stage beat — hygen engine (engine/scenes/CONTRACT.md, «Stage media»).
+"""Media of a stage beat — hygen engine (library/scenes/CONTRACT.md, «Stage media»).
 
 Everything heavy happens once at build time and is cached by the caller; the render only places and moves pixels.
 

@@ -4,22 +4,22 @@ import type { DeviceSpec } from "./devices.ts";
 import { expandBeat } from "./intents.ts";
 import { checkTransitionRef } from "./motion.ts";
 import type { TextureRef } from "./textures.ts";
-import { ENGINE_DIR, fail, readJson } from "./lib/util.ts";
+import { LIBRARY_DIR, fail, readJson } from "./lib/util.ts";
 
-export const isHtmlScene = (id: string): boolean => existsSync(join(ENGINE_DIR, "scenes", id, "scene.json"));
+export const isHtmlScene = (id: string): boolean => existsSync(join(LIBRARY_DIR, "scenes", id, "scene.json"));
 
-/** One beat = one voice line + either a library scene (HTML recipe) or a stage with devices (engine/scenes/CONTRACT.md, «Бит v2»). */
+/** One beat = one voice line + either a library scene (HTML recipe) or a stage with devices (library/scenes/CONTRACT.md, «Бит v2»). */
 export interface BeatSpec {
   id: string;
-  /** Library scene id (engine/scenes/<scene>/scene.html) or a JSON recipe (engine/scenes/recipes/<scene>.json). */
+  /** Library scene id (library/scenes/<scene>/scene.html) or a JSON recipe (library/scenes/recipes/<scene>.json). */
   scene?: string;
-  /** What the viewer must see — an intent from engine/intents/ that the resolver expands into stage + devices. */
+  /** What the viewer must see — an intent from library/intents/ that the resolver expands into stage + devices. */
   intent?: string;
   /** Set by the resolver: the JSON recipe this stage beat came from. */
   recipe?: string;
   /** The base of the frame: exactly one of media | split | map | color. */
   stage?: { type: string; [key: string]: unknown };
-  /** 0–3 devices over the stage (engine/devices/<type>). */
+  /** 0–3 devices over the stage (library/devices/<type>). */
   devices?: DeviceSpec[];
   /** What leads the frame: "stage" or the index of one device. */
   dominant?: "stage" | number;
@@ -27,7 +27,7 @@ export interface BeatSpec {
   target?: unknown;
   at?: number | string;
   data?: Record<string, unknown>;
-  /** Role of the beat in the arc structure (engine/arcs/<structure>.json). */
+  /** Role of the beat in the arc structure (library/arcs/<structure>.json). */
   role?: string;
   /** Narration. `[display|spoken]` shows `display` in captions while the voice says `spoken`. */
   text: string;
@@ -43,11 +43,11 @@ export interface BeatSpec {
   cues?: Record<string, string>;
   /** Figure param (or "text") → source link. */
   sources?: Record<string, string>;
-  /** Textures over this beat only, on top of the look's (engine/textures). */
+  /** Textures over this beat only, on top of the look's (library/textures). */
   textures?: TextureRef[];
   /** Licensed image or video under the scene: {image|video, treatment, focus, opacity, depth, blend}. */
   background?: Record<string, unknown>;
-  /** Type preset for the scene's text slots: one name for all, or slot → preset (engine/motion/type.json). */
+  /** Type preset for the scene's text slots: one name for all, or slot → preset (library/motion/type.json). */
   type?: string | Record<string, string>;
   /** Engine camera for this beat: preset name or {preset, amplitude, shake} over the look's. */
   camera?: unknown;
@@ -55,7 +55,7 @@ export interface BeatSpec {
   post?: unknown[];
   /** Transition into this beat: id or list of ids (overrides the look's default and hit transitions). */
   transition?: unknown;
-  /** Captions of this beat over the video's (engine/devices/text.caption): {preset, group, activeWord, type, font, size, case, color, background, position}. */
+  /** Captions of this beat over the video's (library/devices/text.caption): {preset, group, activeWord, type, font, size, case, color, background, position}. */
   caption?: Record<string, unknown>;
   /** Rhythm of the beat's devices: voice (the words, default) | music (beats of the track) | both. */
   sync?: string;
@@ -66,7 +66,7 @@ export interface BeatSpec {
 export interface TransitionSpec {
   from: string;
   to: string;
-  /** Library transitions over the cut (engine/transitions): "flash", ["flash", "ash-burst"], "flash+ash-burst"; or "shader" — WebGL HyperShader (the render drops to one worker). */
+  /** Library transitions over the cut (library/transitions): "flash", ["flash", "ash-burst"], "flash+ash-burst"; or "shader" — WebGL HyperShader (the render drops to one worker). */
   type?: string | string[];
   shader?: string;
   duration: number;
@@ -99,7 +99,7 @@ export interface HitSpec {
   carve?: number;
 }
 
-/** Arc v2 (engine/arcs): structure × hook × protagonist × ending. */
+/** Arc v2 (library/arcs): structure × hook × protagonist × ending. */
 export interface ArcSpec {
   structure: string;
   hook: string;
@@ -135,7 +135,7 @@ export interface VideoSpec {
   fps: number;
   language: string;
   style: string;
-  /** Look: id from engine/looks or an inline object {extends, palette, textures, motion, …}; none — ember. */
+  /** Look: id from library/looks or an inline object {extends, palette, textures, motion, …}; none — ember. */
   look?: unknown;
   /** Captions of the video over the look's defaults: {preset, group, activeWord, type, font, size, case, color, background, position}; the old string "word-by-word" is ignored. */
   captions?: string | Record<string, unknown>;
@@ -197,7 +197,7 @@ export function loadSpec(videoDir: string): VideoSpec {
   need(Array.isArray(spec.beats) && spec.beats.length > 0, "нет битов");
   spec.language = spec.language ?? "en";
   spec.style = spec.style ?? "documentary-dark";
-  need(existsSync(join(ENGINE_DIR, "styles", spec.style, "style.json")) && existsSync(join(ENGINE_DIR, "styles", spec.style, "frame.md")), `нет стиля engine/styles/${spec.style} (style.json и frame.md)`);
+  need(existsSync(join(LIBRARY_DIR, "styles", spec.style, "style.json")) && existsSync(join(LIBRARY_DIR, "styles", spec.style, "frame.md")), `нет стиля library/styles/${spec.style} (style.json и frame.md)`);
   need(spec.captions === undefined || typeof spec.captions === "string" || (typeof spec.captions === "object" && spec.captions !== null && !Array.isArray(spec.captions)), "captions — объект {preset, group, activeWord, …} (строка — старая форма, не действует)");
   const ids = new Set<string>();
   for (const beat of spec.beats) {

@@ -11,20 +11,20 @@ argument-hint: "<тема, например: Krakatoa 1883> | <id проекта
 
 Главное правило v3: **бит — это не сцена, а то, что зритель должен увидеть.** Сначала одно предложение «что видит зритель», потом intent, который это показывает. Сцены с HTML (`counter-title`, `map-marker`, `scale-gauge`, `year-odometer`, `picture-zoom`, `fraction-finale`, `pyroclastic-flow`) — рецепты на случай, когда нужен именно этот кадр.
 
-Эталоны: `projects/titanic-v2/`, `projects/krakatoa-v2/` и `projects/great-fire-en/` (project.json + media.json + research.md). Контракт — `engine/scenes/CONTRACT.md`, разделы «Бит v2», «Stage», «Устройства», «Intents», «Арка», «Грамматика».
+Образцы проектов: `projects/titanic-v2/`, `projects/krakatoa-v2/` и `projects/great-fire-en/` (project.json + media.json + research.md). Контракт — `library/scenes/CONTRACT.md`, разделы «Бит v2», «Stage», «Устройства», «Intents», «Арка», «Грамматика».
 
 ## 0. Подготовка (3 мин)
 
 0. **Бриф.** Если `$ARGUMENTS` — id, и есть `projects/<id>/brief.json` (его пишет панель `npm run studio`, «Новый ролик»), — бриф и есть задание: `topic` — тема, `look` — мир (null — выбираешь сам), `voice` — провайдер голоса в project.json, `seconds` — целевая длина, `wishes` — пожелания режиссёру; id ролика — `id` брифа, папка уже создана. Без брифа длина — `short.targetSeconds` из `hygen.config.json` (там же голос и look по умолчанию). Работаешь без вопросов до MP4: панель ждёт `project.json` и следит за папкой.
 
-1. Прочитай `engine/scenes/CONTRACT.md`: «Бит v2» и всё после него; «Look ролика» и «Текстуры».
+1. Прочитай `library/scenes/CONTRACT.md`: «Бит v2» и всё после него; «Look ролика» и «Текстуры».
 2. Что есть в движке (в неинтерактивном шелле Node стоит через nvm — сначала `. ~/.nvm/nvm.sh`):
    ```bash
    . ~/.nvm/nvm.sh
-   ls engine/intents engine/scenes/recipes engine/devices engine/arcs engine/assets/maps
-   for f in engine/intents/*.json; do python3 -c "import json; d=json.load(open('$f')); print(d['id'], '·', d['stage']['types'], '·', [x['type'] for x in d['devices']], '·', d['use'])"; done
-   for f in engine/devices/*/device.json; do python3 -c "import json; d=json.load(open('$f')); print(d['type'], '·', d['target'], '·', list(d['params']))"; done
-   cat engine/arcs/arc.json
+   ls library/intents library/scenes/recipes library/devices library/arcs library/assets/maps
+   for f in library/intents/*.json; do python3 -c "import json; d=json.load(open('$f')); print(d['id'], '·', d['stage']['types'], '·', [x['type'] for x in d['devices']], '·', d['use'])"; done
+   for f in library/devices/*/device.json; do python3 -c "import json; d=json.load(open('$f')); print(d['type'], '·', d['target'], '·', list(d['params']))"; done
+   cat library/arcs/arc.json
    npm run scenes
    ```
 3. Что уже занято другими роликами (новый должен отличаться миром и скелетом):
@@ -57,9 +57,9 @@ grep -o -i -E "[^.]*\b([0-9][0-9,.]*|half|dozen|hundred|thousand|million|two|thr
 
 ## 3. Арка (3 мин) — до сценария
 
-`project.json → "arc"`: `{structure, hook, protagonist, ending, why}` — значения из `engine/arcs/arc.json`, `why` — одна фраза обоснования.
+`project.json → "arc"`: `{structure, hook, protagonist, ending, why}` — значения из `library/arcs/arc.json`, `why` — одна фраза обоснования.
 
-- **structure** — story (завязка → поворот → пик → последствия), mystery (вопрос → улики → разгадка), mechanism (как работало шаг за шагом), comparison (две стороны и вывод), list (равноправные пункты). Роли битов — `engine/arcs/<structure>.json`; у каждого бита поле `role`, первый — `hook`, последний — `ending`. Роли без `repeat` — не больше одного бита (у story ровно 6 ролей — не больше 6 битов).
+- **structure** — story (завязка → поворот → пик → последствия), mystery (вопрос → улики → разгадка), mechanism (как работало шаг за шагом), comparison (две стороны и вывод), list (равноправные пункты). Роли битов — `library/arcs/<structure>.json`; у каждого бита поле `role`, первый — `hook`, последний — `ending`. Роли без `repeat` — не больше одного бита (у story ровно 6 ролей — не больше 6 битов).
 - **hook** — одна из 9 стратегий (shocking-statistic, rhetorical-question, counterintuitive-claim, pain-validation, visceral-metaphor, concept-announcement, direct-address, imagine-scenario, stakes-consequence).
 - **protagonist** — place, person, object, number, sound: вокруг кого или чего ролик.
 - **ending** — lesson, open-question, callback, what-remains, one-number-silence.
@@ -129,7 +129,7 @@ grep -o -i -E "[^.]*\b([0-9][0-9,.]*|half|dozen|hundred|thousand|million|two|thr
 
 ## 5.5. Текст на экране (5 мин)
 
-Контракт — `engine/scenes/CONTRACT.md`, раздел «Текст на экране (D6)».
+Контракт — `library/scenes/CONTRACT.md`, раздел «Текст на экране (D6)».
 
 1. **Субтитры.** Умолчание берётся из look (`look.captions`: семейство, пресет, активное слово): документальные ember/abyss/storm — calm · plain, `bright-explainer` — explainer · pill-karaoke. Ролик может сменить стиль целиком (`"captions": {…}` в project.json), бит — точечно (`"caption": {…}`), но **не больше 2 битов с пресетом не из look**. Выбор:
    - calm (plain, karaoke, typewriter, weight-shift, blend-difference, editorial-emphasis) — документалка, тишина, цитаты;
@@ -157,7 +157,7 @@ grep -o -i -E "[^.]*\b([0-9][0-9,.]*|half|dozen|hundred|thousand|million|two|thr
 - Предмет в полный рост (колонна, башня, корабль) с размерной линией не должен опускаться ниже 74 % кадра: выбери фото, где он в верхних 70 %, или сделай производную — предмет вверху холста 9:16 на размытой копии самого фото (`projects/great-fire-en/media/monument-fish-street-hill.jpg`).
 - Два вида одного места (до/после) — одинаковое окно из обоих, выровненное по горизонту: шторка `split` покажет перемену, а не сдвиг.
 - Видео: `in`/`out` — секунды исходника, `rate` 0.1–5, `hold` или устройство `edit.hold` — стоп-кадр на слове, `fit: contain` для 4:3 и 16:9, `treatment` film-memory | engraved | two-ink | duotone (цветное фото или белая карта в тёмном мире). Кадры исходника: `ffmpeg -i <видео> -t 150 -vf fps=1/5,scale=240:-2 /tmp/f%03d.jpg`. Хронику с водяным знаком (British Pathé и т. п.) не брать или кадрировать `crop` так, чтобы знак ушёл за кадр, — риск Content ID (DECISIONS).
-- Карта: силуэт `engine/assets/maps/<имя>.svg` или трассировка `engine/py/trace_map.py` (см. CONTRACT.md «Силуэты карт»); координаты меток — px/10,8 и px/19,2 в проценты.
+- Карта: силуэт `library/assets/maps/<имя>.svg` или трассировка `engine/py/trace_map.py` (см. CONTRACT.md «Силуэты карт»); координаты меток — px/10,8 и px/19,2 в проценты.
 
 ## 7. Источники
 

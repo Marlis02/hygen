@@ -93,6 +93,8 @@ export function checkUniqueness(spec: VideoSpec, videoDir: string, observed: num
     if (resolve(dir) === resolve(videoDir)) continue;
     try {
       const spec2 = loadSpec(dir);
+      // a draft that was never built (a fresh copy from the panel) is not a video yet — nothing to be unlike
+      if (readJson<{ status?: string }>(join(dir, "project.json")).status === "draft" && !existsSync(join(dir, "renders", `${spec2.id}.build.json`))) continue;
       others.push(fingerprint(spec2, dir, observedHue(dir, spec2.id)));
     } catch (err) {
       warnings.push(`уникальность: ${basename(dir)} пропущен — ${(err as Error).message}`);

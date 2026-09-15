@@ -3,10 +3,10 @@ import { basename, extname, isAbsolute, join } from "node:path";
 import type { BeatSpec, VideoSpec } from "./spec.ts";
 import { parseBeatText } from "./spec.ts";
 import { TEXT_KINDS } from "./motion.ts";
-import { ENGINE_DIR, ROOT_DIR, ensureDir, fail, readJson } from "./lib/util.ts";
+import { LIBRARY_DIR, ROOT_DIR, ensureDir, fail, readJson } from "./lib/util.ts";
 import { ledgerOf, mediaRecord, missingLicense } from "./lib/project.ts";
 
-// The scene contract (engine/scenes/CONTRACT.md, engine/scenes/schema.json), checked in code.
+// The scene contract (library/scenes/CONTRACT.md, library/scenes/schema.json), checked in code.
 
 export type ParamType = "number" | "integer" | "string" | "boolean" | "enum" | "list" | "point" | "map" | "image";
 
@@ -51,7 +51,7 @@ export interface SceneDef {
   safeZone: { contentMaxY: number; rightRail: boolean };
   /** Parallax factor of the scene under the engine camera (default 1). */
   depth?: number;
-  /** Text elements that accept a type preset (engine/motion/type.json). */
+  /** Text elements that accept a type preset (library/motion/type.json). */
   text?: Record<string, TextSlot>;
 }
 
@@ -121,10 +121,10 @@ const condOk = (cond: string): boolean => cond.split("&&").every((part) => COND_
 // ── style ────────────────────────────────────────────────────────────────────────────────────────
 
 export function loadStyle(id: string): StyleDef {
-  const path = join(ENGINE_DIR, "styles", id, "style.json");
+  const path = join(LIBRARY_DIR, "styles", id, "style.json");
   if (!existsSync(path)) fail(`нет стиля ${path}`);
   const style = readJson<StyleDef>(path);
-  const bad = (msg: string): never => fail(`engine/styles/${id}/style.json: ${msg}`);
+  const bad = (msg: string): never => fail(`library/styles/${id}/style.json: ${msg}`);
   for (const key of ["colors", "tones", "fonts", "sizes", "captions", "grain", "vignette", "safeZone"] as const) {
     if (!style[key]) bad(`нет раздела ${key}`);
   }
@@ -138,7 +138,7 @@ export function loadStyle(id: string): StyleDef {
   }
   for (const [name, font] of Object.entries(style.fonts)) {
     for (const file of Object.values(font.files)) {
-      if (!existsSync(join(ENGINE_DIR, "assets", "fonts", file))) bad(`шрифт ${name}: нет файла engine/assets/fonts/${file}`);
+      if (!existsSync(join(LIBRARY_DIR, "assets", "fonts", file))) bad(`шрифт ${name}: нет файла library/assets/fonts/${file}`);
     }
   }
   return style;
@@ -211,7 +211,7 @@ export function substituteStyle(text: string, style: StyleDef, tone: Tone, where
 // ── scene definitions ────────────────────────────────────────────────────────────────────────────
 
 export function sceneIds(): string[] {
-  const root = join(ENGINE_DIR, "scenes");
+  const root = join(LIBRARY_DIR, "scenes");
   return readdirSync(root, { withFileTypes: true })
     .filter((d) => d.isDirectory() && existsSync(join(root, d.name, "scene.json")))
     .map((d) => d.name)
@@ -258,12 +258,12 @@ export function checkValue(def: ParamDef, value: unknown, where: string): void {
 }
 
 export function loadScene(id: string): SceneDef {
-  const dir = join(ENGINE_DIR, "scenes", id);
+  const dir = join(LIBRARY_DIR, "scenes", id);
   const path = join(dir, "scene.json");
-  if (!existsSync(path)) fail(`нет сцены engine/scenes/${id}/scene.json`);
-  if (!existsSync(join(dir, "scene.html"))) fail(`нет шаблона engine/scenes/${id}/scene.html`);
+  if (!existsSync(path)) fail(`нет сцены library/scenes/${id}/scene.json`);
+  if (!existsSync(join(dir, "scene.html"))) fail(`нет шаблона library/scenes/${id}/scene.html`);
   const s = readJson<SceneDef>(path);
-  const where = `engine/scenes/${id}/scene.json`;
+  const where = `library/scenes/${id}/scene.json`;
   const need = (cond: unknown, msg: string): void => {
     if (!cond) fail(`${where}: ${msg}`);
   };
@@ -312,7 +312,7 @@ export function loadScene(id: string): SceneDef {
 }
 
 export function sceneTemplate(id: string): string {
-  return readFileSync(join(ENGINE_DIR, "scenes", id, "scene.html"), "utf8");
+  return readFileSync(join(LIBRARY_DIR, "scenes", id, "scene.html"), "utf8");
 }
 
 // ── beat params ──────────────────────────────────────────────────────────────────────────────────
@@ -360,10 +360,10 @@ export interface MapSilhouette {
   fillRule: string;
 }
 
-/** Every licensed file has a complete record in its ledger: projects/<id>/media.json, library/music/music.json, engine/assets/media.json. */
+/** Every licensed file has a complete record in its ledger: projects/<id>/media.json, library/music/music.json, library/assets/media.json. */
 export function checkLicense(file: string, where: string): void {
   const at = ledgerOf(file);
-  if (!at) fail(`${where}: файл ${file} не лежит ни в проекте, ни в library/music, ни в engine/assets — нет записи о лицензии`);
+  if (!at) fail(`${where}: файл ${file} не лежит ни в проекте, ни в library/music, ни в library/assets — нет записи о лицензии`);
   const rec = mediaRecord(file);
   if (!rec) fail(`${where}: у файла ${basename(file)} нет записи в ${basename(at.path)} (ключ «${at.key}»)`);
   const miss = missingLicense(rec);
@@ -371,8 +371,8 @@ export function checkLicense(file: string, where: string): void {
 }
 
 export function loadMap(name: string, where: string): MapSilhouette {
-  const file = join(ENGINE_DIR, "assets", "maps", `${name}.svg`);
-  if (!existsSync(file)) fail(`${where}: нет силуэта engine/assets/maps/${name}.svg`);
+  const file = join(LIBRARY_DIR, "assets", "maps", `${name}.svg`);
+  if (!existsSync(file)) fail(`${where}: нет силуэта library/assets/maps/${name}.svg`);
   checkLicense(file, where);
   const svg = readFileSync(file, "utf8");
   const paths = (role: string): string[] =>
@@ -505,9 +505,9 @@ export function missingSources(spec: VideoSpec): string[] {
 
 export const LITERAL_COLOR_RE = /(?<![\w&$-])#(?:[0-9A-Fa-f]{3}|[0-9A-Fa-f]{4}|[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})(?![\w-])|\brgba?\(\s*\d/;
 
-/** Rules of engine/scenes/CONTRACT.md that can be checked on the template text. */
+/** Rules of library/scenes/CONTRACT.md that can be checked on the template text. */
 export function lintTemplate(id: string, html: string): void {
-  const where = `engine/scenes/${id}/scene.html`;
+  const where = `library/scenes/${id}/scene.html`;
   const need = (cond: unknown, msg: string): void => {
     if (!cond) fail(`${where}: ${msg}`);
   };
@@ -539,7 +539,7 @@ export interface RenderInput {
   style: StyleDef;
   tone: Tone;
   seed: number;
-  /** The warp helper (engine/scenes/_runtime/warp.js with knots filled in). */
+  /** The warp helper (library/scenes/_runtime/warp.js with knots filled in). */
   warpJs: string;
   /** Script the engine runs right before W.apply(tl): type presets and text parallax (engine/src/layers.ts). */
   inject?: string;
@@ -564,14 +564,14 @@ export function renderTemplate(template: string, input: RenderInput): string {
   html = html.replace(TOKEN_RE, (whole, kind: string, name: string | undefined) => {
     if (kind === "duration" && name === undefined) return String(input.duration);
     if (kind === "param" && name !== undefined) {
-      if (!(name in input.params)) fail(`engine/scenes/${input.sceneId}/scene.html: ${whole} — нет такого параметра`);
+      if (!(name in input.params)) fail(`library/scenes/${input.sceneId}/scene.html: ${whole} — нет такого параметра`);
       const v = input.params[name];
       return escapeHtml(typeof v === "string" ? v : JSON.stringify(v));
     }
     const value = styleToken(style, tone, kind, name);
-    if (value === undefined) fail(`engine/scenes/${input.sceneId}/scene.html: неизвестный токен ${whole}`);
+    if (value === undefined) fail(`library/scenes/${input.sceneId}/scene.html: неизвестный токен ${whole}`);
     return value;
   });
-  if (html.includes("{{hygen:")) fail(`engine/scenes/${input.sceneId}/scene.html: после подстановки остался плейсхолдер {{hygen:…}}`);
+  if (html.includes("{{hygen:")) fail(`library/scenes/${input.sceneId}/scene.html: после подстановки остался плейсхолдер {{hygen:…}}`);
   return html;
 }

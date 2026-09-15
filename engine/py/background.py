@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Media background of a beat — hygen engine (engine/scenes/CONTRACT.md, «Фон бита»).
+"""Media background of a beat — hygen engine (library/scenes/CONTRACT.md, «Фон бита»).
 
 A licensed photo or video is cropped to the 1080×1920 frame around its focus point and treated at build time,
 so the render only moves pixels (ken-burns, parallax) and never filters them per frame:

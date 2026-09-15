@@ -9,7 +9,7 @@ import { sceneEvents, warpHelper } from "./scenes.ts";
 import { makeGrain } from "./sound.ts";
 import type { BeatSpec, VideoSpec } from "./spec.ts";
 import type { TextureRef } from "./textures.ts";
-import { ENGINE_DIR, ROOT_DIR, copyInto, ensureDir, fail, hyperframesBin, log, python, r3, run, stripAnsi, writeJson } from "./lib/util.ts";
+import { LIBRARY_DIR, ROOT_DIR, copyInto, ensureDir, fail, hyperframesBin, log, python, r3, run, stripAnsi, writeJson } from "./lib/util.ts";
 
 /** Flags shared by every `npm run scene` preview: where it is built and whether it becomes an MP4. */
 export interface PreviewOutput {
@@ -159,8 +159,8 @@ export function previewScene(id: string, opts: PreviewOptions): boolean {
   const total = r3(D * beats.length);
   const spans = beats.map((beat, index) => ({ beat, index, start: r3(index * D) }));
   const knots = [...new Set([0, scene.ref.speechStart, scene.ref.speechEnd, D])].sort((a, b) => a - b);
-  copyInto(join(ENGINE_DIR, "assets", "fonts"), join(dir, "assets", "fonts"));
-  copyInto(join(ENGINE_DIR, "assets", "vendor"), join(dir, "assets", "vendor"));
+  copyInto(join(LIBRARY_DIR, "assets", "fonts"), join(dir, "assets", "fonts"));
+  copyInto(join(LIBRARY_DIR, "assets", "vendor"), join(dir, "assets", "vendor"));
   writeJson(join(dir, "hyperframes.json"), {
     $schema: "https://hyperframes.heygen.com/schema/hyperframes.json",
     paths: { blocks: "compositions", components: "compositions/components", assets: "assets" },

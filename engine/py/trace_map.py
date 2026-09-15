@@ -2,7 +2,7 @@
 """Coastline silhouette for the map-marker scene, traced from Natural Earth land polygons.
 
     python3 engine/py/trace_map.py ne_50m_land.geojson --lon -66 -37 --lat 36 54 \
-        --out engine/assets/maps/north-atlantic.svg --name "North Atlantic"
+        --out library/assets/maps/north-atlantic.svg --name "North Atlantic"
 
 Equirectangular projection of a lon/lat box onto the map window of the frame (x 60–1020, y 150–990).
 Keep the box aspect ≈ 960/840 after the cos(latitude) squeeze, or the land is stretched. Rings are
